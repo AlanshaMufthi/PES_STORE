@@ -1,0 +1,20 @@
+{
+  "name": "pes_store",
+  "version": "1.0.0",
+  "type":"module",
+  "description": "ecommerce project",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "author": "Alansha",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "mongodb": "^7.1.0",
+    "mongoose": "^9.2.4",
+    "nodemon": "^3.1.14"
+  }
+}
