@@ -126,6 +126,54 @@
 
     /* Coming soon italic */
     .coming-soon { font-style: italic; font-size: 0.85rem; color: #fff; }
+
+    /* ── Profile Dropdown ── */
+    .profile-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      min-width: 160px;
+      z-index: 100;
+      overflow: hidden;
+      display: none;
+    }
+    .profile-dropdown.open { display: block; }
+    .profile-dropdown a {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 16px; font-size: 0.82rem; font-weight: 600;
+      color: #111; text-decoration: none; transition: background 0.15s;
+    }
+    .profile-dropdown a:hover { background: #f5f5f5; }
+    .profile-dropdown a.logout { color: #e63946; }
+    .profile-dropdown a.logout:hover { background: #fff5f5; }
+    .profile-dropdown .divider { height: 1px; background: #eee; margin: 2px 0; }
+
+    /* ── Cart icon wrapper ── */
+    .cart-wrap { position: relative; display: flex; align-items: center; }
+    .cart-count {
+      position: absolute;
+      top: -7px; right: -7px;
+      background: #e63946; color: #fff;
+      font-size: 0.6rem; font-weight: 800;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+
+    /* ── Profile btn ── */
+    .icon-btn {
+      background: none; border: none; cursor: pointer;
+      padding: 4px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: #111; transition: background 0.15s;
+    }
+    .icon-btn:hover { background: #f3f3f3; }
+    .profile-wrap { position: relative; }
   </style>
 </head>
 <body class="bg-white text-gray-900">
@@ -138,9 +186,7 @@
       <a href="/" class="flex items-center gap-2">
         <svg width="44" height="50" viewBox="0 0 44 50" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M22 2L40 10V26C40 36.5 32 44.5 22 48C12 44.5 4 36.5 4 26V10L22 2Z" fill="white" stroke="black" stroke-width="2.5"/>
-          <!-- Crown -->
           <path d="M10 20L13 15L16 19L22 13L28 19L31 15L34 20H10Z" fill="black"/>
-          <!-- 2ES text -->
           <text x="22" y="34" text-anchor="middle" font-family="Cinzel,serif" font-size="9" font-weight="700" fill="black">2ES</text>
         </svg>
       </a>
@@ -155,11 +201,58 @@
         </div>
       </div>
 
-      <!-- Auth buttons -->
-      <div class="flex items-center gap-2">
-        <a href="/login" class="px-5 py-1.5 text-sm font-semibold text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition">Log in</a>
-        <a href="/signup" class="px-5 py-1.5 text-sm font-semibold text-white bg-gray-900 rounded-md hover:bg-gray-700 transition">Sign up</a>
+      <!-- ── CHANGED: Profile + Cart icons ── -->
+      <div class="flex items-center gap-3">
+
+        <!-- Cart Icon -->
+        <a href="/cart" class="cart-wrap icon-btn">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <%
+            /* Show badge only if cart has items */
+            const cartCount = typeof cart !== 'undefined' ? cart.length : 0;
+          %>
+          <% if (cartCount > 0) { %>
+            <span class="cart-count"><%= cartCount %></span>
+          <% } %>
+        </a>
+
+        <!-- Profile Icon with Dropdown -->
+        <div class="profile-wrap" id="profileWrap">
+          <button class="icon-btn" id="profileBtn" aria-label="Profile menu">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown -->
+          <div class="profile-dropdown" id="profileDropdown">
+            <a href="/profile">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Profile
+            </a>
+            <div class="divider"></div>
+            <a href="/logout" class="logout">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Logout
+            </a>
+          </div>
+        </div>
+
       </div>
+      <!-- ── END CHANGED ── -->
+
     </div>
 
     <!-- Nav Links -->
@@ -426,6 +519,26 @@
 
     </div>
   </footer>
+
+  <!-- ═══════════════ DROPDOWN JS ═══════════════ -->
+  <script>
+    const profileBtn = document.getElementById('profileBtn');
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileWrap = document.getElementById('profileWrap');
+
+    // Toggle dropdown on profile icon click
+    profileBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      profileDropdown.classList.toggle('open');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!profileWrap.contains(e.target)) {
+        profileDropdown.classList.remove('open');
+      }
+    });
+  </script>
 
 </body>
 </html>
