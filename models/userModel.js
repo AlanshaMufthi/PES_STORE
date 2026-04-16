@@ -43,9 +43,14 @@ const { Schema } = mongoose;
         type:Boolean,
         default:false
     },
+    profileImg:{
+        type:String,
+        default:'img/Solidão____.jpg'
+        
+    }
     // cart:[{
     //     type:Schema.Types.ObjectId,
-    //     ref:"cart"
+    //     ref:"Cart"
     // }],
     // wallet:{
     //     type:Number,
@@ -89,7 +94,7 @@ const { Schema } = mongoose;
     // }]
 
 
- })
+ },{timestamps:true})
 
 
 const User = mongoose.model('User',userSchema)

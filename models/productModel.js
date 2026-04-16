@@ -13,7 +13,7 @@ const productSchema = new Schema({
     },
     gender:{
         type:String,
-        enum:['Male','Female','Unisex','Gender'],
+        enum:['Male','Female','Unisex','Kids'],
         required:true
     },
     description:{
@@ -27,7 +27,7 @@ const productSchema = new Schema({
     },
     category:{
         type:Schema.Types.ObjectId,
-        ref:"category",
+        ref:"Category",
         required:true
     },
     productImage:{
@@ -46,7 +46,7 @@ const productSchema = new Schema({
          status:{
         type:String,
         enum:["onStock","outOfStock","archived"],
-        default:'active',
+        default:'onStock',
         required:true
         },
         stock:{
@@ -58,9 +58,20 @@ const productSchema = new Schema({
             type:Number,
             required:true
         },
-        productDiscountPrice:{
+        discountPercentage:{
+            type:Number,
+            min:0,
+            max:99,
+            default:0,
+            required:true
+        },
+        offerPrice:{
             type:Number,
             required:true
+        },
+        offerActive:{
+            type:Boolean,
+            default:false
         }
 
 
@@ -70,6 +81,6 @@ const productSchema = new Schema({
 },{timestamps:true})
 
 
-const product = mongoose.model('product',productSchema)
+const Product = mongoose.model('Product',productSchema)
 
-export default {product}
+export default Product

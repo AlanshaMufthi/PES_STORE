@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart – PES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Barlow', sans-serif; }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+  <%- include('../parials/user/header.ejs', { page: 'cart', searchQuery: '', cartCount }) %>
+
+  <main class="max-w-5xl mx-auto px-6 py-12">
+
+    <% if (!cartItems || cartItems.length === 0) { %>
+      <!-- Empty cart -->
+      <div class="text-center py-24">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto mb-5 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.39A1 1 0 007 21h10a1 1 0 00.99-.85L19 13M7 13H5.4M10 21a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2z"/>
+        </svg>
+        <p class="text-lg font-semibold text-gray-700 mb-2">Your cart is empty</p>
+        <p class="text-sm text-gray-400 mb-6">Looks like you haven't added anything yet.</p>
+        <a href="/shop" class="inline-block bg-black text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+          Shop Now
+        </a>
+      </div>
+
+    <% } else { %>
+
+      <!-- Cart Items -->
+      <div class="space-y-6 mb-10">
+        <% cartItems.forEach(item => { %>
+          <div id="cart-item-<%= item._id %>" class="flex items-start gap-5 pb-6 border-b border-gray-100">
+            <!-- Image -->
+            <a href="/product/<%= item.product._id %>" class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+              <img src="<%= item.product.productImage?.[0] %>" alt="<%= item.product.productname %>" class="w-full h-full object-contain p-2"/>
+            </a>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-2 flex-wrap">
+                <div>
+                  <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
+                    <%= item.product.productname %>
+                    <span class="font-normal text-xs text-<%= item.stockAvailable > 0 ? 'green' : 'red' %>-500 ml-2 normal-case">
+                      | <%= item.stockAvailable > 0 ? 'In Stock' : 'Out of Stock' %>
+                    </span>
+                  </p>
+                  <p class="text-xs text-gray-400 leading-relaxed max-w-xs"><%= item.product.brand %></p>
+                  <div class="flex items-center gap-3 mt-2">
+                    <span class="font-bold text-sm">₹<%= item.price.toLocaleString('en-IN') %></span>
+                    <% if (item.variant && item.variant.offerActive) { %>
+                      <span class="text-xs text-gray-400 line-through">₹<%= item.variant.productPrice.toLocaleString('en-IN') %></span>
+                    <% } %>
+                    <span class="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-lg"><%= item.size %></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quantity & Remove -->
+            <div class="flex flex-col items-end gap-3 flex-shrink-0">
+              <button
+                onclick="removeFromCart('<%= item._id %>')"
+                class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Remove
+              </button>
+              <div class="flex items-center gap-2 border border-gray-200 rounded-lg overflow-hidden">
+                <button onclick="updateQty('<%= item._id %>', -1)" class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm">−</button>
+                <span id="qty-<%= item._id %>" class="px-2 text-sm font-semibold min-w-[1.5rem] text-center"><%= item.quantity %></span>
+                <button onclick="updateQty('<%= item._id %>', 1)" class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm">+</button>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+      <!-- Cart Total -->
+      <div class="flex justify-center">
+        <div class="border border-gray-200 rounded-2xl p-6 w-full max-w-sm">
+          <h2 class="font-bold text-base mb-4">Cart Total</h2>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between pb-3 border-b border-gray-100">
+              <span class="text-gray-600">Subtotal:</span>
+              <span class="font-semibold" id="subtotalDisplay">₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
+            </div>
+            <div class="flex justify-between pb-3 border-b border-gray-100">
+              <span class="text-gray-600">Shipping:</span>
+              <span class="font-semibold text-green-600">Free</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-bold">Total:</span>
+              <span class="font-bold" id="totalDisplay">₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
+            </div>
+          </div>
+          <a href="/checkout" class="mt-6 block w-full bg-black text-white text-center py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+            Proceed to checkout
+          </a>
+        </div>
+      </div>
+
+    <% } %>
+
+  </main>
+
+  <%- include('../parials/user/footer.ejs') %>
+
+  <script>
+    async function removeFromCart(itemId) {
+      try {
+        const res = await fetch(`/cart/remove/${itemId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById(`cart-item-${itemId}`)?.remove();
+          showToast('Item removed');
+          updateTotals(data.subtotal);
+        }
+      } catch { showToast('Error removing item'); }
+    }
+
+    async function updateQty(itemId, delta) {
+      const el = document.getElementById(`qty-${itemId}`);
+      const newQty = Math.max(1, parseInt(el.textContent) + delta);
+      try {
+        const res = await fetch(`/cart/update/${itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: newQty })
+        });
+        const data = await res.json();
+        if (data.success) {
+          el.textContent = newQty;
+          updateTotals(data.subtotal);
+        }
+      } catch { showToast('Error updating quantity'); }
+    }
+
+    function updateTotals(subtotal) {
+      if (subtotal === undefined) return;
+      const fmt = '₹' + subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 });
+      const s = document.getElementById('subtotalDisplay');
+      const t = document.getElementById('totalDisplay');
+      if (s) s.textContent = fmt;
+      if (t) t.textContent = fmt;
+    }
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-6 right-6 bg-black text-white px-5 py-3 rounded-xl text-sm shadow-lg z-50';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2800);
+    }
+  </script>
+</body>
+</html>

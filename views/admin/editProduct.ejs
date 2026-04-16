@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Product | 2ES Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <style>
+    * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+    body { background: #f0f0f0; margin: 0; }
+    .topbar { background: #d4d4d4; height: 72px; display: flex; align-items: center; padding: 0 28px; gap: 20px; position: sticky; top: 0; z-index: 50; }
+    .topbar-logo img { width: 58px; height: 58px; object-fit: contain; }
+    .icon-circle { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .layout { display: flex; min-height: calc(100vh - 72px); }
+    .sidebar { width: 200px; flex-shrink: 0; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-radius: 10px; font-size: 0.97rem; font-weight: 600; color: #333; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(0,0,0,0.06); }
+    .nav-item.active { background: #e63946; color: #fff; }
+    .nav-item.active svg { stroke: #fff; }
+    .nav-item.signout { color: #e63946; }
+    .nav-item.signout svg { stroke: #e63946; }
+    .main { flex: 1; padding: 28px 28px 60px 20px; }
+    .form-card { background: #fff; border-radius: 14px; padding: 36px 40px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    .field-label { font-size: 0.88rem; font-weight: 700; color: #111; margin-bottom: 8px; display: block; }
+    .field-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.88rem; font-weight: 500; color: #333; font-family: 'Nunito', sans-serif; outline: none; transition: border-color 0.2s; background: #fff; }
+    .field-input:focus { border-color: #22c55e; }
+    .field-input.error { border-color: #e63946; }
+    .field-input::placeholder { color: #bbb; }
+    textarea.field-input { resize: none; height: 120px; }
+    .field-select { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.88rem; font-weight: 500; color: #333; font-family: 'Nunito', sans-serif; outline: none; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 14px center; cursor: pointer; transition: border-color 0.2s; }
+    .field-select:focus { border-color: #22c55e; }
+    .error-msg { font-size: 0.75rem; color: #e63946; font-weight: 600; margin-top: 4px; display: none; }
+    .error-msg.show { display: block; }
+    .img-slot { width: 120px; height: 120px; border-radius: 10px; border: 2px dashed #d1d5db; background: #f9fafb; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s; }
+    .img-slot:hover { border-color: #22c55e; }
+    .img-slot input[type="file"] { display: none; }
+    .img-slot .remove-btn { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: #e63946; border-radius: 50%; border: none; cursor: pointer; display: none; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; z-index: 2; }
+    .img-slot:hover .remove-btn { display: flex; }
+    .crop-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+    .crop-modal-overlay.open { display: flex; }
+    .crop-modal { background: #fff; border-radius: 14px; padding: 28px; width: 560px; max-width: 95vw; }
+    .crop-container { width: 100%; height: 340px; overflow: hidden; background: #000; border-radius: 8px; }
+    .crop-container img { max-width: 100%; display: block; }
+    .variant-card { border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; background: #fafafa; }
+    .variant-card-title { font-size: 0.95rem; font-weight: 800; color: #111; margin-bottom: 16px; }
+    .btn-save { background: #e63946; color: #fff; border: none; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
+    .btn-save:hover { background: #c0303b; }
+    .btn-cancel { background: #fff; color: #e63946; border: 2px solid #e63946; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; text-decoration: none; display: inline-block; }
+    .btn-cancel:hover { background: #fff5f5; }
+    /* Size chips for edit page variants */
+    .size-chip-edit { padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; border: 2px solid; }
+    /* Offer toggle row */
+    .offer-toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-top: 12px; }
+    .offer-toggle-label { font-size: 0.88rem; font-weight: 700; color: #92400e; }
+    .offer-toggle-sub { font-size: 0.75rem; color: #b45309; font-weight: 600; margin-top: 2px; }
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; border-radius: 999px; transition: background 0.25s; }
+    .toggle-track::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.25s; }
+    .toggle-switch input:checked + .toggle-track { background: #f59e0b; }
+    .toggle-switch input:checked + .toggle-track::before { transform: translateX(20px); }
+    .toggle-switch input:disabled + .toggle-track { opacity: 0.4; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-logo"><img src="/img/pes.logo.png" alt="2ES Logo" /></div>
+    <div class="icon-circle" style="overflow:hidden;margin-left:auto;">
+      <img src="/images/admin-avatar.jpg" alt="Admin" style="width:42px;height:42px;object-fit:cover;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="/admin/dashboard" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="/admin/orders" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Order</a>
+      <a href="/admin/products" class="nav-item active"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Products</a>
+      <a href="/admin/sales" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Sales report</a>
+      <a href="/admin/customers" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Customer</a>
+      <a href="/admin/coupons" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Coupon</a>
+      <a href="/admin/categories" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Category</a>
+      <a href="/admin/refunds" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Refund/Return</a>
+      <a href="/admin/logout" class="nav-item signout"><svg width="18" height="18" fill="none" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out</a>
+    </aside>
+
+    <main class="main">
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:14px 20px;margin-bottom:24px;font-size:0.88rem;font-weight:700;color:#b91c1c;">
+          <%= error %>
+        </div>
+      <% } %>
+
+      <h1 style="font-size:1.7rem;font-weight:900;color:#111;margin-bottom:28px;">Edit Product</h1>
+
+      <form id="editProductForm" action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
+
+        <div class="form-card">
+
+          <!-- Row 1: Name, Brand, Gender -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div>
+              <label class="field-label">Product Name</label>
+              <input type="text" name="name" id="name" class="field-input" value="<%= product.productname %>" placeholder="Product name" />
+              <p class="error-msg" id="nameErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Brand</label>
+              <select name="brand" id="brand" class="field-select">
+                <option value="">Select Brand</option>
+                <% ['Nike','Puma','Adidas','New Balance','Mizuno'].forEach(b => { %>
+                  <option value="<%= b %>" <%= product.brand === b ? 'selected' : '' %>><%= b %></option>
+                <% }) %>
+              </select>
+              <p class="error-msg" id="brandErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Gender</label>
+              <select name="gender" id="gender" class="field-select">
+                <option value="">Select Gender</option>
+                <% ['Male','Female','Unisex','Kids'].forEach(g => { %>
+                  <option value="<%= g %>" <%= product.gender === g ? 'selected' : '' %>><%= g %></option>
+                <% }) %>
+              </select>
+              <p class="error-msg" id="genderErr"></p>
+            </div>
+          </div>
+
+          <!-- Row 2: Category, Collection, Images -->
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div>
+              <label class="field-label">Category</label>
+              <select name="category" id="category" class="field-select">
+                <option value="">Select Category</option>
+                <% if (typeof categories !== 'undefined') { %>
+                  <% categories.forEach(cat => { %>
+                    <option value="<%= cat._id %>"
+                      <%= product.category && product.category._id && product.category._id.toString() === cat._id.toString() ? 'selected' : '' %>>
+                      <%= cat.name %>
+                    </option>
+                  <% }) %>
+                <% } %>
+              </select>
+              <p class="error-msg" id="categoryErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Collection</label>
+              <select name="collection" id="collection" class="field-select">
+                <option value="">Select Collection</option>
+                <% ['Retro','Limited Edition','Latest','Signature'].forEach(c => { %>
+                  <option value="<%= c %>" <%= product.collection === c ? 'selected' : '' %>><%= c %></option>
+                <% }) %>
+              </select>
+              <p class="error-msg" id="collectionErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Upload Images <span style="color:#e63946;font-size:0.78rem;">(min 3)</span></label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <% for(let i = 0; i < 3; i++) { %>
+                <div class="img-slot" id="slot-<%= i %>" onclick="triggerFileInput(<%= i %>)">
+                  <input type="file" id="fileInput-<%= i %>" name="productImages" accept="image/*" onchange="handleFileSelect(event, <%= i %>)" />
+                  <img id="preview-<%= i %>"
+                    src="<%= product.productImage && product.productImage[i] ? product.productImage[i] : '' %>"
+                    alt=""
+                    style="display:<%= product.productImage && product.productImage[i] ? 'block' : 'none' %>;width:100%;height:100%;object-fit:cover;border-radius:8px;" />
+                  <div id="placeholder-<%= i %>"
+                    style="display:<%= product.productImage && product.productImage[i] ? 'none' : 'flex' %>;flex-direction:column;align-items:center;justify-content:center;">
+                    <svg width="28" height="28" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span style="font-size:0.7rem;color:#bbb;margin-top:4px;font-weight:600;">Add photo</span>
+                  </div>
+                  <button type="button" class="remove-btn" id="removeBtn-<%= i %>"
+                    style="display:<%= product.productImage && product.productImage[i] ? 'flex' : 'none' %>;"
+                    onclick="removeImage(event, <%= i %>)">✕</button>
+                </div>
+                <% } %>
+              </div>
+              <p class="error-msg" id="imgErr"></p>
+              <!-- Keep existing image URLs so the server knows what to preserve -->
+              <input type="hidden" name="existingImage0" id="existingImage0" value="<%= product.productImage && product.productImage[0] ? product.productImage[0] : '' %>" />
+              <input type="hidden" name="existingImage1" id="existingImage1" value="<%= product.productImage && product.productImage[1] ? product.productImage[1] : '' %>" />
+              <input type="hidden" name="existingImage2" id="existingImage2" value="<%= product.productImage && product.productImage[2] ? product.productImage[2] : '' %>" />
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div style="margin-bottom:28px;">
+            <label class="field-label">Product Description</label>
+            <textarea name="description" id="description" class="field-input"><%= product.description %></textarea>
+            <p class="error-msg" id="descErr"></p>
+          </div>
+
+          <!-- Variants — pre-filled, editable inline -->
+          <div>
+            <h2 style="font-size:1.1rem;font-weight:800;color:#111;margin-bottom:16px;">Variants</h2>
+
+            <% if (product.variants && product.variants.length > 0) { %>
+              <% product.variants.forEach((variant, i) => { %>
+              <%
+                const hasDiscount = variant.discountPercentage > 0
+              %>
+              <div class="variant-card">
+                <div class="variant-card-title">
+                  Variant <%= i + 1 %>
+                  <% if (variant.offerActive) { %>
+                    <span style="background:#fef3c7;color:#b45309;font-size:0.72rem;font-weight:800;border-radius:4px;padding:2px 7px;margin-left:6px;">OFFER ON</span>
+                  <% } %>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+                  <!-- Sizes -->
+                  <div>
+                    <label class="field-label">Sizes</label>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                      <% const allSizes = ['4','5','6','7','8','9','10','11','12'] %>
+                      <% allSizes.forEach(s => { %>
+                        <span onclick="toggleVariantSize(this, '<%= i %>')"
+                          data-size="<%= s %>"
+                          class="size-chip-edit"
+                          style="<%= variant.size && variant.size.includes(s) ? 'background:#1e40af;border-color:#1e40af;color:#fff;' : 'background:#fff;border-color:#e5e7eb;color:#555;' %>">
+                          <%= s %>
+                        </span>
+                      <% }) %>
+                    </div>
+                    <input type="hidden" name="variants[<%= i %>][sizes]" id="variantSizes-<%= i %>"
+                      value="<%= variant.size ? variant.size.join(',') : '' %>" />
+                  </div>
+                  <!-- Status -->
+                  <div>
+                    <label class="field-label">Visibility Status</label>
+                    <select name="variants[<%= i %>][status]" class="field-select">
+                      <% ['onStock','outOfStock','archived'].forEach(st => { %>
+                        <option value="<%= st %>" <%= variant.status === st ? 'selected' : '' %>>
+                          <%= st === 'onStock' ? 'On Stock' : st === 'outOfStock' ? 'Out of Stock' : 'Archived' %>
+                        </option>
+                      <% }) %>
+                    </select>
+                  </div>
+                  <!-- Stock -->
+                  <div>
+                    <label class="field-label">Stock</label>
+                    <input type="number" name="variants[<%= i %>][stock]" class="field-input"
+                      value="<%= variant.stock || 0 %>" min="0" max="50" />
+                  </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:8px;">
+                  <div>
+                    <label class="field-label">Base Price (₹)</label>
+                    <input type="number" name="variants[<%= i %>][basePrice]" class="field-input"
+                      id="basePrice-<%= i %>"
+                      value="<%= variant.productPrice || '' %>" min="1"
+                      oninput="recalcOfferPreview(<%= i %>)" />
+                  </div>
+                  <div>
+                    <label class="field-label">Discount %</label>
+                    <input type="number" name="variants[<%= i %>][discountPercentage]" class="field-input"
+                      id="discountPct-<%= i %>"
+                      value="<%= variant.discountPercentage || 0 %>" min="0" max="99"
+                      oninput="recalcOfferPreview(<%= i %>)" />
+                  </div>
+                  <div>
+                    <label class="field-label">Offer Price</label>
+                    <div id="offerPriceDisplay-<%= i %>"
+                      style="font-size:0.88rem;font-weight:700;padding-top:14px;
+                        color:<%= hasDiscount ? '#15803d' : '#9ca3af' %>;">
+                      <% if (hasDiscount) { %>₹<%= variant.offerPrice %><% } else { %>No discount<% } %>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Offer active toggle -->
+                <div class="offer-toggle-row">
+                  <div>
+                    <div class="offer-toggle-label">Offer Active</div>
+                    <div class="offer-toggle-sub" id="offerSub-<%= i %>">
+                      <% if (!hasDiscount) { %>Set a discount % to enable<% } else { %>Toggle to activate offer price<% } %>
+                    </div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox"
+                      id="offerActive-<%= i %>"
+                      <%= variant.offerActive ? 'checked' : '' %>
+                      <%= !hasDiscount ? 'disabled' : '' %> />
+                    <span class="toggle-track"></span>
+                  </label>
+                  <!-- Hidden field that actually gets submitted -->
+                  <input type="hidden" name="variants[<%= i %>][offerActive]"
+                    id="offerActiveHidden-<%= i %>"
+                    value="<%= variant.offerActive ? 'true' : 'false' %>" />
+                </div>
+
+              </div>
+              <% }) %>
+            <% } else { %>
+              <p style="color:#9ca3af;font-size:0.88rem;font-weight:600;">No variants found for this product.</p>
+            <% } %>
+          </div>
+
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:16px;margin-top:28px;">
+          <a href="/admin/products" class="btn-cancel">Cancel</a>
+          <button type="submit" class="btn-save">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display:inline;margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save
+          </button>
+        </div>
+
+      </form>
+    </main>
+  </div>
+
+  <!-- CROP MODAL -->
+  <div class="crop-modal-overlay" id="cropModalOverlay">
+    <div class="crop-modal">
+      <h3 style="font-size:1rem;font-weight:800;color:#111;margin-bottom:16px;">Crop Image</h3>
+      <div class="crop-container"><img id="cropImage" src="" alt="Crop" /></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;">
+        <button type="button" onclick="cancelCrop()" style="background:#fff;border:2px solid #e5e7eb;border-radius:8px;padding:9px 22px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Cancel</button>
+        <button type="button" onclick="applyCrop()" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Crop & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Cropper ───────────────────────────────────────────────────────────────
+    let cropperInstance = null, currentSlotIndex = null
+
+    function triggerFileInput(i) { document.getElementById(`fileInput-${i}`).click() }
+
+    function handleFileSelect(event, index) {
+      const file = event.target.files[0]
+      if (!file) return
+      currentSlotIndex = index
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const cropImg = document.getElementById('cropImage')
+        cropImg.src = e.target.result
+        document.getElementById('cropModalOverlay').classList.add('open')
+        if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
+        cropperInstance = new Cropper(cropImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.9 })
+      }
+      reader.readAsDataURL(file)
+      event.target.value = ''
+    }
+
+    function applyCrop() {
+      if (!cropperInstance) return
+      const idx = currentSlotIndex
+      cropperInstance.getCroppedCanvas({ width: 600, height: 600 }).toBlob(blob => {
+        const preview = document.getElementById(`preview-${idx}`)
+        preview.src = URL.createObjectURL(blob)
+        preview.style.display = 'block'
+        document.getElementById(`placeholder-${idx}`).style.display = 'none'
+        document.getElementById(`removeBtn-${idx}`).style.display = 'flex'
+        // Put the cropped file into the file input
+        const dt = new DataTransfer()
+        dt.items.add(new File([blob], `product_image_${idx}.jpg`, { type: 'image/jpeg' }))
+        document.getElementById(`fileInput-${idx}`).files = dt.files
+        // Clear existing URL so server knows this slot has a new file
+        document.getElementById(`existingImage${idx}`).value = ''
+        closeCropModal()
+      }, 'image/jpeg', 0.9)
+    }
+
+    function cancelCrop() { document.getElementById(`fileInput-${currentSlotIndex}`).value = ''; closeCropModal() }
+    function closeCropModal() {
+      document.getElementById('cropModalOverlay').classList.remove('open')
+      if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
+    }
+    function removeImage(event, index) {
+      event.stopPropagation()
+      document.getElementById(`preview-${index}`).style.display = 'none'
+      document.getElementById(`preview-${index}`).src = ''
+      document.getElementById(`placeholder-${index}`).style.display = 'flex'
+      document.getElementById(`removeBtn-${index}`).style.display = 'none'
+      document.getElementById(`fileInput-${index}`).value = ''
+      document.getElementById(`existingImage${index}`).value = ''
+    }
+
+    // ── Variant size toggle (edit page) ───────────────────────────────────────
+    function toggleVariantSize(el, variantIndex) {
+      const isSelected = el.style.background === 'rgb(30, 64, 175)'
+      if (isSelected) {
+        el.style.background = '#fff'; el.style.borderColor = '#e5e7eb'; el.style.color = '#555'
+      } else {
+        el.style.background = '#1e40af'; el.style.borderColor = '#1e40af'; el.style.color = '#fff'
+      }
+      const container   = el.closest('.variant-card')
+      const allSelected = [...container.querySelectorAll('[data-size]')]
+        .filter(s => s.style.background === 'rgb(30, 64, 175)')
+        .map(s => s.dataset.size)
+      document.getElementById(`variantSizes-${variantIndex}`).value = allSelected.join(',')
+    }
+
+    // ── Recalculate offer price display when base/discount changes ────────────
+    function recalcOfferPreview(i) {
+      const base    = parseFloat(document.getElementById(`basePrice-${i}`).value) || 0
+      const pct     = parseFloat(document.getElementById(`discountPct-${i}`).value) || 0
+      const display = document.getElementById(`offerPriceDisplay-${i}`)
+      const toggle  = document.getElementById(`offerActive-${i}`)
+      const sub     = document.getElementById(`offerSub-${i}`)
+
+      if (base > 0 && pct > 0) {
+        const offer = (base - base * pct / 100).toFixed(2)
+        display.textContent = `₹${offer}`
+        display.style.color = '#15803d'
+        toggle.disabled = false
+        sub.textContent = 'Toggle to activate offer price'
+      } else {
+        display.textContent = 'No discount'
+        display.style.color = '#9ca3af'
+        toggle.disabled = true
+        toggle.checked  = false
+        document.getElementById(`offerActiveHidden-${i}`).value = 'false'
+        sub.textContent = 'Set a discount % to enable'
+      }
+    }
+
+    // Sync hidden field when toggle changes
+    document.querySelectorAll('[id^="offerActive-"]').forEach(toggle => {
+      toggle.addEventListener('change', function() {
+        const i = this.id.replace('offerActive-', '')
+        document.getElementById(`offerActiveHidden-${i}`).value = this.checked ? 'true' : 'false'
+      })
+    })
+
+    // ── Form validation ───────────────────────────────────────────────────────
+    document.getElementById('editProductForm').addEventListener('submit', function(e) {
+      let valid = true
+
+      ;[['name','nameErr','Product name is required'],['brand','brandErr','Please select a brand'],
+        ['gender','genderErr','Please select a gender'],['category','categoryErr','Please select a category'],
+        ['collection','collectionErr','Please select a collection'],['description','descErr','Please enter a description']
+      ].forEach(([id, errId, msg]) => {
+        const val = document.getElementById(id).value.trim()
+        if (!val) { showErr(errId, msg); valid = false } else hideErr(errId)
+      })
+
+      const filledImages = [0,1,2].filter(i =>
+        document.getElementById(`fileInput-${i}`).files.length > 0 ||
+        document.getElementById(`existingImage${i}`).value.trim()
+      )
+      if (filledImages.length < 3) { showErr('imgErr', 'Please ensure at least 3 images are uploaded'); valid = false } else hideErr('imgErr')
+
+      if (!valid) e.preventDefault()
+    })
+
+    function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
+    function hideErr(id)      { const el = document.getElementById(id); if (el) el.classList.remove('show') }
+  </script>
+</body>
+</html>

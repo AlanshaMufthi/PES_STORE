@@ -3,7 +3,7 @@ const { Schema } = mongoose
 
 const addressSchema = new Schema({
     userId:{
-        type:Schema.Type.userId,
+        type:Schema.Types.ObjectId,
         ref:"user",
         required:true
     },
@@ -14,11 +14,11 @@ const addressSchema = new Schema({
             default:'Home',
             required:true
         },
-        firstname:{
+        firstName:{
             type:String,
             required:true
         },
-        lastname:{
+        lastName:{
             type:String,
             required:true
         },
@@ -44,13 +44,17 @@ const addressSchema = new Schema({
         pincode:{
             type:String,
             required:true
+        },
+        isPrimary:{
+            type:Boolean,
+            default:false
         }
 
 
     }]
 })
 
-const address = mongoose.model("address",addressSchema)
+const Address = mongoose.model("address",addressSchema)
 
 
-export default {address}
+export default  Address

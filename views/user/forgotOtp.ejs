@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OTP Verification</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+body{
+    background-image:url('/images/bg.jpg');
+    background-size:cover;
+    background-position:center;
+    height:100vh;
+}
+.glass{
+    backdrop-filter: blur(25px);
+    background: rgba(255,255,255,0.2);
+}
+</style>
+
+</head>
+
+<body class="flex items-center justify-center">
+
+<div class="glass w-[900px] h-[450px] rounded-3xl shadow-xl flex">
+
+    <!-- LEFT SIDE -->
+    <div class="w-1/2 flex items-center justify-center">
+        <img src="/img/pes.logo.png" class="w-40">
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="w-1/2 flex flex-col justify-center px-10">
+
+        <h1 class="text-3xl font-semibold mb-2">Enter the OTP</h1>
+
+        <p class="text-gray-700 text-sm mb-6">
+        The OTP has been sent to your registered email
+        </p>
+
+        <!-- ✅ Fixed: id changed from "forgotOtp" to "otpForm" -->
+        <form id="otpForm">
+
+            <input
+            type="text"
+            id="otp"
+            name="otp"
+            placeholder="Enter the otp"
+            required
+            class="w-full border-b border-gray-400 bg-transparent outline-none py-2 mb-3"
+            >
+
+            <p id="timer" class="text-sm text-gray-600 mb-4">
+            1 : 00 seconds remaining
+            </p>
+
+            <div class="flex justify-between items-center mb-8">
+
+                <button
+                id="resendBtn"
+                type="button"
+                disabled
+                class="bg-black text-white px-4 py-2 text-sm rounded opacity-50 cursor-not-allowed"
+                >
+                Resend OTP
+                </button>
+
+            </div>
+
+            <button
+            type="submit"
+            class="bg-black text-white px-10 py-3 w-full rounded"
+            >
+            Verify
+            </button>
+
+        </form>
+
+        <a href="/login" class="text-sm mt-4 text-gray-700">
+        Back to Login
+        </a>
+
+    </div>
+
+</div>
+
+
+<script>
+
+// ✅ Fixed: was "otpForm" listener on form with id="forgotOtp" — now both match
+document.getElementById("otpForm").addEventListener("submit", async function(e){
+
+    e.preventDefault()
+
+    const otp = document.getElementById("otp").value
+
+    const response = await fetch("/forgotOtp", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ otp })
+    })
+
+    const data = await response.json()
+
+    if(data.success){
+
+        Swal.fire({
+            icon: 'success',
+            title: 'OTP Verified',
+            text: 'Redirecting to reset password...',
+            confirmButtonColor: '#000'
+        }).then(() => {
+            window.location.href = data.redirectUrl
+        })
+
+    } else {
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid OTP',
+            text: data.message,
+            confirmButtonColor: '#000'
+        })
+
+    }
+
+})
+
+
+// TIMER FUNCTION
+let timeLeft = 60
+let countdown
+
+const timer = document.getElementById("timer")
+const resendBtn = document.getElementById("resendBtn")
+
+function startTimer(){
+
+    timeLeft = 60
+
+    resendBtn.disabled = true
+    resendBtn.classList.add("opacity-50", "cursor-not-allowed")
+
+    countdown = setInterval(() => {
+
+        let seconds = timeLeft < 10 ? "0" + timeLeft : timeLeft
+
+        timer.innerText = `0 : ${seconds} seconds remaining`
+
+        timeLeft--
+
+        if(timeLeft < 0){
+
+            clearInterval(countdown)
+
+            timer.innerText = "OTP expired"
+
+            resendBtn.disabled = false
+            resendBtn.classList.remove("opacity-50", "cursor-not-allowed")
+
+        }
+
+    }, 1000)
+
+}
+
+startTimer()
+
+
+// ✅ Fixed: was calling "/resendOtp" — corrected to "/resendForgotOtp"
+resendBtn.addEventListener("click", async function(){
+
+    try {
+
+        const response = await fetch("/resendForgotOtp", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+
+        const data = await response.json()
+
+        if(data.success){
+
+            Swal.fire({
+                icon: 'success',
+                title: 'OTP Resent',
+                text: data.message,
+                confirmButtonColor: '#000'
+            })
+
+            clearInterval(countdown)
+            startTimer()
+
+        } else {
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message
+            })
+
+        }
+
+    } catch(error) {
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Server Error',
+            text: 'Something went wrong'
+        })
+
+    }
+
+})
+
+</script>
+
+</body>
+</html>

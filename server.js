@@ -10,6 +10,8 @@ import userRoutes from './routes/userRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import session from 'express-session'
 import passport from './config/passport.js'
+import nochache from 'nocache'
+import attachCartCount from './middlewares/cartCount.js';
 
 
 app.use(session({
@@ -28,13 +30,16 @@ app.set('view engine','ejs')
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 app.set('views',[path.join(__dirname,'views/user'),path.join(__dirname,'views/admin')])
-
 app.use(express.static(path.join(__dirname,'public')))
 
-app.use('/',userRoutes);
-app.use('/admin',adminRoutes);
+
 app.use(passport.initialize())
 app.use(passport.session())
+app.use('/',userRoutes);
+app.use('/admin',adminRoutes);
+app.use(attachCartCount)
+app.use(nochache())
+
 
 app.listen(process.env.PORT,()=>{
     console.log(`server runnning on http://localhost:${process.env.PORT}`)

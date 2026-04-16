@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Product | 2ES Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <style>
+    * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+    body { background: #f0f0f0; margin: 0; }
+    .topbar { background: #d4d4d4; height: 72px; display: flex; align-items: center; padding: 0 28px; gap: 20px; position: sticky; top: 0; z-index: 50; }
+    .topbar-logo img { width: 58px; height: 58px; object-fit: contain; }
+    .icon-circle { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .layout { display: flex; min-height: calc(100vh - 72px); }
+    .sidebar { width: 200px; flex-shrink: 0; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-radius: 10px; font-size: 0.97rem; font-weight: 600; color: #333; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(0,0,0,0.06); }
+    .nav-item.active { background: #e63946; color: #fff; }
+    .nav-item.active svg { stroke: #fff; }
+    .nav-item.signout { color: #e63946; }
+    .nav-item.signout svg { stroke: #e63946; }
+    .main { flex: 1; padding: 28px 28px 60px 20px; }
+    .form-card { background: #fff; border-radius: 14px; padding: 36px 40px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    .field-label { font-size: 0.88rem; font-weight: 700; color: #111; margin-bottom: 8px; display: block; }
+    .field-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.88rem; font-weight: 500; color: #333; font-family: 'Nunito', sans-serif; outline: none; transition: border-color 0.2s; background: #fff; }
+    .field-input:focus { border-color: #22c55e; }
+    .field-input.error { border-color: #e63946; }
+    .field-input::placeholder { color: #bbb; }
+    textarea.field-input { resize: none; height: 120px; }
+    .field-select { width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.88rem; font-weight: 500; color: #333; font-family: 'Nunito', sans-serif; outline: none; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 14px center; cursor: pointer; transition: border-color 0.2s; }
+    .field-select:focus { border-color: #22c55e; }
+    .error-msg { font-size: 0.75rem; color: #e63946; font-weight: 600; margin-top: 4px; display: none; }
+    .error-msg.show { display: block; }
+    .img-slot { width: 120px; height: 120px; border-radius: 10px; border: 2px dashed #d1d5db; background: #f9fafb; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; transition: border-color 0.2s; }
+    .img-slot:hover { border-color: #22c55e; }
+    .img-slot input[type="file"] { display: none; }
+    .img-slot .remove-btn { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: #e63946; border-radius: 50%; border: none; cursor: pointer; display: none; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; z-index: 2; }
+    .img-slot:hover .remove-btn { display: flex; }
+    .crop-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+    .crop-modal-overlay.open { display: flex; }
+    .crop-modal { background: #fff; border-radius: 14px; padding: 28px; width: 560px; max-width: 95vw; }
+    .crop-container { width: 100%; height: 340px; overflow: hidden; background: #000; border-radius: 8px; }
+    .crop-container img { max-width: 100%; display: block; }
+    .variant-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+    .variant-modal-overlay.open { display: flex; }
+    .variant-modal { background: #fff; border-radius: 14px; padding: 32px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+    .size-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .size-chip { padding: 7px 16px; border-radius: 8px; border: 2px solid #e5e7eb; font-size: 0.88rem; font-weight: 700; cursor: pointer; background: #fff; color: #333; transition: all 0.15s; }
+    .size-chip.selected { background: #1e40af; border-color: #1e40af; color: #fff; }
+    .size-chip.used { background: #f3f4f6; border-color: #d1d5db; color: #9ca3af; cursor: not-allowed; }
+    .variant-card { border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; position: relative; background: #fafafa; }
+    .variant-card-title { font-size: 0.95rem; font-weight: 800; color: #111; margin-bottom: 16px; }
+    .remove-variant-btn { position: absolute; top: 16px; right: 16px; background: #fee2e2; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; color: #e63946; cursor: pointer; }
+    .remove-variant-btn:hover { background: #fecaca; }
+    .edit-variant-btn { position: absolute; top: 16px; right: 86px; background: #eff6ff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; color: #1d4ed8; cursor: pointer; }
+    .edit-variant-btn:hover { background: #dbeafe; }
+    .btn-add-variant { display: flex; align-items: center; gap: 8px; background: #4f46e5; color: #fff; border: none; border-radius: 10px; padding: 11px 22px; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
+    .btn-add-variant:hover { background: #4338ca; }
+    .btn-save { background: #e63946; color: #fff; border: none; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
+    .btn-save:hover { background: #c0303b; }
+    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-cancel { background: #fff; color: #e63946; border: 2px solid #e63946; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; text-decoration: none; display: inline-block; }
+    .btn-cancel:hover { background: #fff5f5; }
+    .offer-price-display { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; font-weight: 700; color: #15803d; margin-top: 8px; display: none; }
+    .offer-price-display.show { display: block; }
+    /* Offer toggle row in modal */
+    .offer-toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-top: 4px; }
+    .offer-toggle-label { font-size: 0.88rem; font-weight: 700; color: #92400e; }
+    .offer-toggle-sub { font-size: 0.75rem; color: #b45309; font-weight: 600; margin-top: 2px; }
+    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; border-radius: 999px; transition: background 0.25s; }
+    .toggle-track::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.25s; }
+    .toggle-switch input:checked + .toggle-track { background: #f59e0b; }
+    .toggle-switch input:checked + .toggle-track::before { transform: translateX(20px); }
+    .toggle-switch input:disabled + .toggle-track { opacity: 0.4; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-logo"><img src="/img/pes.logo.png" alt="2ES Logo" /></div>
+    <div class="icon-circle" style="overflow:hidden;margin-left:auto;">
+      <img src="/images/admin-avatar.jpg" alt="Admin" style="width:42px;height:42px;object-fit:cover;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="/admin/dashboard" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="/admin/orders" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Order</a>
+      <a href="/admin/products" class="nav-item active"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Products</a>
+      <a href="/admin/sales" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Sales report</a>
+      <a href="/admin/customers" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Customer</a>
+      <a href="/admin/coupons" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Coupon</a>
+      <a href="/admin/categories" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Category</a>
+      <a href="/admin/refunds" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Refund/Return</a>
+      <a href="/admin/logout" class="nav-item signout"><svg width="18" height="18" fill="none" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out</a>
+    </aside>
+
+    <main class="main">
+      <h1 style="font-size:1.7rem;font-weight:900;color:#111;margin-bottom:28px;">Add new Product</h1>
+
+      <div id="generalError" style="display:none;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:14px 20px;margin-bottom:24px;font-size:0.88rem;font-weight:700;color:#b91c1c;"></div>
+
+      <form id="addProductForm" novalidate enctype="multipart/form-data">
+        <div class="form-card">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div>
+              <label class="field-label">Product Name</label>
+              <input type="text" name="name" id="name" class="field-input" placeholder="Product name" />
+              <p class="error-msg" id="nameErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Brand</label>
+              <select name="brand" id="brand" class="field-select">
+                <option value="">Select Brand</option>
+                <option value="Nike">Nike</option><option value="Puma">Puma</option>
+                <option value="Adidas">Adidas</option><option value="New Balance">New Balance</option>
+                <option value="Mizuno">Mizuno</option>
+              </select>
+              <p class="error-msg" id="brandErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Gender</label>
+              <select name="gender" id="gender" class="field-select">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option><option value="Female">Female</option>
+                <option value="Unisex">Unisex</option><option value="Kids">Kids</option>
+              </select>
+              <p class="error-msg" id="genderErr"></p>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:20px;">
+            <div>
+              <label class="field-label">Category</label>
+              <select name="category" id="category" class="field-select">
+                <option value="">Select Category</option>
+                <% if (typeof categories !== 'undefined') { %>
+                  <% categories.forEach(cat => { %><option value="<%= cat._id %>"><%= cat.name %></option><% }) %>
+                <% } %>
+              </select>
+              <p class="error-msg" id="categoryErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Collection</label>
+              <select name="collection" id="collection" class="field-select">
+                <option value="">Select Collection</option>
+                <option value="Retro">Retro</option><option value="Limited Edition">Limited Edition</option>
+                <option value="Latest">Latest</option><option value="Signature">Signature</option>
+              </select>
+              <p class="error-msg" id="collectionErr"></p>
+            </div>
+            <div>
+              <label class="field-label">Upload Images <span style="color:#e63946;font-size:0.78rem;">(min 3)</span></label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <% for(let i = 0; i < 3; i++) { %>
+                <div class="img-slot" id="slot-<%= i %>" onclick="triggerFileInput(<%= i %>)">
+                  <input type="file" id="fileInput-<%= i %>" name="productImages" accept="image/*" onchange="handleFileSelect(event, <%= i %>)" />
+                  <img id="preview-<%= i %>" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:8px;" />
+                  <div id="placeholder-<%= i %>" style="display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                    <svg width="28" height="28" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span style="font-size:0.7rem;color:#bbb;margin-top:4px;font-weight:600;">Add photo</span>
+                  </div>
+                  <button type="button" class="remove-btn" id="removeBtn-<%= i %>" onclick="removeImage(event, <%= i %>)">✕</button>
+                </div>
+                <% } %>
+              </div>
+              <p class="error-msg" id="imgErr"></p>
+            </div>
+          </div>
+
+          <div style="margin-bottom:28px;">
+            <label class="field-label">Product Description</label>
+            <textarea name="description" id="description" class="field-input" placeholder="Write your description here..."></textarea>
+            <p class="error-msg" id="descErr"></p>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <h2 style="font-size:1.1rem;font-weight:800;color:#111;">Variants</h2>
+            <button type="button" class="btn-add-variant" onclick="openVariantModal()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Add Variant
+            </button>
+          </div>
+          <div id="variantsContainer"></div>
+          <p class="error-msg" id="variantErr"></p>
+        </div>
+
+        <div style="display:flex;justify-content:center;gap:16px;margin-top:28px;">
+          <a href="/admin/products" class="btn-cancel">Cancel</a>
+          <button type="submit" id="saveBtn" class="btn-save">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="display:inline;margin-right:6px;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <!-- CROP MODAL -->
+  <div class="crop-modal-overlay" id="cropModalOverlay">
+    <div class="crop-modal">
+      <h3 style="font-size:1rem;font-weight:800;color:#111;margin-bottom:16px;">Crop Image</h3>
+      <div class="crop-container"><img id="cropImage" src="" alt="Crop" /></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;">
+        <button type="button" onclick="cancelCrop()" style="background:#fff;border:2px solid #e5e7eb;border-radius:8px;padding:9px 22px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Cancel</button>
+        <button type="button" onclick="applyCrop()" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Crop & Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VARIANT MODAL -->
+  <div class="variant-modal-overlay" id="variantModalOverlay">
+    <div class="variant-modal">
+      <h3 style="font-size:1.1rem;font-weight:800;color:#111;margin-bottom:20px;" id="variantModalTitle">Add Variant</h3>
+
+      <div style="margin-bottom:20px;">
+        <label class="field-label">Select Sizes <span style="color:#888;font-size:0.75rem;">(grey = already used)</span></label>
+        <div class="size-grid" id="sizeGrid">
+          <% [4,5,6,7,8,9,10,11,12].forEach(s => { %>
+            <div class="size-chip" data-size="<%= s %>" onclick="toggleSize(this)"><%= s %></div>
+          <% }) %>
+        </div>
+        <p class="error-msg" id="sizeErr"></p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div>
+          <label class="field-label">Visibility Status</label>
+          <select id="variantStatus" class="field-select">
+            <option value="onStock">On Stock</option>
+            <option value="outOfStock">Out of Stock</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Stock <span style="color:#888;font-size:0.75rem;">(max 50)</span></label>
+          <input type="number" id="variantStock" class="field-input" placeholder="0" min="0" max="50" value="5" />
+          <p class="error-msg" id="stockErr"></p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div>
+          <label class="field-label">Base Price (₹)</label>
+          <input type="number" id="variantBasePrice" class="field-input" placeholder="1399" min="1" oninput="calcOfferPrice()" />
+          <p class="error-msg" id="basePriceErr"></p>
+        </div>
+        <div>
+          <label class="field-label">Discount % <span style="color:#888;font-size:0.75rem;">(0 = none)</span></label>
+          <input type="number" id="variantDiscountPct" class="field-input" placeholder="10" min="0" max="99" value="0" oninput="calcOfferPrice()" />
+          <p class="error-msg" id="discountPctErr"></p>
+        </div>
+      </div>
+
+      <div class="offer-price-display" id="offerPricePreview"></div>
+
+      <!-- Offer active toggle — only enabled when discount > 0 -->
+      <div class="offer-toggle-row" style="margin-top:16px;">
+        <div>
+          <div class="offer-toggle-label">Activate Offer</div>
+          <div class="offer-toggle-sub" id="offerToggleSub">Set a discount % above to enable</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="variantOfferActive" disabled />
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
+        <button type="button" onclick="closeVariantModal()" style="background:#fff;border:2px solid #e5e7eb;border-radius:8px;padding:10px 24px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Cancel</button>
+        <button type="button" onclick="saveVariant()" id="saveVariantBtn" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Save Variant</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Cropper ───────────────────────────────────────────────────────────────
+    let cropperInstance = null, currentSlotIndex = null
+    const slotHasFile = { 0: false, 1: false, 2: false }
+
+    function triggerFileInput(i) { document.getElementById(`fileInput-${i}`).click() }
+
+    function handleFileSelect(event, index) {
+      const file = event.target.files[0]
+      if (!file) return
+      currentSlotIndex = index
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const cropImg = document.getElementById('cropImage')
+        cropImg.src = e.target.result
+        document.getElementById('cropModalOverlay').classList.add('open')
+        if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
+        cropperInstance = new Cropper(cropImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.9 })
+      }
+      reader.readAsDataURL(file)
+    }
+
+    function applyCrop() {
+      if (!cropperInstance) return
+      const idx = currentSlotIndex
+      cropperInstance.getCroppedCanvas({ width: 600, height: 600 }).toBlob(blob => {
+        const preview = document.getElementById(`preview-${idx}`)
+        preview.src = URL.createObjectURL(blob)
+        preview.style.display = 'block'
+        document.getElementById(`placeholder-${idx}`).style.display = 'none'
+        document.getElementById(`removeBtn-${idx}`).style.display = 'flex'
+        const dt = new DataTransfer()
+        dt.items.add(new File([blob], `product_image_${idx}.jpg`, { type: 'image/jpeg' }))
+        document.getElementById(`fileInput-${idx}`).files = dt.files
+        slotHasFile[idx] = true
+        closeCropModal()
+      }, 'image/jpeg', 0.9)
+    }
+
+    function cancelCrop() { document.getElementById(`fileInput-${currentSlotIndex}`).value = ''; closeCropModal() }
+    function closeCropModal() {
+      document.getElementById('cropModalOverlay').classList.remove('open')
+      if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
+    }
+    function removeImage(event, index) {
+      event.stopPropagation()
+      document.getElementById(`preview-${index}`).style.display = 'none'
+      document.getElementById(`preview-${index}`).src = ''
+      document.getElementById(`placeholder-${index}`).style.display = 'flex'
+      document.getElementById(`removeBtn-${index}`).style.display = 'none'
+      document.getElementById(`fileInput-${index}`).value = ''
+      slotHasFile[index] = false
+    }
+
+    // ── Variants ──────────────────────────────────────────────────────────────
+    let variants = []
+    let editingVariantIndex = -1   // -1 = adding new, >=0 = editing existing
+
+    function getUsedSizes(excludeIndex = -1) {
+      return variants.filter((_, i) => i !== excludeIndex).flatMap(v => v.sizes)
+    }
+
+    function openVariantModal(editIndex = -1) {
+      editingVariantIndex = editIndex
+      const usedSizes = getUsedSizes(editIndex)
+
+      if (editIndex >= 0) {
+        // Pre-fill modal with existing variant data
+        const v = variants[editIndex]
+        document.querySelectorAll('.size-chip').forEach(c => {
+          c.classList.remove('selected', 'used')
+          if (v.sizes.includes(c.dataset.size))       c.classList.add('selected')
+          else if (usedSizes.includes(c.dataset.size)) c.classList.add('used')
+        })
+        document.getElementById('variantStatus').value      = v.status
+        document.getElementById('variantStock').value       = v.stock
+        document.getElementById('variantBasePrice').value   = v.basePrice
+        document.getElementById('variantDiscountPct').value = v.discountPercentage
+        document.getElementById('variantModalTitle').textContent = `Edit Variant ${editIndex + 1}`
+        document.getElementById('saveVariantBtn').textContent    = 'Update Variant'
+      } else {
+        // Fresh add
+        document.querySelectorAll('.size-chip').forEach(c => {
+          c.classList.remove('selected')
+          c.classList.toggle('used', usedSizes.includes(c.dataset.size))
+        })
+        document.getElementById('variantStatus').value      = 'onStock'
+        document.getElementById('variantStock').value       = '5'
+        document.getElementById('variantBasePrice').value   = ''
+        document.getElementById('variantDiscountPct').value = '0'
+        document.getElementById('variantModalTitle').textContent = 'Add Variant'
+        document.getElementById('saveVariantBtn').textContent    = 'Save Variant'
+      }
+
+      // Recalc offer preview for whatever values are now in the fields
+      calcOfferPrice()
+      ;['sizeErr','stockErr','basePriceErr','discountPctErr'].forEach(hideErr)
+      document.getElementById('variantModalOverlay').classList.add('open')
+    }
+
+    function closeVariantModal() { document.getElementById('variantModalOverlay').classList.remove('open') }
+    function toggleSize(el) { if (!el.classList.contains('used')) el.classList.toggle('selected') }
+
+    function calcOfferPrice() {
+      const base    = parseFloat(document.getElementById('variantBasePrice').value) || 0
+      const pct     = parseFloat(document.getElementById('variantDiscountPct').value) || 0
+      const preview = document.getElementById('offerPricePreview')
+      const toggle  = document.getElementById('variantOfferActive')
+      const sub     = document.getElementById('offerToggleSub')
+
+      if (base > 0 && pct > 0) {
+        const offer = (base - base * pct / 100).toFixed(2)
+        preview.textContent = `Offer Price: ₹${offer}  (₹${base} − ${pct}%)`
+        preview.classList.add('show')
+        toggle.disabled = false
+        sub.textContent = 'Toggle on to make this the selling price'
+        // When editing, restore the saved offerActive state
+        if (editingVariantIndex >= 0 && !toggle._userChanged) {
+          toggle.checked = variants[editingVariantIndex].offerActive
+        }
+      } else {
+        if (base > 0) {
+          preview.textContent = `No discount — selling price: ₹${base}`
+          preview.classList.add('show')
+        } else {
+          preview.classList.remove('show')
+        }
+        toggle.disabled = true
+        toggle.checked  = false
+        sub.textContent = 'Set a discount % above to enable'
+      }
+    }
+
+    // Track manual user toggle so calcOfferPrice doesn't override it
+    document.getElementById('variantOfferActive').addEventListener('change', function() {
+      this._userChanged = true
+    })
+
+    function saveVariant() {
+      const selectedSizes = [...document.querySelectorAll('.size-chip.selected')].map(c => c.dataset.size)
+      const status        = document.getElementById('variantStatus').value
+      const stock         = parseInt(document.getElementById('variantStock').value) || 0
+      const basePrice     = parseFloat(document.getElementById('variantBasePrice').value)
+      const discountPct   = parseFloat(document.getElementById('variantDiscountPct').value) || 0
+      const offerActive   = document.getElementById('variantOfferActive').checked
+
+      let valid = true
+      if (selectedSizes.length === 0)            { showErr('sizeErr', 'Select at least one size'); valid = false } else hideErr('sizeErr')
+      if (stock < 0 || stock > 50)               { showErr('stockErr', 'Stock must be 0–50'); valid = false } else hideErr('stockErr')
+      if (!basePrice || basePrice <= 0)          { showErr('basePriceErr', 'Enter a valid base price'); valid = false } else hideErr('basePriceErr')
+      if (discountPct < 0 || discountPct >= 100) { showErr('discountPctErr', 'Discount must be 0–99'); valid = false } else hideErr('discountPctErr')
+      if (!valid) return
+
+      const offerPrice  = parseFloat((basePrice - basePrice * discountPct / 100).toFixed(2))
+      const variantData = { sizes: selectedSizes, status, stock, basePrice, discountPercentage: discountPct, offerPrice, offerActive }
+
+      if (editingVariantIndex >= 0) {
+        variants[editingVariantIndex] = variantData   // update in place
+      } else {
+        variants.push(variantData)
+      }
+
+      // Reset the toggle's manual-change flag
+      document.getElementById('variantOfferActive')._userChanged = false
+
+      renderVariants()
+      closeVariantModal()
+    }
+
+    function renderVariants() {
+      const container = document.getElementById('variantsContainer')
+      container.innerHTML = ''
+      variants.forEach((v, i) => {
+        const statusLabel = { onStock: 'On Stock', outOfStock: 'Out of Stock', archived: 'Archived' }[v.status] || v.status
+        const statusColor = v.status === 'onStock' ? '#16a34a' : '#e63946'
+        const hasDiscount = v.discountPercentage > 0
+        const offerBadge  = v.offerActive
+          ? `<span style="background:#fef3c7;color:#b45309;font-size:0.72rem;font-weight:800;border-radius:4px;padding:2px 7px;margin-left:6px;">OFFER ON</span>`
+          : ''
+        container.innerHTML += `
+          <div class="variant-card">
+            <div class="variant-card-title">Variant ${i + 1} ${offerBadge}</div>
+            <button type="button" class="edit-variant-btn"   onclick="openVariantModal(${i})">Edit</button>
+            <button type="button" class="remove-variant-btn" onclick="removeVariant(${i})">Remove</button>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+              <div>
+                <label class="field-label">Sizes</label>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                  ${v.sizes.map(s => `<span style="background:#1e40af;color:#fff;border-radius:6px;padding:3px 10px;font-size:0.78rem;font-weight:700;">${s}</span>`).join('')}
+                </div>
+              </div>
+              <div>
+                <label class="field-label">Status</label>
+                <span style="font-size:0.88rem;font-weight:600;color:${statusColor};">${statusLabel}</span>
+              </div>
+              <div>
+                <label class="field-label">Stock</label>
+                <span style="font-size:0.88rem;font-weight:700;color:#111;">${v.stock}</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+              <div>
+                <label class="field-label">Base Price</label>
+                <span style="font-size:0.88rem;font-weight:700;color:#111;">₹${v.basePrice}</span>
+              </div>
+              <div>
+                <label class="field-label">Discount %</label>
+                <span style="font-size:0.88rem;font-weight:700;color:#111;">${v.discountPercentage}%</span>
+              </div>
+              <div>
+                <label class="field-label">Offer Price</label>
+                ${hasDiscount
+                  ? `<span style="font-size:0.88rem;font-weight:700;color:#15803d;">₹${v.offerPrice}</span>`
+                  : `<span style="font-size:0.88rem;color:#9ca3af;">No discount</span>`
+                }
+              </div>
+            </div>
+            <input type="hidden" name="variants[${i}][sizes]"              value="${v.sizes.join(',')}" />
+            <input type="hidden" name="variants[${i}][status]"             value="${v.status}" />
+            <input type="hidden" name="variants[${i}][stock]"              value="${v.stock}" />
+            <input type="hidden" name="variants[${i}][basePrice]"          value="${v.basePrice}" />
+            <input type="hidden" name="variants[${i}][discountPercentage]" value="${v.discountPercentage}" />
+            <input type="hidden" name="variants[${i}][offerActive]"        value="${v.offerActive}" />
+          </div>
+        `
+      })
+    }
+
+    function removeVariant(index) { variants.splice(index, 1); renderVariants() }
+
+    // ── Error helpers ─────────────────────────────────────────────────────────
+    function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
+    function hideErr(id) { const el = document.getElementById(id); if (el) el.classList.remove('show') }
+    function showFieldErr(fid, eid, msg) { document.getElementById(fid)?.classList.add('error'); showErr(eid, msg) }
+    function clearFieldErr(fid, eid) { document.getElementById(fid)?.classList.remove('error'); hideErr(eid) }
+
+    ;[['name','nameErr'],['brand','brandErr'],['gender','genderErr'],
+      ['category','categoryErr'],['collection','collectionErr'],['description','descErr']
+    ].forEach(([f,e]) => {
+      document.getElementById(f)?.addEventListener('change', () => clearFieldErr(f, e))
+      document.getElementById(f)?.addEventListener('input',  () => clearFieldErr(f, e))
+    })
+
+    // ── Form submit ───────────────────────────────────────────────────────────
+    let isSubmitting = false
+    document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+      e.preventDefault()
+      if (isSubmitting) return
+      let valid = true
+      document.getElementById('generalError').style.display = 'none'
+
+      ;[['name','nameErr','Product name is required'],['brand','brandErr','Please select a brand'],
+        ['gender','genderErr','Please select a gender'],['category','categoryErr','Please select a category'],
+        ['collection','collectionErr','Please select a collection'],['description','descErr','Please enter a description']
+      ].forEach(([id, errId, msg]) => {
+        const val = document.getElementById(id).value.trim()
+        if (!val) { showFieldErr(id, errId, msg); valid = false } else clearFieldErr(id, errId)
+      })
+
+      if ([0,1,2].filter(i => slotHasFile[i]).length < 3) { showErr('imgErr', 'Please upload and crop all 3 images'); valid = false } else hideErr('imgErr')
+      if (variants.length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
+      if (!valid) return
+
+      isSubmitting = true
+      const saveBtn = document.getElementById('saveBtn')
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving...'
+
+      try {
+        const data = await fetch('/admin/products/add', { method: 'POST', body: new FormData(this) }).then(r => r.json())
+        if (data.success) {
+          window.location.href = data.redirectUrl
+        } else if (data.field === 'name') {
+          showFieldErr('name', 'nameErr', data.message); window.scrollTo({ top: 0, behavior: 'smooth' })
+        } else if (data.field === 'images') {
+          showErr('imgErr', data.message)
+        } else if (data.field === 'variants') {
+          showErr('variantErr', data.message)
+        } else {
+          const b = document.getElementById('generalError')
+          b.textContent = data.message || 'Something went wrong.'
+          b.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      } catch {
+        const b = document.getElementById('generalError')
+        b.textContent = 'Network error. Please try again.'; b.style.display = 'block'
+      } finally {
+        isSubmitting = false; saveBtn.disabled = false; saveBtn.textContent = 'Save'
+      }
+    })
+  </script>
+</body>
+</html>

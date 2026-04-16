@@ -35,8 +35,8 @@
     .hero-section {
       position: relative;
       width: 100%;
-      min-height: 520px;
-      background: url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1400&q=80') center/cover no-repeat;
+      min-height: 670px;
+      background: url('/img/bannerImg.png');
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -49,6 +49,7 @@
       gap: 3rem; padding: 1.5rem 2rem;
       background: #fff; border-radius: 12px;
       box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      
     }
     .brand-logo-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .brand-logo-wrap span { font-size: 0.7rem; font-weight: 600; color: #444; letter-spacing: 0.04em; }
@@ -106,7 +107,10 @@
       border: 1.5px solid rgba(255,255,255,0.55);
       backdrop-filter: blur(6px);
       border-radius: 10px;
+    
+      
     }
+   
 
     /* ── Footer ── */
     footer { background: #fff; border-top: 1px solid #eee; }
@@ -281,11 +285,7 @@
       <!-- Offer Box -->
       <div class="offer-box max-w-md ml-auto px-6 py-5 flex items-center gap-4">
         <!-- Shield logo small -->
-        <svg width="56" height="64" viewBox="0 0 44 50" fill="none" xmlns="http://www.w3.org/2000/svg" class="flex-shrink-0">
-          <path d="M22 2L40 10V26C40 36.5 32 44.5 22 48C12 44.5 4 36.5 4 26V10L22 2Z" fill="white" stroke="white" stroke-width="2"/>
-          <path d="M10 20L13 15L16 19L22 13L28 19L31 15L34 20H10Z" fill="black"/>
-          <text x="22" y="34" text-anchor="middle" font-family="Cinzel,serif" font-size="9" font-weight="700" fill="black">2ES</text>
-        </svg>
+       <img src="/img/pes.logo.png" alt="" class="max-w-[50%] h-auto" style="color:initial;">
         <div>
           <p class="text-white font-bold text-base leading-snug" style="font-family:'Playfair Display',serif;">
             "Your Offer, Your Time!" Lock exclusive deals and claim them even after they're gone!
@@ -368,43 +368,21 @@
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-        <!-- Card 1 -->
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80" alt="Adidas Unisex Football" />
-          <div class="p-3">
-            <p class="price-title">adidas Unisex Football/ Soccer Shoes | Inter Miami Edition| Size-9 |</p>
-            <p class="price mt-1">Rs. 1,499.00</p>
-          </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&q=80" alt="Predator Elite" />
-          <div class="p-3">
-            <p class="price-title">PREDATOR ELITE FOLD-OVER TONGUE ARTIFICIAL GROUND FOOTBALL BOOTS</p>
-            <p class="price mt-1">Rs. 3,500.00</p>
-          </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?w=400&q=80" alt="Predator Belligold" />
-          <div class="p-3">
-            <p class="price-title">PREDATOR BELLIGOLD- LIMITED EDITION</p>
-            <p class="price mt-1">Rs. 2,999.00</p>
-          </div>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="product-card">
-          <img src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=400&q=80" alt="Puma Attacanto" />
-          <div class="p-3">
-            <p class="price-title">PUMA , Men, ATTACANTO II FG/AG</p>
-            <p class="price mt-1">Rs. 3,500.00</p>
-          </div>
-        </div>
-
+        <% if (typeof latestBoots !== 'undefined' && latestBoots.length > 0) { %>
+          <% latestBoots.forEach(boot => { %>
+            <% const variant = boot.variants && boot.variants[0]; %>
+            <% const price = variant ? (variant.offerActive ? variant.offerPrice : variant.productPrice) : 0; %>
+            <a href="/product/<%= boot._id %>" class="product-card block">
+              <img src="<%= boot.productImage && boot.productImage[0] %>" alt="<%= boot.productname %>" />
+              <div class="p-3">
+                <p class="price-title"><%= boot.productname %></p>
+                <p class="price mt-1">Rs. <%= price.toLocaleString('en-IN') %>.00</p>
+              </div>
+            </a>
+          <% }) %>
+        <% } else { %>
+          <p class="col-span-full text-center text-gray-500 py-10">More products arriving soon...</p>
+        <% } %>
       </div>
 
       <!-- Explore Now Button -->
@@ -429,39 +407,26 @@
       </p>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-        <!-- Messi -->
-        <div class="hero-card">
-          <img src="https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=500&q=80" alt="Messi" />
-          <div class="p-4 bg-white">
-            <p class="font-bold text-sm text-gray-900 leading-snug">Messi Kiss Edition Signature Pro Football Boots</p>
-            <p class="price mt-2">Rs.2,999.00</p>
-          </div>
-        </div>
-
-        <!-- CR7 -->
-        <div class="hero-card">
-          <img src="https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=500&q=80" alt="CR7" />
-          <div class="p-4 bg-white">
-            <p class="font-bold text-sm text-gray-900 leading-snug">CR7 Bicycle Kick Edition Signature Boots</p>
-            <p class="price mt-2">Rs.2,999.00</p>
-          </div>
-        </div>
-
-        <!-- Mbappe -->
-        <div class="hero-card">
-          <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=500&q=80" alt="Mbappe" />
-          <div class="p-4 bg-white">
-            <p class="font-bold text-sm text-gray-900 leading-snug">Mbappe World Cup Edition Signature Speed Boots</p>
-            <p class="price mt-2">Rs.2,999.00</p>
-          </div>
-        </div>
-
+        <% if (typeof signatureBoots !== 'undefined' && signatureBoots.length > 0) { %>
+          <% signatureBoots.forEach(boot => { %>
+            <% const variant = boot.variants && boot.variants[0]; %>
+            <% const price = variant ? (variant.offerActive ? variant.offerPrice : variant.productPrice) : 0; %>
+            <a href="/product/<%= boot._id %>" class="hero-card block">
+              <img src="<%= boot.productImage && boot.productImage[0] %>" alt="<%= boot.productname %>" />
+              <div class="p-4 bg-white">
+                <p class="font-bold text-sm text-gray-900 leading-snug"><%= boot.productname %></p>
+                <p class="price mt-2">Rs. <%= price.toLocaleString('en-IN') %>.00</p>
+              </div>
+            </a>
+          <% }) %>
+        <% } else { %>
+          <p class="col-span-full text-center text-gray-500 py-10">More signature boots arriving soon...</p>
+        <% } %>
       </div>
 
       <!-- Choose Hero Button -->
       <div class="flex justify-center mt-10">
-        <a href="/shop/hero" class="btn-dark">Choose Your Hero Style &gt;</a>
+        <a href="/shop?collection=Signature" class="btn-dark">Choose Your Hero Style &gt;</a>
       </div>
 
     </div>

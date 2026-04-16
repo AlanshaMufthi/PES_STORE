@@ -3,9 +3,9 @@ import bcrypt from 'bcrypt'
 
 const pageNotFound = async(req,res)=>{
   try {
-      res.render('pageNotfound')
+      res.render('pageNotFound')
   } catch (error) {
-    res.redirect('/admin/pageNotfound')
+    res.redirect('/admin/pageNotFound')
   }
 }
 
@@ -26,11 +26,11 @@ const pageNotFound = async(req,res)=>{
                 req.session.admin=true;
                 return res.redirect('/admin/dashboard')
             }else{
-                return res.redirect('/login')
+                return res.redirect('/admin/login')
             }
 
         }else{
-            return res.redirect('/login')
+            return res.redirect('/admin/login')
         }
     } catch (error) {
         console.log('login error ',error)

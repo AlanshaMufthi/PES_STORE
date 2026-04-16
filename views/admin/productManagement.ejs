@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products Management | 2ES Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+    body { background: #f0f0f0; margin: 0; }
+    .topbar { background: #d4d4d4; height: 72px; display: flex; align-items: center; padding: 0 28px; gap: 20px; position: sticky; top: 0; z-index: 50; }
+    .topbar-logo img { width: 58px; height: 58px; object-fit: contain; }
+    .icon-circle { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .layout { display: flex; min-height: calc(100vh - 72px); }
+    .sidebar { width: 200px; flex-shrink: 0; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; border-radius: 10px; font-size: 0.97rem; font-weight: 600; color: #333; cursor: pointer; text-decoration: none; transition: background 0.15s; }
+    .nav-item:hover { background: rgba(0,0,0,0.06); }
+    .nav-item.active { background: #e63946; color: #fff; }
+    .nav-item.active svg { stroke: #fff; }
+    .nav-item.signout { color: #e63946; }
+    .nav-item.signout svg { stroke: #e63946; }
+    .main { flex: 1; padding: 28px 28px 40px 20px; }
+    .search-wrap { display: flex; align-items: center; background: #fff; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 8px 14px; gap: 8px; width: 280px; }
+    .search-wrap input { border: none; outline: none; font-size: 0.88rem; font-weight: 500; color: #555; background: transparent; width: 100%; }
+    .search-wrap input::placeholder { color: #bbb; }
+    .btn-new { display: flex; align-items: center; gap: 6px; background: #22c55e; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; text-decoration: none; transition: background 0.15s; }
+    .btn-new:hover { background: #16a34a; }
+    .table-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #22c55e; }
+    thead th { padding: 14px 18px; font-size: 0.88rem; font-weight: 800; color: #fff; text-align: left; }
+    thead th.center { text-align: center; }
+    tbody tr { border-bottom: 1px solid #f3f3f3; transition: background 0.12s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+    tbody td { padding: 13px 18px; font-size: 0.88rem; font-weight: 600; color: #333; vertical-align: middle; }
+    tbody td.center { text-align: center; }
+    .product-id { font-size: 0.78rem; font-weight: 700; color: #3b82f6; }
+    .toggle { position: relative; display: inline-block; width: 46px; height: 26px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 999px; transition: background 0.25s; }
+    .slider::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.25s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+    .toggle input:checked + .slider { background: #22c55e; }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .toggle input:not(:checked) + .slider { background: #e63946; }
+    .btn-action { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 6px; transition: background 0.12s; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-action:hover { background: #f3f4f6; }
+    .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-top: 1px solid #f0f0f0; position: relative; }
+    .show-result { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; color: #555; }
+    .show-result select { border: 1.5px solid #ddd; border-radius: 6px; padding: 3px 8px; font-size: 0.82rem; font-weight: 700; color: #333; font-family: 'Nunito', sans-serif; outline: none; cursor: pointer; }
+    .page-nums { display: flex; align-items: center; gap: 4px; position: absolute; left: 50%; transform: translateX(-50%); }
+    .page-btn { width: 30px; height: 30px; border-radius: 6px; border: none; background: none; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: #555; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: background 0.15s; }
+    .page-btn:hover { background: #f0f0f0; }
+    .page-btn.active { background: #22c55e; color: #fff; }
+    .page-btn.disabled { opacity: 0.35; pointer-events: none; }
+    .product-img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; background: #f3f4f6; border: 1px solid #e5e7eb; }
+    .product-name-cell { display: flex; align-items: center; gap: 12px; }
+
+    /* ── Per-variant offer panel ── */
+    .offer-cell { position: relative; }
+    .offer-summary-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: none; border: 1.5px solid #e5e7eb; border-radius: 7px;
+      padding: 5px 10px; cursor: pointer; font-size: 0.78rem; font-weight: 700;
+      color: #555; font-family: 'Nunito', sans-serif; transition: border-color 0.15s;
+      white-space: nowrap;
+    }
+    .offer-summary-btn:hover { border-color: #f59e0b; color: #b45309; }
+    .offer-dot { width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
+    .offer-dot.on { background: #f59e0b; }
+
+    /* Variant offer dropdown panel */
+    .offer-panel {
+      display: none; position: absolute; right: 0; top: calc(100% + 6px);
+      background: #fff; border: 1.5px solid #e5e7eb; border-radius: 12px;
+      padding: 14px 16px; min-width: 260px; z-index: 30;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+    }
+    .offer-panel.open { display: block; }
+    .offer-panel-title { font-size: 0.78rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+    .offer-variant-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f3f3; gap: 10px; }
+    .offer-variant-row:last-child { border-bottom: none; }
+    .offer-variant-info { font-size: 0.82rem; font-weight: 600; color: #333; line-height: 1.4; }
+    .offer-variant-sizes { font-size: 0.75rem; color: #888; font-weight: 600; }
+    .offer-price-chip { font-size: 0.75rem; font-weight: 700; color: #15803d; background: #f0fdf4; border-radius: 4px; padding: 2px 6px; }
+
+    /* Small toggle for offer panel */
+    .mini-toggle { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+    .mini-toggle input { opacity: 0; width: 0; height: 0; }
+    .mini-slider { position: absolute; cursor: pointer; inset: 0; background: #9ca3af; border-radius: 999px; transition: background 0.25s; }
+    .mini-slider::before { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.25s; }
+    .mini-toggle input:checked + .mini-slider { background: #f59e0b; }
+    .mini-toggle input:checked + .mini-slider::before { transform: translateX(16px); }
+    .no-discount-note { font-size: 0.75rem; color: #9ca3af; font-style: italic; }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="topbar-logo"><img src="/img/pes.logo.png" alt="2ES Logo" /></div>
+    <div class="icon-circle" style="overflow:hidden;margin-left:auto;">
+      <img src="/images/admin-avatar.jpg" alt="Admin" style="width:42px;height:42px;object-fit:cover;border-radius:50%;" />
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <a href="/admin/dashboard" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a href="/admin/orders" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Order</a>
+      <a href="/admin/products" class="nav-item active"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Products</a>
+      <a href="/admin/sales" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Sales report</a>
+      <a href="/admin/customers" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Customer</a>
+      <a href="/admin/coupons" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Coupon</a>
+      <a href="/admin/categories" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Category</a>
+      <a href="/admin/refunds" class="nav-item"><svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Refund/Return</a>
+      <a href="/admin/logout" class="nav-item signout"><svg width="18" height="18" fill="none" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out</a>
+    </aside>
+
+    <main class="main">
+      <div class="flex items-center gap-4 mb-6">
+        <h1 style="font-size:1.7rem;font-weight:900;color:#111;">Products management</h1>
+        <div class="search-wrap">
+          <svg width="16" height="16" fill="none" stroke="#bbb" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="searchInput" placeholder="Search here"
+            value="<%= search || '' %>"
+            onkeydown="if(event.key==='Enter') doSearch()" />
+          <span id="clearBtn" onclick="clearSearch()"
+            style="cursor:pointer;display:<%= search ? 'flex' : 'none' %>;align-items:center;">
+            <svg width="14" height="14" fill="none" stroke="#aaa" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </span>
+        </div>
+        <a href="/admin/products/add" class="btn-new" style="margin-left:auto;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          New
+        </a>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Product ID</th>
+              <th class="center">Price</th>
+              <th>Category</th>
+              <th class="center">Stock</th>
+              <th class="center">Added on</th>
+              <th class="center">Status</th>
+              <th class="center">Offers</th>
+              <th class="center">Edit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (products && products.length > 0) { %>
+              <% products.forEach(product => { %>
+              <%
+                const activeOfferCount = product.variants
+                  ? product.variants.filter(v => v.offerActive).length
+                  : 0
+              %>
+              <tr>
+                <td>
+                  <div class="product-name-cell">
+                    <% if (product.productImage && product.productImage[0]) { %>
+                      <img src="<%= product.productImage[0] %>" alt="<%= product.productname %>" class="product-img" />
+                    <% } else { %>
+                      <div class="product-img" style="display:flex;align-items:center;justify-content:center;">
+                        <svg width="18" height="18" fill="none" stroke="#ccc" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                      </div>
+                    <% } %>
+                    <span style="font-weight:700;color:#111;"><%= product.productname %></span>
+                  </div>
+                </td>
+                <td><span class="product-id"><%= product._id.toString().slice(-8).toUpperCase() %></span></td>
+                <td class="center">
+                  <% if (product.variants && product.variants[0]) { %>
+                    <% const v0 = product.variants[0] %>
+                    <% if (v0.offerActive && v0.discountPercentage > 0) { %>
+                      <span style="text-decoration:line-through;color:#9ca3af;font-size:0.78rem;">₹<%= v0.productPrice %></span>
+                      <span style="color:#16a34a;font-weight:800;margin-left:4px;">₹<%= v0.offerPrice %></span>
+                    <% } else { %>
+                      ₹<%= v0.productPrice %>
+                    <% } %>
+                  <% } else { %>-<% } %>
+                </td>
+                <td><%= product.category ? product.category.name : '-' %></td>
+                <td class="center"><%= product.variants ? product.variants.reduce((s, v) => s + (v.stock || 0), 0) : 0 %></td>
+                <td class="center"><%= new Date(product.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-') %></td>
+
+                <!-- Block/unblock toggle -->
+                <td class="center">
+                  <div style="display:flex;justify-content:center;">
+                    <label class="toggle" title="<%= product.isBlocked ? 'Blocked' : 'Active' %>">
+                      <input type="checkbox" <%= !product.isBlocked ? 'checked' : '' %>
+                        onchange="toggleStatus('<%= product._id %>', this, '<%= product.productname %>')" />
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                </td>
+
+                <!-- Per-variant offer panel -->
+                <td class="center offer-cell" id="offerCell-<%= product._id %>">
+                  <button class="offer-summary-btn" onclick="toggleOfferPanel('<%= product._id %>', event)">
+                    <span class="offer-dot <%= activeOfferCount > 0 ? 'on' : '' %>"
+                      id="offerDot-<%= product._id %>"></span>
+                    <span id="offerCount-<%= product._id %>">
+                      <%= activeOfferCount %> / <%= product.variants ? product.variants.length : 0 %> on
+                    </span>
+                    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+
+                  <div class="offer-panel" id="offerPanel-<%= product._id %>">
+                    <div class="offer-panel-title">Variant Offers</div>
+                    <% if (product.variants && product.variants.length > 0) { %>
+                      <% product.variants.forEach((variant, vi) => { %>
+                      <div class="offer-variant-row" id="offerRow-<%= variant._id %>">
+                        <div class="offer-variant-info">
+                          <div>Variant <%= vi + 1 %></div>
+                          <div class="offer-variant-sizes">Sizes: <%= variant.size.join(', ') %></div>
+                          <% if (variant.discountPercentage > 0) { %>
+                            <span class="offer-price-chip">₹<%= variant.offerPrice %> (<%= variant.discountPercentage %>% off)</span>
+                          <% } else { %>
+                            <span class="no-discount-note">No discount set</span>
+                          <% } %>
+                        </div>
+                        <% if (variant.discountPercentage > 0) { %>
+                          <label class="mini-toggle" title="<%= variant.offerActive ? 'Offer On' : 'Offer Off' %>">
+                            <input type="checkbox" <%= variant.offerActive ? 'checked' : '' %>
+                              onchange="toggleVariantOffer('<%= product._id %>', '<%= variant._id %>', this, '<%= product.productname %>', <%= vi + 1 %>)" />
+                            <span class="mini-slider"></span>
+                          </label>
+                        <% } else { %>
+                          <span style="font-size:0.72rem;color:#d1d5db;">—</span>
+                        <% } %>
+                      </div>
+                      <% }) %>
+                    <% } else { %>
+                      <div style="font-size:0.82rem;color:#9ca3af;text-align:center;padding:8px 0;">No variants</div>
+                    <% } %>
+                  </div>
+                </td>
+
+                <td class="center">
+                  <a href="/admin/products/edit/<%= product._id %>" class="btn-action" title="Edit">
+                    <svg width="17" height="17" fill="none" stroke="#555" stroke-width="2.2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </a>
+                </td>
+              </tr>
+              <% }) %>
+            <% } else { %>
+              <tr><td colspan="9" style="text-align:center;padding:40px;color:#9ca3af;">No products found.</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+
+        <div class="pagination-bar">
+          <div class="show-result">
+            Show result:
+            <select onchange="changePageSize(this.value)">
+              <option value="5"  <%= limit == 5  ? 'selected' : '' %>>5</option>
+              <option value="10" <%= limit == 10 ? 'selected' : '' %>>10</option>
+              <option value="20" <%= limit == 20 ? 'selected' : '' %>>20</option>
+            </select>
+          </div>
+          <div class="page-nums">
+            <a href="?page=<%= currentPage - 1 %>&limit=<%= limit %>&search=<%= search %>"
+               class="page-btn <%= currentPage <= 1 ? 'disabled' : '' %>">&#8249;</a>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+              <a href="?page=<%= i %>&limit=<%= limit %>&search=<%= search %>"
+                 class="page-btn <%= currentPage == i ? 'active' : '' %>"><%= i %></a>
+            <% } %>
+            <a href="?page=<%= currentPage + 1 %>&limit=<%= limit %>&search=<%= search %>"
+               class="page-btn <%= currentPage >= totalPages ? 'disabled' : '' %>">&#8250;</a>
+          </div>
+          <div style="visibility:hidden;" class="show-result">Show result: <select><option>5</option></select></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ── Success banners ────────────────────────────────────────────────────────
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('success') === 'added') {
+      Swal.fire({ icon: 'success', title: 'Product Added!', confirmButtonColor: '#22c55e', timer: 3000, timerProgressBar: true })
+        .then(() => { const u = new URL(window.location.href); u.searchParams.delete('success'); window.history.replaceState({}, '', u) })
+    } else if (params.get('success') === 'updated') {
+      Swal.fire({ icon: 'success', title: 'Product Updated!', confirmButtonColor: '#22c55e', timer: 3000, timerProgressBar: true })
+        .then(() => { const u = new URL(window.location.href); u.searchParams.delete('success'); window.history.replaceState({}, '', u) })
+    }
+
+    // ── Search / pagination ────────────────────────────────────────────────────
+    function doSearch() {
+      const url = new URL(window.location.href)
+      url.searchParams.set('search', document.getElementById('searchInput').value.trim())
+      url.searchParams.set('page', 1)
+      window.location.href = url.toString()
+    }
+    function clearSearch() {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('search')
+      url.searchParams.set('page', 1)
+      window.location.href = url.toString()
+    }
+    function changePageSize(size) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('limit', size)
+      url.searchParams.set('page', 1)
+      window.location.href = url.toString()
+    }
+
+    // ── Block/unblock toggle ───────────────────────────────────────────────────
+    async function toggleStatus(id, checkbox, productName) {
+      const wantsActive = checkbox.checked
+      checkbox.checked = !checkbox.checked
+      const result = await Swal.fire({
+        title: wantsActive ? 'Unblock product?' : 'Block product?',
+        text: `"${productName}" will be ${wantsActive ? 'visible to' : 'hidden from'} users.`,
+        icon: 'warning', showCancelButton: true,
+        confirmButtonColor: wantsActive ? '#22c55e' : '#e63946',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: wantsActive ? 'Yes, Unblock' : 'Yes, Block',
+      })
+      if (!result.isConfirmed) return
+      try {
+        const res  = await fetch(`/admin/products/${id}/toggle-status`, { method: 'PATCH' })
+        const data = await res.json()
+        if (data.success) { checkbox.checked = !data.isBlocked }
+        else Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#111' })
+      } catch {
+        Swal.fire({ icon: 'error', title: 'Network Error', text: 'Please try again.', confirmButtonColor: '#111' })
+      }
+    }
+
+    // ── Offer panel open/close ─────────────────────────────────────────────────
+    let openPanelId = null
+    function toggleOfferPanel(productId, event) {
+      event.stopPropagation()
+      const panel = document.getElementById(`offerPanel-${productId}`)
+      if (openPanelId && openPanelId !== productId) {
+        document.getElementById(`offerPanel-${openPanelId}`)?.classList.remove('open')
+      }
+      panel.classList.toggle('open')
+      openPanelId = panel.classList.contains('open') ? productId : null
+    }
+    document.addEventListener('click', () => {
+      if (openPanelId) {
+        document.getElementById(`offerPanel-${openPanelId}`)?.classList.remove('open')
+        openPanelId = null
+      }
+    })
+
+    // ── Per-variant offer toggle ───────────────────────────────────────────────
+    async function toggleVariantOffer(productId, variantId, checkbox, productName, variantNum) {
+      const wantsOn = checkbox.checked
+      checkbox.checked = !checkbox.checked
+
+      const result = await Swal.fire({
+        title: wantsOn ? 'Enable offer?' : 'Disable offer?',
+        text: `Variant ${variantNum} of "${productName}" — selling price will ${wantsOn ? 'switch to offer price' : 'revert to base price'}.`,
+        icon: 'question', showCancelButton: true,
+        confirmButtonColor: '#f59e0b', cancelButtonColor: '#6b7280',
+        confirmButtonText: wantsOn ? 'Enable' : 'Disable',
+      })
+      if (!result.isConfirmed) return
+
+      try {
+        const res  = await fetch(`/admin/products/${productId}/variants/${variantId}/toggle-offer`, { method: 'PATCH' })
+        const data = await res.json()
+        if (data.success) {
+          checkbox.checked = data.offerActive
+          // Update the summary dot + count in the table row
+          updateOfferSummary(productId)
+        } else {
+          Swal.fire({ icon: 'error', title: 'Error', text: data.message, confirmButtonColor: '#111' })
+        }
+      } catch {
+        Swal.fire({ icon: 'error', title: 'Network Error', text: 'Please try again.', confirmButtonColor: '#111' })
+      }
+    }
+
+    // Re-count active offers for a product row without page reload
+    function updateOfferSummary(productId) {
+      const panel     = document.getElementById(`offerPanel-${productId}`)
+      const checked   = panel.querySelectorAll('.mini-toggle input:checked').length
+      const total     = panel.querySelectorAll('.mini-toggle').length
+      const countEl   = document.getElementById(`offerCount-${productId}`)
+      const dotEl     = document.getElementById(`offerDot-${productId}`)
+      if (countEl) countEl.textContent = `${checked} / ${total} on`
+      if (dotEl)   dotEl.classList.toggle('on', checked > 0)
+    }
+  </script>
+</body>
+</html>

@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { boolean } from 'webidl-conversions';
 const {Schema} = mongoose;
 
 const categorySchema = new Schema({
@@ -12,7 +11,7 @@ const categorySchema = new Schema({
         type:String,
         required:true
     },
-    isblocked:{
+    isBlocked:{
         type:Boolean,
         required:true,
         default:false
@@ -20,12 +19,15 @@ const categorySchema = new Schema({
     categoryOffer:{
         type:Number,
         default:0,
-
+    },
+    offerActive:{
+        type:Boolean,
+        default:false
     }
     
 
 },{timestamps:true})
 
-const category = mongoose.model('category',categorySchema)
+const Category = mongoose.model('Category',categorySchema)
 
-export default {category}
+export default Category

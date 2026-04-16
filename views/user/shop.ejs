@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop – PES Football Boots</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0a0a0a;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #e11d48;
+      --accent-light: #fff1f3;
+      --bg: #f4f4f2;
+      --card-bg: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); margin: 0; }
+
+    .filter-toggle-btn {
+      display: flex; align-items: center; gap: 7px;
+      border: 1.5px solid var(--ink); border-radius: 100px;
+      padding: 8px 18px; font-size: 0.82rem; font-weight: 600;
+      background: white; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: background 0.15s, color 0.15s;
+    }
+    .filter-toggle-btn:hover { background: #f3f4f6; }
+    .filter-toggle-btn.active { background: var(--ink); color: white; }
+    .filter-toggle-btn.active svg { stroke: white !important; }
+
+    #filterPanel {
+      display: none; position: absolute; top: calc(100% + 10px); left: 0;
+      width: 700px; background: white; border: 1.5px solid var(--line);
+      border-radius: 16px; box-shadow: 0 16px 48px rgba(0,0,0,0.13);
+      z-index: 40; padding: 24px 24px 20px;
+    }
+    #filterPanel.open { display: block; }
+
+    .filter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 28px; }
+    .filter-col-title {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--ink); margin-bottom: 8px;
+    }
+    .filter-opts { display: flex; flex-direction: column; gap: 2px; }
+    .f-label {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 0.81rem; color: #374151; cursor: pointer;
+      padding: 3px 5px; border-radius: 5px; transition: background 0.13s;
+    }
+    .f-label:hover { background: #f3f4f6; }
+    .f-label input { accent-color: var(--ink); cursor: pointer; }
+    .filter-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line);
+    }
+    input[type=range] { accent-color: var(--ink); width: 100%; cursor: pointer; margin-top: 5px; }
+
+    .sort-select {
+      font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+      border: 1.5px solid var(--ink); border-radius: 100px;
+      padding: 8px 36px 8px 16px; background: white; cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+    .sort-select:focus { outline: none; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.03em;
+      border: 1.5px solid var(--ink); border-radius: 100px;
+      padding: 3px 10px 3px 12px; background: white;
+    }
+    .pill-x { width: 13px; height: 13px; opacity: 0.45; cursor: pointer; flex-shrink: 0; }
+    .pill-x:hover { opacity: 1; }
+
+    /* ── Product card ── */
+    .product-card {
+      background: var(--card-bg); border-radius: 14px; overflow: hidden;
+      text-decoration: none; color: inherit; display: block; position: relative;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border: 1.5px solid var(--line);
+    }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.10); border-color: #c5c9d0; }
+    .product-card.oos-card { opacity: 0.88; }
+    .product-card.oos-card:hover { transform: translateY(-2px); }
+
+    .card-img-wrap { position: relative; background: #eeecea; overflow: hidden; aspect-ratio: 1 / 1; }
+    .card-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+    .product-card:hover .card-img { transform: scale(1.05); }
+    .oos-card .card-img { filter: grayscale(18%); }
+
+    .card-badge {
+      position: absolute; top: 10px; left: 10px; z-index: 2;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; padding: 3px 8px; border-radius: 4px;
+    }
+    .badge-sale { background: var(--accent); color: white; }
+    .badge-oos  { background: #1f2937; color: white; }
+
+    /* ── Wishlist button ── */
+    .wishlist-btn {
+      position: absolute; top: 10px; right: 10px; z-index: 3;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: white; border: 1.5px solid var(--line);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .wishlist-btn:hover { border-color: var(--accent); transform: scale(1.12); }
+    .wishlist-btn.wishlisted { background: var(--accent-light); border-color: var(--accent); }
+    .wishlist-btn svg { width: 15px; height: 15px; pointer-events: none; }
+
+    .card-body { padding: 12px 13px 14px; }
+    .card-brand { font-size: 0.63rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.11em; color: var(--muted); margin-bottom: 3px; }
+    .card-name {
+      font-size: 0.87rem; font-weight: 700; line-height: 1.3;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden; min-height: 2.28em;
+    }
+    .stars-row { display: flex; align-items: center; gap: 2px; margin: 6px 0 5px; min-height: 18px; }
+    .star { width: 12px; height: 12px; }
+    .review-count { font-size: 0.68rem; color: var(--muted); margin-left: 3px; }
+    .no-reviews-txt { font-size: 0.68rem; color: #d1d5db; }
+    .price-row-card { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+    .price-offer { font-size: 1rem; font-weight: 700; color: var(--ink); }
+    .price-base  { font-size: 0.78rem; color: var(--muted); text-decoration: line-through; font-weight: 500; }
+    .price-disc  { font-size: 0.7rem; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 2px 6px; border-radius: 4px; }
+    .oos-tag { display: inline-block; margin-top: 5px; font-size: 0.72rem; font-weight: 600; color: var(--muted); }
+
+    .page-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem; font-weight: 600; border: 1.5px solid var(--line);
+      background: white; cursor: pointer; text-decoration: none; color: inherit; transition: all 0.15s;
+    }
+    .page-btn:hover { border-color: var(--ink); }
+    .page-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+    .page-btn.wide { width: auto; padding: 0 14px; border-radius: 100px; font-size: 0.8rem; }
+
+    #mobileFilterModal { position: fixed; inset: 0; z-index: 60; display: none; align-items: flex-end; }
+    #mobileFilterModal.open { display: flex; }
+    #mobileModalOverlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
+    #mobileModalPanel {
+      position: relative; z-index: 1; background: white;
+      width: 100%; max-height: 88vh; overflow-y: auto;
+      border-radius: 22px 22px 0 0; padding: 24px 20px 40px;
+    }
+
+    #toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #111; color: white;
+      padding: 11px 22px; border-radius: 100px;
+      font-size: 0.84rem; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s;
+      opacity: 0; z-index: 9999; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    #toast.toast-err { background: var(--accent); }
+
+    #filterBackdrop { display: none; position: fixed; inset: 0; z-index: 30; }
+    #filterBackdrop.open { display: block; }
+
+    .empty-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center; }
+    .empty-icon { width: 58px; height: 58px; color: #d1d5db; }
+  </style>
+</head>
+<body>
+
+  <%- include('../parials/user/header.ejs', { page: 'shop', searchQuery, cartCount }) %>
+
+  <!-- Toast notification -->
+  <div id="toast">
+    <svg style="width:15px;height:15px;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+    </svg>
+    <span id="toastMsg">Added to wishlist</span>
+  </div>
+
+  <div id="filterBackdrop" onclick="closeFilterPanel()"></div>
+
+  <main style="max-width:1300px;margin:0 auto;padding:20px 16px 60px;">
+
+    <%
+      const brandArr = Array.isArray(filter.brand) ? filter.brand : (filter.brand ? [filter.brand] : [])
+
+      function buildQS(overrides) {
+        const parts = []
+        const q          = overrides.q          !== undefined ? overrides.q          : searchQuery
+        const s          = overrides.sort        !== undefined ? overrides.sort        : sort
+        const cat        = overrides.category    !== undefined ? overrides.category    : filter.category
+        const gen        = overrides.gender      !== undefined ? overrides.gender      : filter.gender
+        const col        = overrides.collection  !== undefined ? overrides.collection  : filter.collection
+        const minP       = overrides.minPrice    !== undefined ? overrides.minPrice    : filter.minPrice
+        const maxP       = overrides.maxPrice    !== undefined ? overrides.maxPrice    : filter.maxPrice
+        const minD       = overrides.minDiscount !== undefined ? overrides.minDiscount : filter.minDiscount
+        const pg         = overrides.page        !== undefined ? overrides.page        : ''
+        const brands     = overrides.brand       !== undefined ? overrides.brand       : brandArr
+
+        if(q)    parts.push('q='           + encodeURIComponent(q))
+        if(s)    parts.push('sort='        + encodeURIComponent(s))
+        if(cat)  parts.push('category='   + encodeURIComponent(cat))
+        if(gen)  parts.push('gender='     + encodeURIComponent(gen))
+        if(col)  parts.push('collection=' + encodeURIComponent(col))
+        if(minP) parts.push('minPrice='   + encodeURIComponent(minP))
+        if(maxP) parts.push('maxPrice='   + encodeURIComponent(maxP))
+        if(minD) parts.push('minDiscount='+ encodeURIComponent(minD))
+        if(pg)   parts.push('page='       + encodeURIComponent(pg))
+        brands.forEach(b => parts.push('brand=' + encodeURIComponent(b)))
+        return parts.length ? '?' + parts.join('&') : ''
+      }
+
+      const filterLabels = []
+      if(filter.gender)     filterLabels.push({ label: filter.gender,     removeUrl: '/shop' + buildQS({gender:'',     page:''}) })
+      if(filter.collection) filterLabels.push({ label: filter.collection, removeUrl: '/shop' + buildQS({collection:'', page:''}) })
+      if(filter.category) {
+        const catObj = categories.find(c => c._id.toString() === filter.category)
+        if(catObj) filterLabels.push({ label: catObj.name, removeUrl: '/shop' + buildQS({category:'', page:''}) })
+      }
+      if(filter.minDiscount && Number(filter.minDiscount) > 0)
+        filterLabels.push({ label: filter.minDiscount + '%+ off', removeUrl: '/shop' + buildQS({minDiscount:'', page:''}) })
+      brandArr.forEach(b =>
+        filterLabels.push({ label: b, removeUrl: '/shop' + buildQS({brand: brandArr.filter(x => x !== b), page:''}) })
+      )
+      const hasActiveFilters = filterLabels.length > 0
+    %>
+
+    <!-- ── TOP BAR ── -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:9px;">
+        <div>
+          <span style="font-family:'Bebas Neue',sans-serif;font-size:1.65rem;letter-spacing:0.04em;">
+            <% if(searchQuery) { %>Results for "<%= searchQuery %>"<% } else { %>Football Boots<% } %>
+          </span>
+          <span style="font-size:0.78rem;color:var(--muted);font-weight:500;margin-left:7px;">
+            <%= total %> product<%= total !== 1 ? 's' : '' %>
+          </span>
+        </div>
+
+        <!-- FILTER BUTTON + DROPDOWN (desktop) -->
+        <div style="position:relative;" class="hidden lg:block">
+          <button id="filterToggleBtn" class="filter-toggle-btn" onclick="toggleFilterPanel()">
+            <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/>
+            </svg>
+            Filters
+            <% if(hasActiveFilters) { %>
+              <span style="background:var(--accent);color:white;border-radius:50%;width:17px;height:17px;font-size:0.6rem;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">
+                <%= filterLabels.length %>
+              </span>
+            <% } %>
+          </button>
+
+          <div id="filterPanel">
+            <form id="desktopFilterForm" method="GET" action="/shop">
+              <input type="hidden" name="q"    value="<%= searchQuery %>"/>
+              <input type="hidden" name="sort" value="<%= sort %>"/>
+              <div class="filter-grid">
+                <div>
+                  <div class="filter-col-title">Category</div>
+                  <div class="filter-opts">
+                    <% categories.forEach(cat => { %>
+                      <label class="f-label">
+                        <input type="radio" name="category" value="<%= cat._id %>" <%= filter.category === cat._id.toString() ? 'checked' : '' %>/>
+                        <span><%= cat.name %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </div>
+                <div>
+                  <div class="filter-col-title">Brand</div>
+                  <div class="filter-opts">
+                    <% ['Nike','Adidas','Puma','New Balance','Mizuno'].forEach(b => { %>
+                      <label class="f-label">
+                        <input type="checkbox" name="brand" value="<%= b %>" <%= brandArr.includes(b) ? 'checked' : '' %>/>
+                        <span><%= b %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </div>
+                <div>
+                  <div class="filter-col-title">Gender</div>
+                  <div class="filter-opts">
+                    <% ['Male','Female','Unisex','Kids'].forEach(g => { %>
+                      <label class="f-label">
+                        <input type="radio" name="gender" value="<%= g %>" <%= filter.gender === g ? 'checked' : '' %>/>
+                        <span><%= g %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </div>
+                <div>
+                  <div class="filter-col-title">Collection</div>
+                  <div class="filter-opts">
+                    <% ['Retro','Limited Edition','Signature','Latest'].forEach(c => { %>
+                      <label class="f-label">
+                        <input type="radio" name="collection" value="<%= c %>" <%= filter.collection === c ? 'checked' : '' %>/>
+                        <span><%= c %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </div>
+                <div>
+                  <div class="filter-col-title">Discount</div>
+                  <div class="filter-opts">
+                    <% [[0,'All'],[10,'10%+'],[20,'20%+'],[30,'30%+'],[50,'50%+']].forEach(([d,lbl]) => { %>
+                      <label class="f-label">
+                        <input type="radio" name="minDiscount" value="<%= d %>" <%= Number(filter.minDiscount) === d ? 'checked' : '' %>/>
+                        <span><%= lbl %></span>
+                      </label>
+                    <% }) %>
+                  </div>
+                </div>
+                <div>
+                  <div class="filter-col-title">Price Range</div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);">
+                      <span>Min</span><span>₹<span id="dp_minVal"><%= filter.minPrice || 0 %></span></span>
+                    </div>
+                    <input type="range" name="minPrice" min="0" max="20000" step="500"
+                      value="<%= filter.minPrice || 0 %>"
+                      oninput="document.getElementById('dp_minVal').textContent=this.value"/>
+                    <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:10px;">
+                      <span>Max</span><span>₹<span id="dp_maxVal"><%= filter.maxPrice || 20000 %></span></span>
+                    </div>
+                    <input type="range" name="maxPrice" min="0" max="20000" step="500"
+                      value="<%= filter.maxPrice || 20000 %>"
+                      oninput="document.getElementById('dp_maxVal').textContent=this.value"/>
+                  </div>
+                </div>
+              </div>
+              <div class="filter-footer">
+                <a href="/shop<%= searchQuery ? '?q='+encodeURIComponent(searchQuery) : '' %>"
+                   style="font-size:0.78rem;color:var(--muted);font-weight:500;text-decoration:underline;">Clear all filters</a>
+                <button type="submit"
+                  style="background:var(--ink);color:white;border:none;border-radius:100px;padding:10px 28px;font-size:0.84rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background 0.15s;"
+                  onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#0a0a0a'">
+                  Apply Filters
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Active filter pills -->
+        <% filterLabels.forEach(f => { %>
+          <span class="pill">
+            <%= f.label %>
+            <a href="<%= f.removeUrl %>" style="line-height:0;display:flex;">
+              <svg class="pill-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </a>
+          </span>
+        <% }) %>
+        <% if(hasActiveFilters) { %>
+          <a href="/shop<%= searchQuery ? '?q='+encodeURIComponent(searchQuery) : '' %>"
+             style="font-size:0.76rem;color:var(--muted);text-decoration:underline;font-weight:500;">Clear all</a>
+        <% } %>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="document.getElementById('mobileFilterModal').classList.add('open')"
+          class="lg:hidden filter-toggle-btn">
+          <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/>
+          </svg>
+          Filters<% if(hasActiveFilters) { %> (<%= filterLabels.length %>)<% } %>
+        </button>
+        <form id="sortForm" method="GET" action="/shop">
+          <input type="hidden" name="q"           value="<%= searchQuery %>"/>
+          <input type="hidden" name="category"    value="<%= filter.category %>"/>
+          <input type="hidden" name="gender"      value="<%= filter.gender %>"/>
+          <input type="hidden" name="collection"  value="<%= filter.collection %>"/>
+          <input type="hidden" name="minPrice"    value="<%= filter.minPrice %>"/>
+          <input type="hidden" name="maxPrice"    value="<%= filter.maxPrice %>"/>
+          <input type="hidden" name="minDiscount" value="<%= filter.minDiscount %>"/>
+          <% brandArr.forEach(b => { %><input type="hidden" name="brand" value="<%= b %>"/><% }) %>
+          <select name="sort" class="sort-select" onchange="this.form.submit()">
+            <option value=""           <%= sort===''           ? 'selected':'' %>>Recommended</option>
+            <option value="price_low"  <%= sort==='price_low'  ? 'selected':'' %>>Price: Low → High</option>
+            <option value="price_high" <%= sort==='price_high' ? 'selected':'' %>>Price: High → Low</option>
+            <option value="az"         <%= sort==='az'         ? 'selected':'' %>>Name: A → Z</option>
+            <option value="za"         <%= sort==='za'         ? 'selected':'' %>>Name: Z → A</option>
+          </select>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── PRODUCT GRID ── -->
+    <% if (products && products.length > 0) { %>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:20px;">
+        <% products.forEach(product => { %>
+          <%
+            const allVariants = product.variants || []
+            const isOOS = allVariants.length === 0 || allVariants.every(v => v.status !== 'onStock' || v.stock <= 0)
+            const fv          = allVariants[0] || null
+            const offerActive = !!(fv?.offerActive && fv?.discountPercentage > 0)
+            const offerPrice  = offerActive ? (fv.offerPrice || 0) : (fv?.productPrice || 0)
+            const basePrice   = fv?.productPrice || 0
+            const discountPct = offerActive ? (fv.discountPercentage || 0) : 0
+            const avgRating   = product.avgRating   || 0
+            const reviewCount = product.reviewCount || 0
+            const inWishlist  = (typeof wishlistIds !== 'undefined') && wishlistIds.includes(product._id.toString())
+          %>
+
+          <a href="/product/<%= product._id %>" class="product-card <%= isOOS ? 'oos-card' : '' %>">
+            <div class="card-img-wrap">
+              <img
+                src="<%= product.productImage?.[0] || '/images/default.png' %>"
+                alt="<%= product.productname %>"
+                class="card-img"/>
+
+              <% if(isOOS) { %>
+                <span class="card-badge badge-oos">Out of Stock</span>
+              <% } else if(offerActive) { %>
+                <span class="card-badge badge-sale">-<%= discountPct %>%</span>
+              <% } %>
+
+              <!-- ✅ FIXED: clean wishlist button, no onclick, uses data attribute -->
+              <button
+                type="button"
+                class="wishlist-btn <%= inWishlist ? 'wishlisted' : '' %>"
+                data-product-id="<%= product._id %>"
+                title="<%= inWishlist ? 'Remove from wishlist' : 'Add to wishlist' %>">
+                <svg viewBox="0 0 24 24"
+                  fill="<%= inWishlist ? '#e11d48' : 'none' %>"
+                  stroke="<%= inWishlist ? '#e11d48' : '#6b7280' %>"
+                  stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </button>
+            </div>
+
+            <div class="card-body">
+              <p class="card-brand"><%= product.brand %></p>
+              <p class="card-name"><%= product.productname %></p>
+              <div class="stars-row">
+                <% if(reviewCount > 0) { %>
+                  <% for(let s=1; s<=5; s++) { %>
+                    <svg class="star" viewBox="0 0 20 20" fill="<%= s <= Math.round(avgRating) ? '#f59e0b' : '#e5e7eb' %>">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                    </svg>
+                  <% } %>
+                  <span class="review-count">(<%= reviewCount %>)</span>
+                <% } else { %>
+                  <span class="no-reviews-txt">No reviews yet</span>
+                <% } %>
+              </div>
+              <div class="price-row-card">
+                <span class="price-offer">₹<%= offerPrice.toLocaleString('en-IN') %></span>
+                <% if(offerActive) { %>
+                  <span class="price-base">₹<%= basePrice.toLocaleString('en-IN') %></span>
+                  <span class="price-disc">-<%= discountPct %>%</span>
+                <% } %>
+              </div>
+              <% if(isOOS) { %><span class="oos-tag">Out of Stock</span><% } %>
+            </div>
+          </a>
+
+        <% }) %>
+      </div>
+
+      <!-- Pagination -->
+      <% if(totalPages > 1) { %>
+        <div style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:46px;">
+          <% if(currentPage > 1) { %>
+            <a href="<%= '/shop' + buildQS({page: currentPage-1}) %>" class="page-btn wide">← Prev</a>
+          <% } %>
+          <% for(let p=1;p<=totalPages;p++) { %>
+            <a href="<%= '/shop' + buildQS({page: p}) %>"
+               class="page-btn <%= p===currentPage ? 'active' : '' %>"><%= p %></a>
+          <% } %>
+          <% if(currentPage < totalPages) { %>
+            <a href="<%= '/shop' + buildQS({page: currentPage+1}) %>" class="page-btn wide">Next →</a>
+          <% } %>
+        </div>
+      <% } %>
+
+    <% } else { %>
+      <div class="empty-wrap">
+        <svg class="empty-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2"
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <% if(searchQuery && !hasActiveFilters) { %>
+          <p style="font-weight:700;margin-top:14px;font-size:1.05rem;">No results for "<%= searchQuery %>"</p>
+          <p style="color:var(--muted);font-size:0.85rem;margin-top:5px;">Try a different keyword or check your spelling.</p>
+          <a href="/shop" style="margin-top:18px;background:var(--ink);color:white;padding:10px 26px;border-radius:100px;font-size:0.84rem;font-weight:600;text-decoration:none;">Browse All Products</a>
+        <% } else if(hasActiveFilters) { %>
+          <p style="font-weight:700;margin-top:14px;font-size:1.05rem;">No products match your filters</p>
+          <p style="color:var(--muted);font-size:0.85rem;margin-top:5px;">Try removing some filters to see more results.</p>
+          <a href="/shop<%= searchQuery ? '?q='+encodeURIComponent(searchQuery) : '' %>"
+             style="margin-top:18px;background:var(--ink);color:white;padding:10px 26px;border-radius:100px;font-size:0.84rem;font-weight:600;text-decoration:none;">Clear Filters</a>
+        <% } else { %>
+          <p style="font-weight:700;margin-top:14px;font-size:1.05rem;">No products available</p>
+          <p style="color:var(--muted);font-size:0.85rem;margin-top:5px;">Check back soon for new arrivals.</p>
+        <% } %>
+      </div>
+    <% } %>
+  </main>
+
+  <!-- ── MOBILE FILTER MODAL ── -->
+  <div id="mobileFilterModal">
+    <div id="mobileModalOverlay" onclick="document.getElementById('mobileFilterModal').classList.remove('open')"></div>
+    <div id="mobileModalPanel">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+        <span style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.04em;">Filters</span>
+        <button onclick="document.getElementById('mobileFilterModal').classList.remove('open')"
+          style="background:none;border:none;cursor:pointer;padding:4px;">
+          <svg style="width:22px;height:22px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form id="mobileFilterForm" method="GET" action="/shop">
+        <input type="hidden" name="q"    value="<%= searchQuery %>"/>
+        <input type="hidden" name="sort" value="<%= sort %>"/>
+
+        <div style="border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
+          <div class="filter-col-title" style="margin-bottom:8px;">Category</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <% categories.forEach(cat => { %>
+              <label id="mcat_<%= cat._id %>" style="display:flex;align-items:center;gap:6px;font-size:0.81rem;cursor:pointer;padding:6px 13px;border-radius:20px;border:1.5px solid <%= filter.category === cat._id.toString() ? '#0a0a0a' : '#e5e7eb' %>;background:<%= filter.category === cat._id.toString() ? '#f3f4f6' : 'transparent' %>;">
+                <input type="radio" name="category" value="<%= cat._id %>" <%= filter.category === cat._id.toString() ? 'checked' : '' %> style="display:none;" onchange="mobileChipChange(this)"/>
+                <%= cat.name %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div style="border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
+          <div class="filter-col-title" style="margin-bottom:8px;">Brand</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <% ['Nike','Adidas','Puma','New Balance','Mizuno'].forEach(b => { %>
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.81rem;cursor:pointer;padding:6px 13px;border-radius:20px;border:1.5px solid <%= brandArr.includes(b) ? '#0a0a0a' : '#e5e7eb' %>;background:<%= brandArr.includes(b) ? '#f3f4f6' : 'transparent' %>;">
+                <input type="checkbox" name="brand" value="<%= b %>" <%= brandArr.includes(b) ? 'checked' : '' %> style="display:none;" onchange="mobileCheckboxChange(this)"/>
+                <%= b %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div style="border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
+          <div class="filter-col-title" style="margin-bottom:8px;">Gender</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <% ['Male','Female','Unisex','Kids'].forEach(g => { %>
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.81rem;cursor:pointer;padding:6px 13px;border-radius:20px;border:1.5px solid <%= filter.gender === g ? '#0a0a0a' : '#e5e7eb' %>;background:<%= filter.gender === g ? '#f3f4f6' : 'transparent' %>;">
+                <input type="radio" name="gender" value="<%= g %>" <%= filter.gender === g ? 'checked' : '' %> style="display:none;" onchange="mobileChipChange(this)"/>
+                <%= g %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div style="border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
+          <div class="filter-col-title" style="margin-bottom:8px;">Collection</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <% ['Retro','Limited Edition','Signature','Latest'].forEach(c => { %>
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.81rem;cursor:pointer;padding:6px 13px;border-radius:20px;border:1.5px solid <%= filter.collection === c ? '#0a0a0a' : '#e5e7eb' %>;background:<%= filter.collection === c ? '#f3f4f6' : 'transparent' %>;">
+                <input type="radio" name="collection" value="<%= c %>" <%= filter.collection === c ? 'checked' : '' %> style="display:none;" onchange="mobileChipChange(this)"/>
+                <%= c %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div style="border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:14px;">
+          <div class="filter-col-title" style="margin-bottom:8px;">Discount</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <% [[0,'All'],[10,'10%+'],[20,'20%+'],[30,'30%+'],[50,'50%+']].forEach(([d,lbl]) => { %>
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.81rem;cursor:pointer;padding:6px 13px;border-radius:20px;border:1.5px solid <%= Number(filter.minDiscount) === d ? '#0a0a0a' : '#e5e7eb' %>;background:<%= Number(filter.minDiscount) === d ? '#f3f4f6' : 'transparent' %>;">
+                <input type="radio" name="minDiscount" value="<%= d %>" <%= Number(filter.minDiscount) === d ? 'checked' : '' %> style="display:none;" onchange="mobileChipChange(this)"/>
+                <%= lbl %>
+              </label>
+            <% }) %>
+          </div>
+        </div>
+
+        <div style="padding-bottom:14px;margin-bottom:14px;">
+          <div class="filter-col-title" style="margin-bottom:8px;">Price Range</div>
+          <div style="display:flex;justify-content:space-between;font-size:0.73rem;color:var(--muted);">
+            <span>Min ₹<span id="mob_minVal"><%= filter.minPrice || 0 %></span></span>
+            <span>Max ₹<span id="mob_maxVal"><%= filter.maxPrice || 20000 %></span></span>
+          </div>
+          <input type="range" name="minPrice" min="0" max="20000" step="500"
+            value="<%= filter.minPrice || 0 %>"
+            oninput="document.getElementById('mob_minVal').textContent=this.value"/>
+          <input type="range" name="maxPrice" min="0" max="20000" step="500"
+            value="<%= filter.maxPrice || 20000 %>"
+            oninput="document.getElementById('mob_maxVal').textContent=this.value" style="margin-top:10px;"/>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--line);">
+          <a href="/shop<%= searchQuery ? '?q='+encodeURIComponent(searchQuery) : '' %>"
+             style="font-size:0.78rem;color:var(--muted);font-weight:500;text-decoration:underline;">Clear all filters</a>
+          <button type="submit"
+            style="background:var(--ink);color:white;border:none;border-radius:100px;padding:11px 28px;font-size:0.84rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">
+            Apply Filters
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <%- include('../parials/user/footer.ejs') %>
+
+  <script>
+    /* ── Filter dropdown ── */
+    function toggleFilterPanel() {
+      const panel    = document.getElementById('filterPanel')
+      const btn      = document.getElementById('filterToggleBtn')
+      const backdrop = document.getElementById('filterBackdrop')
+      if (panel.classList.contains('open')) {
+        closeFilterPanel()
+      } else {
+        panel.classList.add('open')
+        btn.classList.add('active')
+        backdrop.classList.add('open')
+      }
+    }
+    function closeFilterPanel() {
+      document.getElementById('filterPanel').classList.remove('open')
+      document.getElementById('filterToggleBtn').classList.remove('active')
+      document.getElementById('filterBackdrop').classList.remove('open')
+    }
+
+    /* ── Mobile chip styling ── */
+    function mobileChipChange(input) {
+      document.querySelectorAll(`#mobileFilterForm input[name="${input.name}"]`).forEach(r => {
+        const lbl = r.closest('label')
+        if (lbl) { lbl.style.background = 'transparent'; lbl.style.borderColor = '#e5e7eb' }
+      })
+      if (input.checked) {
+        const lbl = input.closest('label')
+        if (lbl) { lbl.style.background = '#f3f4f6'; lbl.style.borderColor = '#0a0a0a' }
+      }
+    }
+    function mobileCheckboxChange(input) {
+      const lbl = input.closest('label')
+      if (!lbl) return
+      if (input.checked) { lbl.style.background = '#f3f4f6'; lbl.style.borderColor = '#0a0a0a' }
+      else { lbl.style.background = 'transparent'; lbl.style.borderColor = '#e5e7eb' }
+    }
+
+    /* ── Toast ── */
+    let _tt
+    function showToast(msg, isErr = false) {
+      const t = document.getElementById('toast')
+      document.getElementById('toastMsg').textContent = msg
+      t.classList.toggle('toast-err', isErr)
+      t.classList.add('show')
+      clearTimeout(_tt)
+      _tt = setTimeout(() => t.classList.remove('show'), 2800)
+    }
+
+    /* ── Wishlist toggle (event delegation — works inside <a> tags) ── */
+    document.addEventListener('click', async function(e) {
+      const btn = e.target.closest('.wishlist-btn')
+      if (!btn) return  // not a wishlist button click
+
+      e.preventDefault()
+      e.stopPropagation()
+      const productId = btn.dataset.productId
+      console.log('productid',productId )
+      if (!productId) return
+
+      const isWishlisted = btn.classList.contains('wishlisted')
+      const action = isWishlisted ? 'remove' : 'add'
+   console.log('action',action)
+      try {
+        const res = await fetch('/wishlist/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, action })
+        })
+        console.log('STATUS:', res.status)       // ← ADD
+console.log('REDIRECTED:', res.redirected) // ← ADD
+console.log('FINAL URL:', res.url)         // ← ADD
+
+        if (res.status === 401) { window.location.href = '/login?redirect=/shop'; return }
+
+        const data = await res.json()
+        console.log('data',data)
+        if (data.success) {
+          const svg = btn.querySelector('svg')
+          if (action === 'add') {
+            btn.classList.add('wishlisted')
+            svg.setAttribute('fill', '#e11d48')
+            svg.setAttribute('stroke', '#e11d48')
+            btn.title = 'Remove from wishlist'
+            showToast('❤️  Added to wishlist')
+          } else {
+            btn.classList.remove('wishlisted')
+            svg.setAttribute('fill', 'none')
+            svg.setAttribute('stroke', '#6b7280')
+            btn.title = 'Add to wishlist'
+            showToast('Removed from wishlist')
+          }
+        } else {
+          showToast(data.message || 'Something went wrong', true)
+        }
+      } catch (err) {
+        console.error('Wishlist error:', err)
+        showToast('Could not update wishlist', true)
+      }
+    })
+  </script>
+</body>
+</html>

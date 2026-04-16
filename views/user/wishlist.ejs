@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wishlist – PES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Barlow', sans-serif; }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+  <%- include('../parials/user/header.ejs', { page: 'wishlist',cartCount : 0,searchQuery:'' }) %>
+
+  <main class="max-w-5xl mx-auto px-6 py-12">
+
+    <!-- Header row -->
+    <div class="flex products-center justify-between mb-8">
+      <h1 class="text-lg font-bold">
+        Wishlist
+        <span class="text-gray-400 font-normal">(<%= wishlistItems ? wishlistItems.length : 0 %>)</span>
+      </h1>
+      <% if (wishlistItems && wishlistItems.length > 0) { %>
+        <button
+          onclick="moveAllToBag()"
+          class="border border-gray-900 text-gray-900 font-semibold text-sm px-6 py-2.5 rounded-lg hover:bg-black hover:text-white transition-all duration-200"
+        >
+          Move All To Bag
+        </button>
+      <% } %>
+    </div>
+
+    <% if (!wishlistItems || wishlistItems.length === 0) { %>
+      <!-- Empty wishlist -->
+      <div class="text-center py-24">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto mb-5 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 016.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"/>
+        </svg>
+        <p class="text-lg font-semibold text-gray-700 mb-2">Your wishlist is empty</p>
+        <p class="text-sm text-gray-400 mb-6">Save products you love for later.</p>
+        <a href="/shop" class="inline-block bg-black text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+          Browse Products
+        </a>
+      </div>
+
+    <% } else { %>
+      <!-- Wishlist Items -->
+      <div class="space-y-6">
+      <% wishlistItems.forEach(item => { %>
+  <div id="wishlist-item-<%= item._id %>" class="flex items-start gap-5 pb-6 border-b border-gray-100">
+    
+    <!-- Image -->
+    <a href="/product/<%= item.productId._id %>" class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+      <img src="<%= item.productId.productImage?.[0] %>" 
+           alt="<%= item.productId.productname %>" 
+           class="w-full h-full object-contain p-2"/>
+    </a>
+
+    <!-- Info -->
+    <div class="flex-1 min-w-0">
+      <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
+        <%= item.productId.productname %>
+        <%
+          const v = item.productId.variants?.[0]
+          const inStock = item.productId.variants?.some(v => v.status === 'onStock' && v.stock > 0)
+        %>
+        <span class="font-normal text-xs normal-case ml-2 <%= inStock ? 'text-green-500' : 'text-red-500' %>">
+          | <%= inStock ? 'In Stock' : 'Out of Stock' %>
+        </span>
+      </p>
+      <div class="flex items-center gap-3 mt-2">
+        <%
+          const wv = item.productId.variants?.[0]
+          const price = wv ? (wv.offerActive ? wv.offerPrice : wv.productPrice) : 0
+          const origPrice = wv?.productPrice || 0
+        %>
+        <span class="font-bold text-sm">₹<%= price.toLocaleString('en-IN') %></span>
+        <% if(wv?.offerActive && origPrice !== price) { %>
+          <span class="text-xs text-gray-400 line-through">₹<%= origPrice.toLocaleString('en-IN') %></span>
+        <% } %>
+      </div>
+      <p class="text-xs text-gray-400 mt-2">
+        Added on <%= new Date(item.addedAt).toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g, '-') %>
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-2 flex-shrink-0">
+      <button
+        onclick="removeFromWishlist('<%= item._id %>')"
+        class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Remove
+      </button>
+      <button
+        onclick="addToCartFromWishlist('<%= item._id %>', '<%= item.productId._id %>')"
+        class="flex items-center gap-1.5 border border-gray-300 hover:border-black text-gray-700 hover:text-black text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.39A1 1 0 007 21h10a1 1 0 00.99-.85L19 13M7 13H5.4M10 21a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2z"/>
+        </svg>
+        Add To Cart
+      </button>
+    </div>
+  </div>
+<% }) %>
+      </div>
+    <% } %>
+
+  </main>
+
+  <%- include('../parials/user/footer.ejs') %>
+
+  <script>
+    async function removeFromWishlist(itemId) {
+      try {
+        const res = await fetch(`/wishlist/remove/${itemId}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById(`wishlist-item-${itemId}`)?.remove();
+          showToast('Removed from wishlist');
+          // Update count in header
+          const countEl = document.querySelector('h1 span');
+          if (countEl) {
+            const current = parseInt(countEl.textContent.replace(/[()]/g, ''));
+            countEl.textContent = `(${Math.max(0, current - 1)})`;
+          }
+        }
+      } catch { showToast('Error removing item'); }
+    }
+
+    async function addToCartFromWishlist(wishlistItemId, productId) {
+      try {
+        const res = await fetch('/cart/add-from-wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wishlistItemId, productId })
+        });
+        const data = await res.json();
+        showToast(data.success ? 'Added to cart!' : (data.message || 'Error'));
+      } catch { showToast('Something went wrong'); }
+    }
+
+    async function moveAllToBag() {
+      try {
+        const res = await fetch('/wishlist/move-all-to-cart', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('All products moved to cart!');
+          setTimeout(() => window.location.href = '/cart', 1200);
+        } else {
+          showToast(data.message || 'Error moving products');
+        }
+      } catch { showToast('Something went wrong'); }
+    }
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-6 right-6 bg-black text-white px-5 py-3 rounded-xl text-sm shadow-lg z-50';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 2800);
+    }
+  </script>
+</body>
+</html>

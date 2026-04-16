@@ -1,24 +1,22 @@
 import User from '../../models/userModel.js'
 import nodemailer from 'nodemailer'
-// import dotenv from 'dotenv';
-// dotenv.config()
 import bcrypt from 'bcrypt'
-
-
-
-
+import getUserId from '../../helpers/getUserId.js';
+import Product from '../../models/productModel.js';
 
 
 const loadLanding = async(req,res)=>{
   
     try{
-        let user=req.session.user||req.session.passport?.user
+        const user = getUserId(req)
+
+        const latestBoots = await Product.find({ collection: 'Latest', isBlocked: false }).limit(4).lean()
+        const signatureBoots = await Product.find({ collection: 'Signature', isBlocked: false }).limit(3).lean()
 
         if(user){
-            res.redirect("/home")
+            return res.redirect("/home")
         }else{
-
-            return res.render('landing')
+            return res.render('landing', { latestBoots, signatureBoots })
         }
         
 
@@ -52,8 +50,9 @@ const pageNotFound = async(req,res)=>{
 
 const loadSignup = async (req, res) => {
     try {
-        let user =req.session.user||req.session.passport?.user
+        const user = getUserId(req)
         if (user) {
+                
             
             return res.render('signup', { message: 'You are already logged in.' });
         }
@@ -109,9 +108,29 @@ async function sendVerificationEmail(email,otp){
 
 const signup = async(req,res)=>{
     try {
+
+        
         const {firstName,lastName,phone,email,password,confirmPassword}=req.body;
+        
+       // Server-side validation
+
+       if(!firstName || (firstName.match(/[a-zA-Z]/g) || []).length<3 ){
+        return res.status(400).json({success:false,field:'firstName',message:'First name must be at least 3 characters'})
+       }
+       if(!lastName || (lastName.match(/[a-zA-Z]/g) || []).length<2){
+        return res.status(400).json({success:false,dield:'lastName',message:'Last name must be at least 2 characters'})
+       }
+       if(!phone || !/^[0-9]{10}$/.test(phone.trim())){
+        return res.status(400).json({success:false,field:'phone',message:'Enter a valid 10-digit phone number'})
+       }
+       if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())){
+        return res.status(400).json({success:false,field:'email',message:'Enter a valid email'})
+       }
+       if(!password || !/^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(password)){
+        return res.status(400).json({success:false,field:'password',message:'Password must be 6+ characters with at least one letter and number'})
+       }
         if(password !== confirmPassword){
-            return res.render('signup',{message:'Password do not match'});
+            return res.status(400).json({success:false,field:'confirmPassword',message:'Passwords do not match'})
         }
         const findUser = await User.findOne({email})
         if(findUser){
@@ -120,16 +139,17 @@ const signup = async(req,res)=>{
         const otp = generateOtp()
         
         const emailSent = await sendVerificationEmail(email,otp)
-
+              
         if(!emailSent){
             return res.json('email-error')
         }
-
         req.session.userOtp = otp;
         req.session.userData = {firstName,lastName,phone,email,password};
+        
 
         res.render('signupOtp')
         console.log('otp sent',otp)
+        
 
     } catch (error) {
        
@@ -162,7 +182,8 @@ const verifyOtp = async(req,res)=>{
                 lastName:user.lastName,
                 phone:user.phone,
                 email:user.email,
-                password:passwordHash
+                password:passwordHash,
+                profileImg:'img/Solidão____.jpg'
             })
             await saveUserData.save();
             req.session.user = saveUserData._id;
@@ -188,18 +209,25 @@ const resendOtp = async(req,res)=>{
         const otp = generateOtp();
         req.session.userOtp = otp;
 
-        const emailSent = await sendVerificationEmail(email,otp);
-        if(emailSent){
-            console.log('resend otp:',otp)
-            res.status(200).json({success:true,message:'OTP Resend Successfully'})
-        }else{
-            res.status(500).json({success:false,message:'Failed to resend OTP.Please try again'})
-        }
+        req.session.save(async (error)=>{
+            if(error){
+                console.log('Session save error',error);
+                return res.status(500).json({success:false,message:'Session error. Please try again'})
+            }
+            const emailSent = await sendVerificationEmail(email,otp);
+            if(emailSent){
+                console.log('resend OTP: ', otp)
+                return res.status(200).json({success:true,message:'OTP Resent Successfully'})
 
-    } catch (error) {
+            }else{
+                return res.status(500).json({success:false,message:'Failed to resend OTP. Please try again'})
+            }
+        })
+    }catch(error){
         console.log('Error resending OTP',error)
         res.status(500).json({success:false,message:'Internal Server Error'})
     }
+
 }
 
 
@@ -225,10 +253,10 @@ const login = async(req,res)=>{
         
 
        const {email,password}=req.body;
-       console.log("sas",email,password);
+       
        
        const findUser = await User.findOne({isAdmin:0,email:email});
-       console.log(findUser);
+       
        
        if(!findUser){
         return res.render('login',{message:'User not found'})
@@ -256,12 +284,16 @@ const login = async(req,res)=>{
 
 const loadHome = async(req,res)=>{
     try{
-        const user  = req.session.user||req.session.passport?.user
+        const userId = getUserId(req)
         
-        if(user){
-          const userData = await User.findOne({_id:user._id})
+        if(userId){
+          const userData = await User.findOne({_id:userId})
           const cartCount = req.session.cart ? req.session.cart.length : 0
-         res.render('home',{user:userData,cartCount:cartCount})
+          
+          const latestBoots = await Product.find({ collection: 'Latest', isBlocked: false }).limit(4).lean()
+          const signatureBoots = await Product.find({ collection: 'Signature', isBlocked: false }).limit(3).lean()
+
+         res.render('home',{user:userData, cartCount:cartCount, latestBoots, signatureBoots})
         }
     }catch(error){
       
@@ -282,7 +314,7 @@ const logout = async(req,res)=>{
             return res.redirect('/pageNotFound')
         }
 
-        return res.redirect('/login')
+        return res.redirect('/')
        })
       
 
@@ -291,6 +323,292 @@ const logout = async(req,res)=>{
       console.log('Logout error',error)
       res.redirect('/pageNotFound')
 
+
+    }
+}
+
+
+const loadForgotPassword = async (req, res) => {
+  try {
+    res.render('forgotPassword', { message: null });
+  } catch (error) {
+    res.redirect('/pageNotFound');
+  }
+};
+
+const ForgotPassword = async(req,res)=>{
+    try {
+        const {email}=req.body
+        const user = await User.findOne({email,isAdmin:false})
+        if(!user){
+            return res.render('forgotPassword',{message:'No account found with this email'})
+        }
+
+        const otp = generateOtp()
+        const otpExpiry = Date.now() + 10 * 60 * 1000;
+
+        const emailSent = await sendVerificationEmail(email,otp);
+        if(!emailSent){
+            return res.render('forgotPassword',{message:'Failed to send OTP. Try again'})
+        }
+
+       
+        req.session.forgotPassword = {email,otp,otpExpiry}
+
+        console.log('Forgot Password OTP: ',otp)
+        res.redirect('/forgotOtp')
+
+    } catch (error) {
+        console.log('postForgotPassword error: ',error)
+        res.redirect('/pageNotFound')
+    }
+}
+
+
+
+const loadForgotOtp = async(req,res)=>{
+    try {
+        if(!req.session.forgotPassword){
+            return res.redirect('/forgotPassword')
+        }
+        res.render('forgotOtp',{message:null})
+    } catch (error) {
+      res.redirect('/pageNotFound')  
+    }
+}
+
+
+const ForgotOtp = async(req,res)=>{
+    try {
+        const {otp} = req.body;
+        const sessionData = req.session.forgotPassword;
+        if(!sessionData){
+            return res.redirect('/forgotPassword')
+        }
+
+       if(Date.now() > sessionData.otpExpiry){
+    return res.status(400).json({ success: false, message: 'OTP has expired. Please request a new one' })
+}
+
+       if(otp !== sessionData.otp){
+    return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again' })
+}
+
+        req.session.forgotPassword.otpVerified = true;
+return res.json({ success: true, redirectUrl: '/resetPassword' })
+    } catch (error) {
+      console.log('postForgotOtp error: ',error)
+      res.redirect('/pageNotFound')  
+    }
+}
+
+
+const resendForgotOtp = async (req, res) => {
+  try {
+    const sessionData = req.session.forgotPassword;
+    if (!sessionData) {
+      return res.status(400).json({ success: false, message: 'Session expired' });
+    }
+
+    const otp = generateOtp(); 
+    const otpExpiry = Date.now() + 10 * 60 * 1000;
+
+    req.session.forgotPassword.otp = otp;
+    req.session.forgotPassword.otpExpiry = otpExpiry;
+  
+     const emailSent = await sendVerificationEmail(sessionData.email, otp); 
+    if (emailSent) {
+      console.log('Resend forgot OTP:', otp);
+      res.status(200).json({ success: true, message: 'OTP resent successfully' });
+    } else {
+      res.status(500).json({ success: false, message: 'Failed to resend OTP' });
+    }
+
+  } catch (error) {
+    console.log('resendForgotOtp error:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+};
+
+
+
+const loadResetPassword = async (req, res) => {
+  try {
+    const sessionData = req.session.forgotPassword;
+    if (!sessionData || !sessionData.otpVerified) {
+      return res.redirect('/forgotPassword');
+    }
+    res.render('resetPassword', { message: null,success:null });
+  } catch (error) {
+    res.redirect('/pageNotFound');
+  }
+};
+
+
+
+const ResetPassword = async (req, res) => {
+  try {
+    const { password, confirmPassword } = req.body;
+    const sessionData = req.session.forgotPassword;
+
+    if (!sessionData || !sessionData.otpVerified) {
+      return res.redirect('/forgotPassword');
+    }
+
+    if (password !== confirmPassword) {
+      return res.render('resetPassword', { message: 'Passwords do not match' });
+    }
+    
+     if (password.length < 6) {
+      return res.render('resetPassword', { message: 'Password must be at least 6 characters' });
+    }
+
+    const hashedPassword = await securePassword(password); 
+
+    await User.updateOne(
+      { email: sessionData.email },
+      { $set: { password: hashedPassword } }
+    );
+
+    delete req.session.forgotPassword;
+
+    return res.render('resetPassword',{
+        message:null,
+        success:'Password reset successfully!'
+    })
+
+  } catch (error) {
+    console.log('postResetPassword error:', error);
+    res.redirect('/pageNotFound');
+  }
+};
+
+
+const userProfile = async(req,res)=>{
+    try {
+        const userId = getUserId(req)
+
+        if(!userId){
+            return res.redirect('/login')
+        }
+        const userData = await User.findById(userId)
+        if(!userData){
+            return res.redirect('/login')
+        }
+        res.render('profile',{
+            user:userData,
+        })
+        console.log('profileImage value:', userData.profileImg)
+    } catch (error) {
+        console.log('error for retreive profile data',error)
+        res.redirect('/PageNotFound')
+    }
+}
+
+
+const loadEditProfile = async(req,res)=>{
+    try {
+        const userId = getUserId(req)
+        const user = await User.findById(userId)
+        res.render('editProfile',{user})
+    } catch (error) {
+        console.log('loadEdit error: ' , error)
+        res.redirect('/pageNotFound')
+    }
+}
+
+
+
+const editProfile = async(req,res)=>{
+    try {
+        
+       const {firstName,lastName,phone,currentPassword,newPassword,confirmPassword}=req.body;
+       
+       const userId = getUserId(req)
+    
+       const updateData = {
+      firstName: firstName.trim(),
+      lastName:  lastName.trim(),
+      phone:     phone ? phone.trim() : '',
+    }
+    if(req.file){
+        updateData.profileImg = 'img/' + req.file.filename;
+    }
+    if(currentPassword || newPassword || confirmPassword){
+        const userData = await User.findById(userId)
+        const match = await bcrypt.compare(currentPassword,userData.password)
+        if(!match){
+            
+            return res.render('editProfile',{user:userData,error:'Current password is incorrect'})
+            
+        }
+        updateData.password = await securePassword(newPassword)
+    }
+    await User.findByIdAndUpdate(userId,{
+        $set:updateData
+    })
+        
+        
+    } catch (error) {
+        console.log('editProfile error:',error)
+        res.redirect('/pagenotFound')
+    }
+}
+
+
+const changeEmail = async(req,res)=>{
+    try{
+        const {newEmail}= req.body;
+
+        const existing = await User.findOne({email:newEmail})
+        if(existing){
+            return res.json({success:false,message:'This email is already registered'})
+        }
+
+        const otp = generateOtp()
+        const otpExpiry = Date.now() + 10 * 60 * 1000
+
+        req.session.changeEmail = {newEmail,otp,otpExpiry}
+
+        const emailSent = await sendVerificationEmail(newEmail,otp)
+            if(!emailSent){
+                return res.json({success:false,message:'Failed to send OTP. Please try again'
+                })
+            }
+            console.log('Change Email OTP: ',otp);
+            return res.json({success:true,message:'OTP sent successfully'})
+        }catch(error){
+            console.log('changeEmail Error : ',error)
+            return res.status(500).json({success:false,message:'Internal server Error'})
+        }
+    
+}
+
+const verifyChangeEmail = async(req,res)=>{
+    try {
+        const {otp} = req.body;
+        const sessionData = req.session.changeEmail;
+        if(!sessionData){
+            return res.status(400).json({success:false,message:'Session Expired. Please start again'})
+        }
+        if(Date.now() > sessionData.otpExpiry){
+            delete req.session.changeEmail;
+            return res.status(400).json({success:error,message:'OTP expired. Please request new one'})
+        }
+        if(otp !== sessionData.otp){
+            return res.status(400).json({success:false,message:'Invalid OTP.Please try again'})
+        }
+
+        const userId = getUserId(req)
+
+        await User.findByIdAndUpdate(userId,{
+            $set:{email:sessionData.newEmail}
+        })
+        delete req.session.changeEmail
+        return res.status(200).json({success:true,message:'Email updated successfully'})
+    } catch (error) {
+        console.log('VerifyChangeEmail error : ',error)
+        return res.status(500).json({success:false,message:'Internal server error'})
 
     }
 }
@@ -307,5 +625,18 @@ const logout = async(req,res)=>{
   loadLogin,
   login,
   loadHome,
-  logout
+  logout,
+ loadForgotPassword,    
+  ForgotPassword,
+  loadForgotOtp,
+  ForgotOtp,
+  resendForgotOtp,
+  loadResetPassword,
+  ResetPassword,
+  userProfile,
+  loadEditProfile,
+  editProfile,
+  changeEmail,
+  verifyChangeEmail,
+
 }

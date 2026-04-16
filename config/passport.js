@@ -15,7 +15,7 @@ async(accessToken,refreshToken,Profile,done)=>{
         if(user){
             return done(null,user)
         }else{
-            user = new User({
+            user =  new User({
                 firstName:Profile.displayName,
                 email:Profile.emails[0].value,
                 googleId:Profile.id,
@@ -32,20 +32,28 @@ async(accessToken,refreshToken,Profile,done)=>{
 
 passport.serializeUser((user,done)=>{
 
-done(null,user.id)
+done(null,user._id)
 
 })
 
-passport.deserializeUser((id,done)=>{
+passport.deserializeUser(async(id,done) =>{
+    try {
+        if(!id) return done(null,false)
+            const user = await User.findById(id)
+        if(!user) return done(null,false)
 
-User.findById(id)
-.then(user=>{
-    done(null,user)
-})
-.catch(error=>{
-    done(error,null)
+            done(null,user)
+    } catch (error) {
+        done(null,false)
+    }
 })
 
-})
+
+
+
+
+
+
+
 
 export default passport

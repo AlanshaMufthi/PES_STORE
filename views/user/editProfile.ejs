@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Profile | 2ES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=Raleway:wght@300;400;500;600;700;800&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Raleway', sans-serif; }
+    .search-input { background:#f3f3f3;border:1px solid #ddd;border-radius:6px;padding:0.35rem 2rem 0.35rem 0.75rem;font-size:0.8rem;outline:none;width:180px;color:#555; }
+    .search-wrap { position:relative; }
+    .search-wrap svg { position:absolute;right:8px;top:50%;transform:translateY(-50%); }
+    .profile-dropdown { position:absolute;right:0;top:calc(100% + 10px);background:#fff;border:1px solid #e5e7eb;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);min-width:160px;z-index:100;overflow:hidden;display:none; }
+    .profile-dropdown.open { display:block; }
+    .profile-dropdown a { display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:0.82rem;font-weight:600;color:#111;text-decoration:none;transition:background 0.15s; }
+    .profile-dropdown a:hover { background:#f5f5f5; }
+    .profile-dropdown a.logout { color:#e63946; }
+    .profile-dropdown a.logout:hover { background:#fff5f5; }
+    .profile-dropdown .divider { height:1px;background:#eee;margin:2px 0; }
+    .cart-wrap { position:relative;display:flex;align-items:center; }
+    .icon-btn { background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#111;transition:background 0.15s; }
+    .icon-btn:hover { background:#f3f3f3; }
+    .profile-wrap { position:relative; }
+    .sidebar-link { transition:color 0.15s;cursor:pointer; }
+    .sidebar-link:hover { color:#e63946; }
+
+    .field-box { width:100%;padding:11px 16px;border:1.5px solid #d1d5db;border-radius:8px;background:#f9fafb;font-size:0.85rem;color:#374151;font-family:'Raleway',sans-serif;outline:none;transition:border 0.2s,background 0.2s; }
+    .field-box:not([readonly]):focus { border-color:#111;background:#fff; }
+    .field-box[readonly] { cursor:default;background:#f3f4f6;color:#9ca3af; }
+    .field-box.field-error { border-color:#f87171 !important; }
+
+    /* Inline error — mirrors signup.ejs .error-message */
+    .error-msg { font-size:0.75rem;margin-top:4px;color:#f87171;font-weight:500;display:none; }
+    .error-msg.show { display:block; }
+
+    .pw-box { border:1.5px solid #d1d5db;border-radius:10px;overflow:hidden; }
+    .pw-box.field-error { border-color:#f87171; }
+    .pw-row { padding:14px 16px;border-bottom:1.5px solid #e5e7eb;position:relative; }
+    .pw-row:last-child { border-bottom:none; }
+    .pw-label { font-size:0.75rem;font-weight:600;color:#6b7280;margin-bottom:6px; }
+    .pw-input { width:100%;background:transparent;border:none;font-size:0.85rem;color:#374151;outline:none;font-family:'Raleway',sans-serif;padding-right:36px; }
+    .eye-btn { position:absolute;right:14px;bottom:14px;background:none;border:none;cursor:pointer;color:#6b7280;display:flex;align-items:center; }
+    .eye-btn:hover { color:#111; }
+    .photo-wrap { position:relative;display:inline-block;cursor:pointer; }
+    .photo-edit-icon { position:absolute;bottom:2px;right:2px;background:#fff;border:1.5px solid #d1d5db;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center; }
+    .btn-cancel { padding:11px 32px;border-radius:8px;border:1.5px solid #d1d5db;background:#f3f4f6;color:#374151;font-size:0.88rem;font-weight:600;cursor:pointer;font-family:'Raleway',sans-serif;transition:background 0.15s; }
+    .btn-cancel:hover { background:#e5e7eb; }
+    .btn-update { padding:11px 36px;border-radius:8px;border:none;background:#111;color:#fff;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Raleway',sans-serif;transition:background 0.15s; }
+    .btn-update:hover { background:#333; }
+    .btn-change-email { font-size:0.75rem;font-weight:700;color:#e63946;background:none;border:none;cursor:pointer;padding:0;margin-top:5px;text-decoration:underline;font-family:'Raleway',sans-serif; }
+
+    /* ── OTP Modal ── */
+    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s; }
+    .modal-overlay.open { opacity:1;pointer-events:all; }
+    .modal-card { background:#fff;border-radius:16px;padding:32px 28px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.18);transform:translateY(12px);transition:transform 0.2s; }
+    .modal-overlay.open .modal-card { transform:translateY(0); }
+
+    .otp-inputs { display:flex;gap:10px;justify-content:center;margin:20px 0; }
+    .otp-digit { width:48px;height:54px;border:1.5px solid #d1d5db;border-radius:10px;font-size:1.3rem;font-weight:700;text-align:center;outline:none;font-family:'Raleway',sans-serif;color:#111;background:#f9fafb;transition:border-color 0.15s,background 0.15s; }
+    .otp-digit:focus { border-color:#111;background:#fff; }
+    .otp-digit.field-error { border-color:#f87171;background:#fff5f5; }
+
+    .btn-verify { width:100%;padding:12px;border-radius:8px;border:none;background:#111;color:#fff;font-size:0.9rem;font-weight:700;cursor:pointer;font-family:'Raleway',sans-serif;transition:background 0.15s;margin-top:4px; }
+    .btn-verify:hover { background:#333; }
+    .btn-verify:disabled { background:#9ca3af;cursor:not-allowed; }
+
+    .resend-row { text-align:center;margin-top:14px;font-size:0.78rem;color:#6b7280; }
+    .resend-btn { background:none;border:none;cursor:pointer;font-weight:700;color:#e63946;font-family:'Raleway',sans-serif;font-size:0.78rem;text-decoration:underline; }
+    .resend-btn:disabled { color:#9ca3af;cursor:not-allowed;text-decoration:none; }
+    .modal-feedback { font-size:0.78rem;font-weight:500;text-align:center;margin-top:8px;min-height:18px; }
+    .modal-feedback.err { color:#f87171; }
+    .modal-feedback.ok  { color:#16a34a; }
+
+    footer { background:#fff;border-top:1px solid #eee; }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+<!-- ═══════════════ NAVBAR ═══════════════ -->
+<nav class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
+      <svg width="44" height="50" viewBox="0 0 44 50" fill="none">
+        <path d="M22 2L40 10V26C40 36.5 32 44.5 22 48C12 44.5 4 36.5 4 26V10L22 2Z" fill="white" stroke="black" stroke-width="2.5"/>
+        <path d="M10 20L13 15L16 19L22 13L28 19L31 15L34 20H10Z" fill="black"/>
+        <text x="22" y="34" text-anchor="middle" font-family="Cinzel,serif" font-size="9" font-weight="700" fill="black">2ES</text>
+      </svg>
+    </a>
+    <div class="hidden md:flex items-center flex-1 justify-center">
+      <div class="search-wrap">
+        <input class="search-input" type="text" placeholder="search product..." />
+        <svg width="14" height="14" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/cart" class="cart-wrap icon-btn">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </a>
+      <div class="profile-wrap" id="profileWrap">
+        <button class="icon-btn" id="profileBtn">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </button>
+        <div class="profile-dropdown" id="profileDropdown">
+          <a href="/profile">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            Profile
+          </a>
+          <div class="divider"></div>
+          <a href="/logout" class="logout">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-gray-100">
+    <div class="max-w-5xl mx-auto px-4 flex gap-8 py-2.5 justify-center">
+      <a href="/" class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition">HOME</a>
+      <a href="/shop" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition">SHOP</a>
+      <a href="/about" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition">ABOUT</a>
+      <a href="/contact" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition">CONTACT</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main class="max-w-5xl mx-auto px-4 py-10">
+  <div class="flex gap-8 items-start">
+
+    <!-- SIDEBAR -->
+    <aside class="w-52 flex-shrink-0">
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 mb-3">
+          <img src="<%= user && user.profileImg ? '/' + user.profileImg : '/images/default-avatar.png' %>" alt="Profile" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover" />
+        </div>
+        <div class="bg-gray-100 border border-gray-300 rounded px-4 py-1 text-sm font-semibold text-gray-700">
+          <%= user ? user.firstName + ' ' + user.lastName : 'Customer Name' %>
+        </div>
+      </div>
+      <div class="text-sm space-y-1">
+        <p class="font-bold text-gray-900 mb-2">Manage My Account</p>
+        <div class="pl-3 space-y-1.5">
+          <a href="/profile" class="block font-semibold text-red-500 sidebar-link">My Profile</a>
+          <a href="/addressBook" class="block text-gray-500 sidebar-link">Address Book</a>
+        </div>
+        <div class="pt-3 space-y-2.5">
+          <a href="/orders" class="block font-bold text-gray-800 sidebar-link">My Orders</a>
+          <a href="/privacy" class="block font-bold text-gray-800 sidebar-link">privacy</a>
+          <a href="/wallet" class="block font-bold text-gray-800 sidebar-link">Wallet</a>
+          <a href="/coupons" class="block font-bold text-gray-800 sidebar-link">Coupons</a>
+          <a href="/wishlist" class="block font-bold text-gray-800 sidebar-link">My WishList</a>
+          <a href="/logout" class="block font-bold text-red-500 sidebar-link">Logout</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- PROFILE PANEL -->
+    <div class="flex-1 border border-gray-200 rounded-xl p-8 bg-white shadow-sm">
+
+      <div class="flex items-start justify-between mb-7">
+        <div>
+          <p class="font-bold text-base mb-4" style="color:#e63946;">Your Details</p>
+          <div class="photo-wrap" onclick="document.getElementById('photoInput').click()">
+            <div class="w-20 h-20 rounded-full overflow-hidden border-2 border-gray-200">
+              <img id="previewImg" src="<%= user && user.profileImg ? '/' + user.profileImg : '/images/default-avatar.png' %>" alt="Profile" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover" />
+            </div>
+            <div class="photo-edit-icon">
+              <svg width="11" height="11" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" class="hidden" />
+          <p class="text-xs text-gray-400 mt-2 text-center">Change photo</p>
+        </div>
+        <p class="font-bold text-base text-gray-800">Personal Information</p>
+      </div>
+
+      <form id="editForm" action="/editProfile" method="POST" enctype="multipart/form-data">
+        <input type="file" name="profileImage" id="profileImageInput" class="hidden" />
+        <div class="space-y-5">
+
+          <!-- Row 1: First + Last name -->
+          <div class="grid grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1.5">first name</label>
+              <input type="text" id="firstName" name="firstName" class="field-box" value="<%= user ? user.firstName : '' %>" />
+              <p class="error-msg" id="firstNameErr"></p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1.5">last name</label>
+              <input type="text" id="lastName" name="lastName" class="field-box" value="<%= user ? user.lastName : '' %>" />
+              <p class="error-msg" id="lastNameErr"></p>
+            </div>
+          </div>
+
+          <!-- Row 2: Email -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Email</label>
+            <input type="email" id="emailDisplay" class="field-box" value="<%= user ? user.email : '' %>" readonly />
+            <button type="button" class="btn-change-email" onclick="openEmailModal()">+ Change Email Address</button>
+          </div>
+
+          <!-- Row 3: Phone full-width -->
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1.5">Phone</label>
+            <input type="text" id="phone" name="phone" class="field-box" value="<%= user && user.phone ? user.phone : '' %>" placeholder="+91 XXXXX XXXXX" />
+            <p class="error-msg" id="phoneErr"></p>
+          </div>
+
+          <!-- Row 4: Password -->
+          <div>
+            <div class="pw-box <% if (typeof error !== 'undefined' && error) { %>field-error<% } %>" id="pwBox">
+              <div class="pw-row">
+                <p class="pw-label">Current Password</p>
+                <input type="password" name="currentPassword" id="currentPw" class="pw-input" placeholder="••••••••••" />
+                <button type="button" class="eye-btn" onclick="togglePw('currentPw',this)">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="pw-row">
+                <p class="pw-label">New Password</p>
+                <input type="password" name="newPassword" id="newPw" class="pw-input" placeholder="••••••••••" />
+                <button type="button" class="eye-btn" onclick="togglePw('newPw',this)">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="pw-row">
+                <p class="pw-label">Confirm New Password</p>
+                <input type="password" name="confirmPassword" id="confirmPw" class="pw-input" placeholder="••••••••••" />
+                <button type="button" class="eye-btn" onclick="togglePw('confirmPw',this)">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <p class="error-msg <% if (typeof error !== 'undefined' && error) { %>show<% } %>" id="pwErr"><%= typeof error !== 'undefined' ? error : '' %></p>
+          </div>
+
+        </div>
+
+        <div class="flex justify-center gap-4 mt-8">
+          <a href="/profile"><button type="button" class="btn-cancel">cancel</button></a>
+          <button type="submit" class="btn-update">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+
+
+<!-- ════════════════════════════════════
+     MODAL 1 — Enter new email
+════════════════════════════════════ -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal-card">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="font-bold text-base text-gray-900">Change Email Address</h2>
+      <button onclick="closeEmailModal()" class="icon-btn text-gray-400">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p class="text-xs text-gray-500 mb-5">Enter your new email — we'll send a 6-digit OTP to verify it.</p>
+    <label class="block text-xs font-semibold text-gray-500 mb-1.5">New Email Address</label>
+    <input type="email" id="newEmailInput" class="field-box" placeholder="you@example.com" />
+    <p class="error-msg" id="newEmailErr"></p>
+    <button class="btn-verify mt-5" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     MODAL 2 — Enter OTP
+════════════════════════════════════ -->
+<div class="modal-overlay" id="otpModal">
+  <div class="modal-card">
+    <div class="flex items-center justify-between mb-2">
+      <h2 class="font-bold text-base text-gray-900">Verify OTP</h2>
+      <button onclick="closeOtpModal()" class="icon-btn text-gray-400">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p class="text-xs text-gray-500 mb-1">We sent a 6-digit OTP to <span id="otpTargetEmail" class="font-semibold text-gray-800"></span></p>
+
+    <div class="otp-inputs" id="otpInputs">
+      <input class="otp-digit" maxlength="1" inputmode="numeric" />
+      <input class="otp-digit" maxlength="1" inputmode="numeric" />
+      <input class="otp-digit" maxlength="1" inputmode="numeric" />
+      <input class="otp-digit" maxlength="1" inputmode="numeric" />
+      <input class="otp-digit" maxlength="1" inputmode="numeric" />
+      <input class="otp-digit" maxlength="1" inputmode="numeric" />
+    </div>
+
+    <p class="modal-feedback err" id="otpFeedback"></p>
+
+    <button class="btn-verify" id="verifyOtpBtn" onclick="verifyOtp()">Verify &amp; Update Email</button>
+
+    <div class="resend-row">
+      Didn't receive it?
+      <button class="resend-btn" id="resendBtn" onclick="resendOtp()" disabled>Resend OTP</button>
+      <span id="resendTimer" class="ml-1 text-gray-500"></span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="py-12 px-6 border-t border-gray-200 bg-white mt-10">
+  <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Exclusive</h4>
+      <p class="text-sm font-semibold text-gray-700 mb-1">Subscribe</p>
+      <p class="text-xs text-gray-500 mb-3">Get 10% off your first order</p>
+      <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
+        <input type="email" placeholder="Enter your email" class="flex-1 px-3 py-2 text-xs outline-none bg-white text-gray-600" />
+        <button class="bg-gray-900 px-3 py-2 text-white hover:bg-gray-700 transition">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Support</h4>
+      <p class="text-xs text-gray-600 leading-relaxed">111 Bijoy sarani,<br/>Dhaka, DH 1515,<br/>Bangladesh.</p>
+      <p class="text-xs text-gray-600 mt-3">exclusive@gmail.com</p>
+      <p class="text-xs text-gray-600 mt-1">+88015-88888-9999</p>
+    </div>
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Account</h4>
+      <ul class="space-y-2">
+        <li><a href="/profile" class="text-xs text-gray-600 hover:text-gray-900 transition">My Account</a></li>
+        <li><a href="/login" class="text-xs text-gray-600 hover:text-gray-900 transition">Login / Register</a></li>
+        <li><a href="/cart" class="text-xs text-gray-600 hover:text-gray-900 transition">Cart</a></li>
+        <li><a href="/wishlist" class="text-xs text-gray-600 hover:text-gray-900 transition">Wishlist</a></li>
+        <li><a href="/shop" class="text-xs text-gray-600 hover:text-gray-900 transition">Shop</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Quick Link</h4>
+      <ul class="space-y-2">
+        <li><a href="/privacy" class="text-xs text-gray-600 hover:text-gray-900 transition">Privacy Policy</a></li>
+        <li><a href="/terms" class="text-xs text-gray-600 hover:text-gray-900 transition">Terms Of Use</a></li>
+        <li><a href="/faq" class="text-xs text-gray-600 hover:text-gray-900 transition">FAQ</a></li>
+        <li><a href="/contact" class="text-xs text-gray-600 hover:text-gray-900 transition">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-5xl mx-auto mt-10 border-t border-gray-200 pt-6 text-center text-xs text-gray-400">
+    &copy; <%= new Date().getFullYear() %> 2ES. All rights reserved.
+  </div>
+</footer>
+
+
+<script>
+/* ══════════ NAVBAR ══════════ */
+const profileBtn      = document.getElementById('profileBtn');
+const profileDropdown = document.getElementById('profileDropdown');
+const profileWrap     = document.getElementById('profileWrap');
+profileBtn.addEventListener('click', e => { e.stopPropagation(); profileDropdown.classList.toggle('open'); });
+document.addEventListener('click', e => { if (!profileWrap.contains(e.target)) profileDropdown.classList.remove('open'); });
+
+/* ══════════ PASSWORD EYE ══════════ */
+function togglePw(id, btn) {
+  const input = document.getElementById(id);
+  const show  = input.type === 'password';
+  input.type  = show ? 'text' : 'password';
+  btn.style.color = show ? '#111' : '#6b7280';
+  btn.innerHTML = show
+    ? `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+    : `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+}
+
+/* ══════════ PHOTO PREVIEW ══════════ */
+document.getElementById('photoInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  document.getElementById('profileImageInput').files = dt.files;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById('previewImg').src = ev.target.result; };
+  reader.readAsDataURL(file);
+});
+
+/* ══════════════════════════════════════
+   VALIDATION HELPERS  (mirrors signup.ejs)
+══════════════════════════════════════ */
+function showErr(inputEl, errId, msg) {
+  inputEl.classList.add('field-error');
+  const el = document.getElementById(errId);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function clearErr(inputEl, errId) {
+  inputEl.classList.remove('field-error');
+  const el = document.getElementById(errId);
+  el.textContent = '';
+  el.classList.remove('show');
+}
+
+const firstName = document.getElementById('firstName');
+const lastName  = document.getElementById('lastName');
+const phone     = document.getElementById('phone');
+
+firstName.addEventListener('input', () => clearErr(firstName, 'firstNameErr'));
+lastName.addEventListener('input',  () => clearErr(lastName,  'lastNameErr'));
+phone.addEventListener('input',     () => clearErr(phone,     'phoneErr'));
+
+/* ══════════ FORM SUBMIT ══════════ */
+document.getElementById('editForm').addEventListener('submit', function(e) {
+  let valid = true;
+
+  /* First Name — min 3 chars (same as signup) */
+  if (firstName.value.trim().length < 3) {
+    showErr(firstName, 'firstNameErr', 'First name must be at least 3 characters');
+    valid = false;
+  }
+
+  /* Last Name — min 2 chars (same as signup) */
+  if (lastName.value.trim().length < 2) {
+    showErr(lastName, 'lastNameErr', 'Last name must be at least 2 characters');
+    valid = false;
+  }
+
+  /* Phone — 10 digits, only if filled (same regex as signup) */
+  if (phone.value.trim() && !/^[0-9]{10}$/.test(phone.value.trim())) {
+    showErr(phone, 'phoneErr', 'Enter a valid 10-digit phone number');
+    valid = false;
+  }
+
+  /* Password — only validate if any pw field is touched */
+  const current = document.getElementById('currentPw').value;
+  const newPw   = document.getElementById('newPw').value;
+  const confirm = document.getElementById('confirmPw').value;
+  const pwBox   = document.getElementById('pwBox');
+  const pwErrEl = document.getElementById('pwErr');
+
+  if (current || newPw || confirm) {
+    if (!current) {
+      pwBox.classList.add('field-error');
+      pwErrEl.textContent = 'Please enter your current password.';
+      pwErrEl.classList.add('show');
+      valid = false;
+    } else if (!/^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(newPw)) {
+      /* Same regex as signup */
+      pwBox.classList.add('field-error');
+      pwErrEl.textContent = 'New password must be 6+ characters with at least one letter and one number.';
+      pwErrEl.classList.add('show');
+      valid = false;
+    } else if (newPw !== confirm) {
+      pwBox.classList.add('field-error');
+      pwErrEl.textContent = 'Passwords do not match.';
+      pwErrEl.classList.add('show');
+      valid = false;
+    } else {
+      pwBox.classList.remove('field-error');
+      pwErrEl.classList.remove('show');
+    }
+  }
+
+  if (!valid) e.preventDefault();
+});
+
+
+/* ══════════════════════════════════════════════
+   CHANGE EMAIL — MODAL FLOW
+══════════════════════════════════════════════ */
+let pendingEmail   = '';
+let resendInterval = null;
+
+/* — Modal 1: email entry — */
+function openEmailModal() {
+  document.getElementById('newEmailInput').value = '';
+  document.getElementById('newEmailInput').classList.remove('field-error');
+  document.getElementById('newEmailErr').classList.remove('show');
+  document.getElementById('emailModal').classList.add('open');
+}
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('open');
+}
+
+/* — Modal 2: OTP — */
+function openOtpModal(email) {
+  document.getElementById('otpTargetEmail').textContent = email;
+  document.getElementById('otpFeedback').textContent = '';
+  document.getElementById('otpFeedback').className = 'modal-feedback err';
+  document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('field-error'); });
+  document.getElementById('otpModal').classList.add('open');
+  startResendTimer(30);
+  setTimeout(() => document.querySelectorAll('.otp-digit')[0].focus(), 120);
+}
+function closeOtpModal() {
+  document.getElementById('otpModal').classList.remove('open');
+  clearInterval(resendInterval);
+}
+
+/* Close on backdrop click */
+document.getElementById('emailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEmailModal(); });
+document.getElementById('otpModal').addEventListener('click',   e => { if (e.target === e.currentTarget) closeOtpModal(); });
+
+/* — Send OTP — */
+async function sendOtp() {
+  const newEmail = document.getElementById('newEmailInput').value.trim();
+  const errEl    = document.getElementById('newEmailErr');
+  const btn      = document.getElementById('sendOtpBtn');
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+    document.getElementById('newEmailInput').classList.add('field-error');
+    errEl.textContent = 'Enter a valid email address';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Sending…';
+
+  try {
+    const res  = await fetch('/changeEmail', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ newEmail }) });
+    const data = await res.json();
+    if (data.success) {
+      pendingEmail = newEmail;
+      closeEmailModal();
+      openOtpModal(newEmail);
+    } else {
+      document.getElementById('newEmailInput').classList.add('field-error');
+      errEl.textContent = data.message || 'Failed to send OTP. Try again.';
+      errEl.classList.add('show');
+    }
+  } catch {
+    errEl.textContent = 'Network error. Please try again.';
+    errEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send OTP';
+  }
+}
+
+/* — OTP digit keyboard navigation (paste + backspace) — */
+document.querySelectorAll('.otp-digit').forEach((input, idx, all) => {
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(-1);
+    if (input.value && idx < all.length - 1) all[idx + 1].focus();
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && idx > 0) all[idx - 1].focus();
+  });
+  input.addEventListener('paste', e => {
+    e.preventDefault();
+    const digits = (e.clipboardData.getData('text') || '').replace(/\D/g,'').slice(0,6);
+    [...digits].forEach((d,i) => { if (all[i]) all[i].value = d; });
+    const nextIdx = Math.min(digits.length, all.length - 1);
+    all[nextIdx].focus();
+  });
+});
+
+/* — Resend countdown timer — */
+function startResendTimer(sec) {
+  const btn   = document.getElementById('resendBtn');
+  const timer = document.getElementById('resendTimer');
+  btn.disabled = true;
+  clearInterval(resendInterval);
+  let rem = sec;
+  timer.textContent = `(${rem}s)`;
+  resendInterval = setInterval(() => {
+    rem--;
+    if (rem <= 0) { clearInterval(resendInterval); btn.disabled = false; timer.textContent = ''; }
+    else timer.textContent = `(${rem}s)`;
+  }, 1000);
+}
+
+/* — Verify OTP — */
+async function verifyOtp() {
+  const digits  = [...document.querySelectorAll('.otp-digit')].map(d => d.value).join('');
+  const feedEl  = document.getElementById('otpFeedback');
+  const btn     = document.getElementById('verifyOtpBtn');
+
+  if (digits.length < 6) {
+    document.querySelectorAll('.otp-digit').forEach(d => d.classList.add('field-error'));
+    feedEl.textContent = 'Please enter the complete 6-digit OTP.';
+    feedEl.className = 'modal-feedback err';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Verifying…';
+
+  try {
+    const res  = await fetch('/verifyChangeEmail', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ otp: digits }) });
+    const data = await res.json();
+    if (data.success) {
+      document.querySelectorAll('.otp-digit').forEach(d => d.classList.remove('field-error'));
+      feedEl.textContent = 'Email updated! Refreshing…';
+      feedEl.className = 'modal-feedback ok';
+      setTimeout(() => { closeOtpModal(); window.location.reload(); }, 1500);
+    } else {
+      document.querySelectorAll('.otp-digit').forEach(d => d.classList.add('field-error'));
+      feedEl.textContent = data.message || 'Invalid OTP. Please try again.';
+      feedEl.className = 'modal-feedback err';
+    }
+  } catch {
+    feedEl.textContent = 'Network error. Please try again.';
+    feedEl.className = 'modal-feedback err';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify & Update Email';
+  }
+}
+
+/* — Resend OTP — */
+async function resendOtp() {
+  const feedEl = document.getElementById('otpFeedback');
+  try {
+    const res  = await fetch('/changeEmail', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ newEmail: pendingEmail }) });
+    const data = await res.json();
+    if (data.success) {
+      feedEl.textContent = 'OTP resent successfully!';
+      feedEl.className = 'modal-feedback ok';
+      startResendTimer(30);
+      document.querySelectorAll('.otp-digit').forEach(d => { d.value=''; d.classList.remove('field-error'); });
+      document.querySelectorAll('.otp-digit')[0].focus();
+    } else {
+      feedEl.textContent = data.message || 'Failed to resend OTP.';
+      feedEl.className = 'modal-feedback err';
+    }
+  } catch {
+    feedEl.textContent = 'Network error. Please try again.';
+    feedEl.className = 'modal-feedback err';
+  }
+}
+</script>
+
+</body>
+</html>

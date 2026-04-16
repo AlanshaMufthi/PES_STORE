@@ -20,7 +20,7 @@ body{
 
 <!-- BACKGROUND IMAGE -->
 <div class="absolute inset-0 -z-10">
-    <img src="<%= typeof backgroundImage !== 'undefined' ? backgroundImage : '/images/login-bg.jpg' %>" class="w-full h-full object-cover opacity-60">
+    <img src="<%= typeof backgroundImage !== 'undefined' ? backgroundImage : '/img/signup.background.jpg' %>" class="w-full h-full object-cover opacity-60">
 </div>
 
 <!-- NAVBAR -->
@@ -39,7 +39,7 @@ body{
 
 <!-- LEFT -->
 <div class="w-1/2 flex justify-center items-center">
-<img src="<%= typeof logo !== 'undefined' ? logo : '/images/logo.png' %>" class="w-56">
+<img src="<%= typeof logo !== 'undefined' ? logo : '/img/pes.logo.png' %>" class="w-56">
 </div>
 
 
@@ -62,7 +62,7 @@ body{
 <input
 type="email"
 name="email"
-required
+
 class="w-full mt-1 px-4 py-3 rounded-lg bg-white/10 border border-white/30 outline-none"
 />
 </div>
@@ -72,13 +72,13 @@ class="w-full mt-1 px-4 py-3 rounded-lg bg-white/10 border border-white/30 outli
 <input
 type="password"
 name="password"
-required
+
 class="w-full mt-1 px-4 py-3 rounded-lg bg-white/10 border border-white/30 outline-none"
 />
 </div>
 
 <div class="flex justify-between text-sm">
-<a href="/forgot-password" class="opacity-80 hover:underline">Forgot Password?</a>
+<a href="/forgotPassword" class="opacity-80 hover:underline">Forgot Password?</a>
 <a href="/signup" class="opacity-80 hover:underline">Sign Up instead</a>
 </div>
 

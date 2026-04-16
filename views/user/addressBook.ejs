@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Address Book | 2ES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Raleway:wght@300;400;500;600;700;800&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Raleway', sans-serif; }
+    .search-input { background:#f3f3f3;border:1px solid #ddd;border-radius:6px;padding:0.35rem 2rem 0.35rem 0.75rem;font-size:0.8rem;outline:none;width:180px;color:#555; }
+    .search-wrap { position:relative; }
+    .search-wrap svg { position:absolute;right:8px;top:50%;transform:translateY(-50%); }
+    .icon-btn { background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#111;transition:background 0.15s; }
+    .icon-btn:hover { background:#f3f3f3; }
+    .cart-wrap { position:relative;display:flex;align-items:center; }
+    .sidebar-link { transition:color 0.15s;cursor:pointer; }
+    .sidebar-link:hover { color:#e63946; }
+    .address-card { border:1.5px solid #e5e7eb;border-radius:10px;padding:16px 20px;background:#fff;transition:border-color 0.2s; }
+    .address-card.primary-card { border-color:#111; }
+    .badge-primary { font-size:0.7rem;font-weight:700;color:#111;background:#f3f4f6;border:1px solid #d1d5db;border-radius:20px;padding:2px 10px; }
+    .badge-set { font-size:0.7rem;font-weight:600;color:#6b7280;cursor:pointer;background:none;border:none;font-family:'Raleway',sans-serif;padding:0;text-decoration:underline; }
+    .badge-set:hover { color:#111; }
+    .btn-edit { background:#111;color:#fff;font-size:0.75rem;font-weight:700;padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-family:'Raleway',sans-serif;transition:background 0.15s; }
+    .btn-edit:hover { background:#333; }
+    .btn-delete { background:#e63946;color:#fff;font-size:0.75rem;font-weight:700;padding:5px 14px;border-radius:6px;border:none;cursor:pointer;font-family:'Raleway',sans-serif;transition:background 0.15s; }
+    .btn-delete:hover { background:#c0303b; }
+    .btn-add { background:#111;color:#fff;font-size:0.85rem;font-weight:700;padding:11px 28px;border-radius:8px;border:none;cursor:pointer;font-family:'Raleway',sans-serif;transition:background 0.15s; }
+    .btn-add:hover { background:#333; }
+    footer { background:#fff;border-top:1px solid #eee; }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+<nav class="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+  <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2">
+      <svg width="44" height="50" viewBox="0 0 44 50" fill="none">
+        <path d="M22 2L40 10V26C40 36.5 32 44.5 22 48C12 44.5 4 36.5 4 26V10L22 2Z" fill="white" stroke="black" stroke-width="2.5"/>
+        <path d="M10 20L13 15L16 19L22 13L28 19L31 15L34 20H10Z" fill="black"/>
+        <text x="22" y="34" text-anchor="middle" font-family="Cinzel,serif" font-size="9" font-weight="700" fill="black">2ES</text>
+      </svg>
+    </a>
+    <div class="hidden md:flex items-center flex-1 justify-center">
+      <div class="search-wrap">
+        <input class="search-input" type="text" placeholder="search product..." />
+        <svg width="14" height="14" fill="none" stroke="#888" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/cart" class="cart-wrap icon-btn">
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+  <div class="border-t border-gray-100">
+    <div class="max-w-5xl mx-auto px-4 flex gap-8 py-2.5 justify-center">
+      <a href="/" class="text-sm font-semibold text-gray-500 hover:text-gray-900 transition">HOME</a>
+      <a href="/shop" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition">SHOP</a>
+      <a href="/about" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition">ABOUT</a>
+      <a href="/contact" class="text-sm font-medium text-gray-500 hover:text-gray-900 transition">CONTACT</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-5xl mx-auto px-4 py-10">
+  <div class="flex gap-8 items-start">
+
+    <aside class="w-52 flex-shrink-0">
+      <div class="flex flex-col items-center mb-6">
+        <div class="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200 mb-3">
+          <img src="<%= user && user.profileImg ? '/' + user.profileImg : '/images/default-avatar.png' %>" alt="Profile" onerror="this.src='/images/default-avatar.png'" class="w-full h-full object-cover" />
+        </div>
+        <div class="bg-gray-100 border border-gray-300 rounded px-4 py-1 text-sm font-semibold text-gray-700">
+          <%= user ? user.firstName + ' ' + user.lastName : 'Customer Name' %>
+        </div>
+      </div>
+      <div class="text-sm space-y-1">
+        <p class="font-bold text-gray-900 mb-2">Manage My Account</p>
+        <div class="pl-3 space-y-1.5">
+          <a href="/profile" class="block text-gray-500 sidebar-link">My Profile</a>
+          <a href="/addressBook" class="block font-semibold text-red-500 sidebar-link">Address Book</a>
+        </div>
+        <div class="pt-3 space-y-2.5">
+          <a href="/orders" class="block font-bold text-gray-800 sidebar-link">My Orders</a>
+          <a href="/privacy" class="block font-bold text-gray-800 sidebar-link">privacy</a>
+          <a href="/wallet" class="block font-bold text-gray-800 sidebar-link">Wallet</a>
+          <a href="/coupons" class="block font-bold text-gray-800 sidebar-link">Coupons</a>
+          <a href="/wishlist" class="block font-bold text-gray-800 sidebar-link">My WishList</a>
+          <a href="/logout" class="block font-bold text-red-500 sidebar-link">Logout</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="flex-1 border border-gray-200 rounded-xl p-8 bg-white shadow-sm">
+      <p class="font-bold text-base text-gray-800 mb-6">Here you can manage your addresses</p>
+
+      <div class="space-y-4">
+        <% if (addresses && addresses.length > 0) { %>
+          <% addresses.forEach(function(addr) { %>
+            <div class="address-card <%= addr.isPrimary ? 'primary-card' : '' %>">
+              <div class="flex items-start justify-between mb-2">
+                <p class="text-sm font-bold text-gray-800"><%= addr.firstName %> <%= addr.lastName %>, <%= addr.addressType %></p>
+                <% if (addr.isPrimary) { %>
+                  <span class="badge-primary">Primary</span>
+                <% } else { %>
+                  <button class="badge-set" onclick="setPrimary('<%= addr._id %>')">set as primary</button>
+                <% } %>
+              </div>
+              <p class="text-sm text-gray-600"><%= addr.addressLine %></p>
+              <p class="text-sm text-gray-600"><%= addr.town %>, <%= addr.state %></p>
+              <p class="text-sm text-gray-600"><%= addr.pincode %></p>
+              <div class="flex items-center justify-between mt-3">
+                <p class="text-sm text-gray-600">Contact : <%= addr.phone %></p>
+                <div class="flex gap-2">
+                  <a href="/editAddress/<%= addr._id %>"><button class="btn-edit">Edit</button></a>
+                  <button class="btn-delete" onclick="deleteAddress('<%= addr._id %>')">Delete</button>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="text-center py-10 text-gray-400">
+            <p class="text-sm">No addresses saved yet.</p>
+          </div>
+        <% } %>
+      </div>
+
+      <div class="flex justify-end mt-8">
+        <a href="/addAddress"><button class="btn-add">Add New Address</button></a>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="py-12 px-6 border-t border-gray-200 bg-white mt-10">
+  <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Exclusive</h4>
+      <p class="text-sm font-semibold text-gray-700 mb-1">Subscribe</p>
+      <p class="text-xs text-gray-500 mb-3">Get 10% off your first order</p>
+      <div class="flex items-center border border-gray-300 rounded-md overflow-hidden">
+        <input type="email" placeholder="Enter your email" class="flex-1 px-3 py-2 text-xs outline-none bg-white text-gray-600" />
+        <button class="bg-gray-900 px-3 py-2 text-white hover:bg-gray-700 transition">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Support</h4>
+      <p class="text-xs text-gray-600 leading-relaxed">111 Bijoy sarani,<br/>Dhaka, DH 1515,<br/>Bangladesh.</p>
+      <p class="text-xs text-gray-600 mt-3">exclusive@gmail.com</p>
+      <p class="text-xs text-gray-600 mt-1">+88015-88888-9999</p>
+    </div>
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Account</h4>
+      <ul class="space-y-2">
+        <li><a href="/profile" class="text-xs text-gray-600 hover:text-gray-900 transition">My Account</a></li>
+        <li><a href="/login" class="text-xs text-gray-600 hover:text-gray-900 transition">Login / Register</a></li>
+        <li><a href="/cart" class="text-xs text-gray-600 hover:text-gray-900 transition">Cart</a></li>
+        <li><a href="/wishlist" class="text-xs text-gray-600 hover:text-gray-900 transition">Wishlist</a></li>
+        <li><a href="/shop" class="text-xs text-gray-600 hover:text-gray-900 transition">Shop</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="font-bold text-sm text-gray-900 mb-3 tracking-wide">Quick Link</h4>
+      <ul class="space-y-2">
+        <li><a href="/privacy" class="text-xs text-gray-600 hover:text-gray-900 transition">Privacy Policy</a></li>
+        <li><a href="/terms" class="text-xs text-gray-600 hover:text-gray-900 transition">Terms Of Use</a></li>
+        <li><a href="/faq" class="text-xs text-gray-600 hover:text-gray-900 transition">FAQ</a></li>
+        <li><a href="/contact" class="text-xs text-gray-600 hover:text-gray-900 transition">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="max-w-5xl mx-auto mt-10 border-t border-gray-200 pt-6 text-center text-xs text-gray-400">
+    &copy; <%= new Date().getFullYear() %> 2ES. All rights reserved.
+  </div>
+</footer>
+
+<script>
+  async function deleteAddress(addrId) {
+    const result = await Swal.fire({ title:'Delete Address?', text:'This will be permanently removed.', icon:'warning', showCancelButton:true, confirmButtonColor:'#e63946', cancelButtonColor:'#6b7280', confirmButtonText:'Yes, delete it' });
+    if (!result.isConfirmed) return;
+    try {
+      const res = await fetch(`/deleteAddress/${addrId}`, { method:'DELETE' });
+      const data = await res.json();
+      if (data.success) { await Swal.fire({ icon:'success', title:'Deleted!', timer:1200, showConfirmButton:false }); window.location.reload(); }
+      else Swal.fire({ icon:'error', title:'Error', text: data.message || 'Failed to delete.', confirmButtonColor:'#111' });
+    } catch { Swal.fire({ icon:'error', title:'Network Error', text:'Please try again.', confirmButtonColor:'#111' }); }
+  }
+
+  async function setPrimary(addrId) {
+    try {
+      const res = await fetch(`/setPrimaryAddress/${addrId}`, { method:'PATCH' });
+      const data = await res.json();
+      if (data.success) window.location.reload();
+      else Swal.fire({ icon:'error', title:'Error', text: data.message || 'Failed to update.', confirmButtonColor:'#111' });
+    } catch { Swal.fire({ icon:'error', title:'Network Error', text:'Please try again.', confirmButtonColor:'#111' }); }
+  }
+</script>
+</body>
+</html>
