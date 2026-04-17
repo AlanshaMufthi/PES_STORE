@@ -45,19 +45,63 @@
     .crop-modal { background: #fff; border-radius: 14px; padding: 28px; width: 560px; max-width: 95vw; }
     .crop-container { width: 100%; height: 340px; overflow: hidden; background: #000; border-radius: 8px; }
     .crop-container img { max-width: 100%; display: block; }
-    .variant-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
-    .variant-modal-overlay.open { display: flex; }
-    .variant-modal { background: #fff; border-radius: 14px; padding: 32px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
-    .size-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-    .size-chip { padding: 7px 16px; border-radius: 8px; border: 2px solid #e5e7eb; font-size: 0.88rem; font-weight: 700; cursor: pointer; background: #fff; color: #333; transition: all 0.15s; }
-    .size-chip.selected { background: #1e40af; border-color: #1e40af; color: #fff; }
-    .size-chip.used { background: #f3f4f6; border-color: #d1d5db; color: #9ca3af; cursor: not-allowed; }
-    .variant-card { border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; position: relative; background: #fafafa; }
-    .variant-card-title { font-size: 0.95rem; font-weight: 800; color: #111; margin-bottom: 16px; }
-    .remove-variant-btn { position: absolute; top: 16px; right: 16px; background: #fee2e2; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; color: #e63946; cursor: pointer; }
-    .remove-variant-btn:hover { background: #fecaca; }
-    .edit-variant-btn { position: absolute; top: 16px; right: 86px; background: #eff6ff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; color: #1d4ed8; cursor: pointer; }
-    .edit-variant-btn:hover { background: #dbeafe; }
+
+    /* ── Variant Table ── */
+    .variants-table-wrap { width: 100%; overflow-x: auto; }
+    .variants-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .variants-table thead tr th {
+      font-size: 0.72rem; font-weight: 800; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 0 10px 4px 10px; text-align: left; white-space: nowrap;
+    }
+    .variants-table tbody tr { background: #fff; }
+    .variants-table tbody tr td {
+      padding: 6px 6px; vertical-align: middle;
+      border-top: 1.5px solid #f1f5f9; border-bottom: 1.5px solid #f1f5f9;
+    }
+    .variants-table tbody tr td:first-child { border-left: 1.5px solid #f1f5f9; border-radius: 10px 0 0 10px; padding-left: 10px; }
+    .variants-table tbody tr td:last-child  { border-right: 1.5px solid #f1f5f9; border-radius: 0 10px 10px 0; padding-right: 10px; }
+    .variants-table tbody tr:hover td { border-color: #e0e7ef; background: #f8fafc; }
+
+    /* compact inputs inside table */
+    .vt-input {
+      width: 100%; padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px;
+      font-size: 0.83rem; font-weight: 600; color: #222; font-family: 'Nunito', sans-serif;
+      outline: none; background: #fff; transition: border-color 0.2s;
+    }
+    .vt-input:focus { border-color: #4f46e5; }
+    .vt-select {
+      width: 100%; padding: 7px 28px 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px;
+      font-size: 0.83rem; font-weight: 600; color: #222; font-family: 'Nunito', sans-serif;
+      outline: none; appearance: none;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      cursor: pointer; transition: border-color 0.2s;
+    }
+    .vt-select:focus { border-color: #4f46e5; }
+    .offer-price-cell {
+      font-size: 0.83rem; font-weight: 800; color: #9ca3af;
+      white-space: nowrap; min-width: 72px; display: block; padding: 7px 2px;
+    }
+    .offer-price-cell.active { color: #15803d; }
+
+    /* toggle */
+    .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; border-radius: 999px; transition: background 0.25s; }
+    .toggle-track::before { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.25s; }
+    .toggle-switch input:checked + .toggle-track { background: #f59e0b; }
+    .toggle-switch input:checked + .toggle-track::before { transform: translateX(18px); }
+    .toggle-switch input:disabled + .toggle-track { opacity: 0.35; cursor: not-allowed; }
+
+    /* remove row btn */
+    .btn-remove-row {
+      width: 30px; height: 30px; border-radius: 7px; border: none;
+      background: #fee2e2; color: #e63946; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900; transition: background 0.15s;
+    }
+    .btn-remove-row:hover { background: #fecaca; }
+
     .btn-add-variant { display: flex; align-items: center; gap: 8px; background: #4f46e5; color: #fff; border: none; border-radius: 10px; padding: 11px 22px; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
     .btn-add-variant:hover { background: #4338ca; }
     .btn-save { background: #e63946; color: #fff; border: none; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
@@ -65,19 +109,9 @@
     .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn-cancel { background: #fff; color: #e63946; border: 2px solid #e63946; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; text-decoration: none; display: inline-block; }
     .btn-cancel:hover { background: #fff5f5; }
-    .offer-price-display { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; font-weight: 700; color: #15803d; margin-top: 8px; display: none; }
-    .offer-price-display.show { display: block; }
-    /* Offer toggle row in modal */
-    .offer-toggle-row { display: flex; align-items: center; justify-content: space-between; background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-top: 4px; }
-    .offer-toggle-label { font-size: 0.88rem; font-weight: 700; color: #92400e; }
-    .offer-toggle-sub { font-size: 0.75rem; color: #b45309; font-weight: 600; margin-top: 2px; }
-    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-track { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; border-radius: 999px; transition: background 0.25s; }
-    .toggle-track::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; left: 3px; top: 3px; transition: transform 0.25s; }
-    .toggle-switch input:checked + .toggle-track { background: #f59e0b; }
-    .toggle-switch input:checked + .toggle-track::before { transform: translateX(20px); }
-    .toggle-switch input:disabled + .toggle-track { opacity: 0.4; cursor: not-allowed; }
+
+    /* empty state */
+    .variants-empty { text-align: center; padding: 28px 0; color: #bbb; font-size: 0.88rem; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -182,15 +216,39 @@
             <p class="error-msg" id="descErr"></p>
           </div>
 
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <!-- ── Variants Section ── -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
             <h2 style="font-size:1.1rem;font-weight:800;color:#111;">Variants</h2>
-            <button type="button" class="btn-add-variant" onclick="openVariantModal()">
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <button type="button" class="btn-add-variant" onclick="addVariantRow()">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
               Add Variant
             </button>
           </div>
-          <div id="variantsContainer"></div>
+
+          <div class="variants-table-wrap">
+            <table class="variants-table" id="variantsTable">
+              <thead>
+                <tr>
+                  <th style="width:90px;">Size</th>
+                  <th style="width:72px;">Stock</th>
+                  <th style="width:100px;">Price (₹)</th>
+                  <th style="width:88px;">Disc. %</th>
+                  <th style="width:90px;">Offer (₹)</th>
+                  <th style="width:120px;">Status</th>
+                  <th style="width:56px;text-align:center;">Offer</th>
+                  <th style="width:36px;"></th>
+                </tr>
+              </thead>
+              <tbody id="variantsTbody">
+                <!-- rows injected by JS -->
+              </tbody>
+            </table>
+            <div id="variantsEmpty" class="variants-empty">
+              No variants yet. Click <strong>Add Variant</strong> to add one.
+            </div>
+          </div>
           <p class="error-msg" id="variantErr"></p>
+
         </div>
 
         <div style="display:flex;justify-content:center;gap:16px;margin-top:28px;">
@@ -212,71 +270,6 @@
       <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:20px;">
         <button type="button" onclick="cancelCrop()" style="background:#fff;border:2px solid #e5e7eb;border-radius:8px;padding:9px 22px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Cancel</button>
         <button type="button" onclick="applyCrop()" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Crop & Save</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- VARIANT MODAL -->
-  <div class="variant-modal-overlay" id="variantModalOverlay">
-    <div class="variant-modal">
-      <h3 style="font-size:1.1rem;font-weight:800;color:#111;margin-bottom:20px;" id="variantModalTitle">Add Variant</h3>
-
-      <div style="margin-bottom:20px;">
-        <label class="field-label">Select Sizes <span style="color:#888;font-size:0.75rem;">(grey = already used)</span></label>
-        <div class="size-grid" id="sizeGrid">
-          <% [4,5,6,7,8,9,10,11,12].forEach(s => { %>
-            <div class="size-chip" data-size="<%= s %>" onclick="toggleSize(this)"><%= s %></div>
-          <% }) %>
-        </div>
-        <p class="error-msg" id="sizeErr"></p>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div>
-          <label class="field-label">Visibility Status</label>
-          <select id="variantStatus" class="field-select">
-            <option value="onStock">On Stock</option>
-            <option value="outOfStock">Out of Stock</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
-        <div>
-          <label class="field-label">Stock <span style="color:#888;font-size:0.75rem;">(max 50)</span></label>
-          <input type="number" id="variantStock" class="field-input" placeholder="0" min="0" max="50" value="5" />
-          <p class="error-msg" id="stockErr"></p>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div>
-          <label class="field-label">Base Price (₹)</label>
-          <input type="number" id="variantBasePrice" class="field-input" placeholder="1399" min="1" oninput="calcOfferPrice()" />
-          <p class="error-msg" id="basePriceErr"></p>
-        </div>
-        <div>
-          <label class="field-label">Discount % <span style="color:#888;font-size:0.75rem;">(0 = none)</span></label>
-          <input type="number" id="variantDiscountPct" class="field-input" placeholder="10" min="0" max="99" value="0" oninput="calcOfferPrice()" />
-          <p class="error-msg" id="discountPctErr"></p>
-        </div>
-      </div>
-
-      <div class="offer-price-display" id="offerPricePreview"></div>
-
-      <!-- Offer active toggle — only enabled when discount > 0 -->
-      <div class="offer-toggle-row" style="margin-top:16px;">
-        <div>
-          <div class="offer-toggle-label">Activate Offer</div>
-          <div class="offer-toggle-sub" id="offerToggleSub">Set a discount % above to enable</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="variantOfferActive" disabled />
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-
-      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:24px;">
-        <button type="button" onclick="closeVariantModal()" style="background:#fff;border:2px solid #e5e7eb;border-radius:8px;padding:10px 24px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Cancel</button>
-        <button type="button" onclick="saveVariant()" id="saveVariantBtn" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:0.88rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;">Save Variant</button>
       </div>
     </div>
   </div>
@@ -335,181 +328,96 @@
       slotHasFile[index] = false
     }
 
-    // ── Variants ──────────────────────────────────────────────────────────────
-    let variants = []
-    let editingVariantIndex = -1   // -1 = adding new, >=0 = editing existing
+    // ── Variants Table ────────────────────────────────────────────────────────
+    let variantCount = 0
 
-    function getUsedSizes(excludeIndex = -1) {
-      return variants.filter((_, i) => i !== excludeIndex).flatMap(v => v.sizes)
+    const SIZES = [4,5,6,7,8,9,10,11,12]
+
+    function sizeOptions(selected) {
+      return '<option value="">Size</option>' +
+        SIZES.map(s => `<option value="${s}"${selected == s ? ' selected' : ''}>${s}</option>`).join('')
     }
 
-    function openVariantModal(editIndex = -1) {
-      editingVariantIndex = editIndex
-      const usedSizes = getUsedSizes(editIndex)
-
-      if (editIndex >= 0) {
-        // Pre-fill modal with existing variant data
-        const v = variants[editIndex]
-        document.querySelectorAll('.size-chip').forEach(c => {
-          c.classList.remove('selected', 'used')
-          if (v.sizes.includes(c.dataset.size))       c.classList.add('selected')
-          else if (usedSizes.includes(c.dataset.size)) c.classList.add('used')
-        })
-        document.getElementById('variantStatus').value      = v.status
-        document.getElementById('variantStock').value       = v.stock
-        document.getElementById('variantBasePrice').value   = v.basePrice
-        document.getElementById('variantDiscountPct').value = v.discountPercentage
-        document.getElementById('variantModalTitle').textContent = `Edit Variant ${editIndex + 1}`
-        document.getElementById('saveVariantBtn').textContent    = 'Update Variant'
-      } else {
-        // Fresh add
-        document.querySelectorAll('.size-chip').forEach(c => {
-          c.classList.remove('selected')
-          c.classList.toggle('used', usedSizes.includes(c.dataset.size))
-        })
-        document.getElementById('variantStatus').value      = 'onStock'
-        document.getElementById('variantStock').value       = '5'
-        document.getElementById('variantBasePrice').value   = ''
-        document.getElementById('variantDiscountPct').value = '0'
-        document.getElementById('variantModalTitle').textContent = 'Add Variant'
-        document.getElementById('saveVariantBtn').textContent    = 'Save Variant'
-      }
-
-      // Recalc offer preview for whatever values are now in the fields
-      calcOfferPrice()
-      ;['sizeErr','stockErr','basePriceErr','discountPctErr'].forEach(hideErr)
-      document.getElementById('variantModalOverlay').classList.add('open')
+    function statusOptions(selected) {
+      const opts = [['onStock','On Stock'],['outOfStock','Out of Stock'],['archived','Archived']]
+      return opts.map(([v,l]) => `<option value="${v}"${selected === v ? ' selected' : ''}>${l}</option>`).join('')
     }
 
-    function closeVariantModal() { document.getElementById('variantModalOverlay').classList.remove('open') }
-    function toggleSize(el) { if (!el.classList.contains('used')) el.classList.toggle('selected') }
+    function addVariantRow(data = {}) {
+      const i = variantCount++
+      const tbody = document.getElementById('variantsTbody')
+      const empty = document.getElementById('variantsEmpty')
+      empty.style.display = 'none'
 
-    function calcOfferPrice() {
-      const base    = parseFloat(document.getElementById('variantBasePrice').value) || 0
-      const pct     = parseFloat(document.getElementById('variantDiscountPct').value) || 0
-      const preview = document.getElementById('offerPricePreview')
-      const toggle  = document.getElementById('variantOfferActive')
-      const sub     = document.getElementById('offerToggleSub')
+      const tr = document.createElement('tr')
+      tr.className = 'variant-row'
+      tr.dataset.idx = i
+
+      const basePrice = data.basePrice || ''
+      const disc = data.discountPercentage || 0
+      const offerVal = (basePrice && disc > 0) ? (basePrice - basePrice * disc / 100).toFixed(2) : ''
+      const offerText = offerVal ? `₹${offerVal}` : '-'
+      const offerColor = offerVal ? '#15803d' : '#9ca3af'
+      const toggleDisabled = (!basePrice || disc <= 0) ? 'disabled' : ''
+      const toggleChecked = data.offerActive ? 'checked' : ''
+      const hiddenVal = data.offerActive ? 'true' : 'false'
+
+      tr.innerHTML = `
+        <td><select name="variants[${i}][sizes]" class="vt-select">${sizeOptions(data.size)}</select></td>
+        <td><input type="number" name="variants[${i}][stock]" class="vt-input" value="${data.stock !== undefined ? data.stock : 5}" min="0" max="50" style="width:62px;" /></td>
+        <td><input type="number" name="variants[${i}][basePrice]" id="basePrice-${i}" class="vt-input" value="${basePrice}" placeholder="1399" min="1" oninput="recalc(${i})" style="width:86px;" /></td>
+        <td><input type="number" name="variants[${i}][discountPercentage]" id="discountPct-${i}" class="vt-input" value="${disc}" min="0" max="99" oninput="recalc(${i})" style="width:74px;" /></td>
+        <td><span class="offer-price-cell${offerVal ? ' active' : ''}" id="offerDisp-${i}" style="color:${offerColor};">${offerText}</span></td>
+        <td><select name="variants[${i}][status]" class="vt-select" style="width:112px;">${statusOptions(data.status)}</select></td>
+        <td style="text-align:center;">
+          <label class="toggle-switch">
+            <input type="checkbox" id="offerToggle-${i}" ${toggleChecked} ${toggleDisabled}
+              onchange="document.getElementById('offerHidden-${i}').value = this.checked ? 'true' : 'false'" />
+            <span class="toggle-track"></span>
+          </label>
+          <input type="hidden" name="variants[${i}][offerActive]" id="offerHidden-${i}" value="${hiddenVal}" />
+        </td>
+        <td>
+          <button type="button" class="btn-remove-row" onclick="removeVariantRow(this)" title="Remove">✕</button>
+        </td>
+      `
+      tbody.appendChild(tr)
+      syncEmpty()
+    }
+
+    function removeVariantRow(btn) {
+      btn.closest('tr').remove()
+      syncEmpty()
+    }
+
+    function syncEmpty() {
+      const rows = document.querySelectorAll('#variantsTbody tr')
+      document.getElementById('variantsEmpty').style.display = rows.length ? 'none' : 'block'
+    }
+
+    function recalc(i) {
+      const base = parseFloat(document.getElementById(`basePrice-${i}`)?.value) || 0
+      const pct  = parseFloat(document.getElementById(`discountPct-${i}`)?.value) || 0
+      const disp = document.getElementById(`offerDisp-${i}`)
+      const tog  = document.getElementById(`offerToggle-${i}`)
+      const hid  = document.getElementById(`offerHidden-${i}`)
+      if (!disp) return
 
       if (base > 0 && pct > 0) {
         const offer = (base - base * pct / 100).toFixed(2)
-        preview.textContent = `Offer Price: ₹${offer}  (₹${base} − ${pct}%)`
-        preview.classList.add('show')
-        toggle.disabled = false
-        sub.textContent = 'Toggle on to make this the selling price'
-        // When editing, restore the saved offerActive state
-        if (editingVariantIndex >= 0 && !toggle._userChanged) {
-          toggle.checked = variants[editingVariantIndex].offerActive
-        }
+        disp.textContent = `₹${offer}`
+        disp.style.color = '#15803d'
+        disp.classList.add('active')
+        tog.disabled = false
       } else {
-        if (base > 0) {
-          preview.textContent = `No discount — selling price: ₹${base}`
-          preview.classList.add('show')
-        } else {
-          preview.classList.remove('show')
-        }
-        toggle.disabled = true
-        toggle.checked  = false
-        sub.textContent = 'Set a discount % above to enable'
+        disp.textContent = '-'
+        disp.style.color = '#9ca3af'
+        disp.classList.remove('active')
+        tog.disabled = true
+        tog.checked = false
+        hid.value = 'false'
       }
     }
-
-    // Track manual user toggle so calcOfferPrice doesn't override it
-    document.getElementById('variantOfferActive').addEventListener('change', function() {
-      this._userChanged = true
-    })
-
-    function saveVariant() {
-      const selectedSizes = [...document.querySelectorAll('.size-chip.selected')].map(c => c.dataset.size)
-      const status        = document.getElementById('variantStatus').value
-      const stock         = parseInt(document.getElementById('variantStock').value) || 0
-      const basePrice     = parseFloat(document.getElementById('variantBasePrice').value)
-      const discountPct   = parseFloat(document.getElementById('variantDiscountPct').value) || 0
-      const offerActive   = document.getElementById('variantOfferActive').checked
-
-      let valid = true
-      if (selectedSizes.length === 0)            { showErr('sizeErr', 'Select at least one size'); valid = false } else hideErr('sizeErr')
-      if (stock < 0 || stock > 50)               { showErr('stockErr', 'Stock must be 0–50'); valid = false } else hideErr('stockErr')
-      if (!basePrice || basePrice <= 0)          { showErr('basePriceErr', 'Enter a valid base price'); valid = false } else hideErr('basePriceErr')
-      if (discountPct < 0 || discountPct >= 100) { showErr('discountPctErr', 'Discount must be 0–99'); valid = false } else hideErr('discountPctErr')
-      if (!valid) return
-
-      const offerPrice  = parseFloat((basePrice - basePrice * discountPct / 100).toFixed(2))
-      const variantData = { sizes: selectedSizes, status, stock, basePrice, discountPercentage: discountPct, offerPrice, offerActive }
-
-      if (editingVariantIndex >= 0) {
-        variants[editingVariantIndex] = variantData   // update in place
-      } else {
-        variants.push(variantData)
-      }
-
-      // Reset the toggle's manual-change flag
-      document.getElementById('variantOfferActive')._userChanged = false
-
-      renderVariants()
-      closeVariantModal()
-    }
-
-    function renderVariants() {
-      const container = document.getElementById('variantsContainer')
-      container.innerHTML = ''
-      variants.forEach((v, i) => {
-        const statusLabel = { onStock: 'On Stock', outOfStock: 'Out of Stock', archived: 'Archived' }[v.status] || v.status
-        const statusColor = v.status === 'onStock' ? '#16a34a' : '#e63946'
-        const hasDiscount = v.discountPercentage > 0
-        const offerBadge  = v.offerActive
-          ? `<span style="background:#fef3c7;color:#b45309;font-size:0.72rem;font-weight:800;border-radius:4px;padding:2px 7px;margin-left:6px;">OFFER ON</span>`
-          : ''
-        container.innerHTML += `
-          <div class="variant-card">
-            <div class="variant-card-title">Variant ${i + 1} ${offerBadge}</div>
-            <button type="button" class="edit-variant-btn"   onclick="openVariantModal(${i})">Edit</button>
-            <button type="button" class="remove-variant-btn" onclick="removeVariant(${i})">Remove</button>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
-              <div>
-                <label class="field-label">Sizes</label>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                  ${v.sizes.map(s => `<span style="background:#1e40af;color:#fff;border-radius:6px;padding:3px 10px;font-size:0.78rem;font-weight:700;">${s}</span>`).join('')}
-                </div>
-              </div>
-              <div>
-                <label class="field-label">Status</label>
-                <span style="font-size:0.88rem;font-weight:600;color:${statusColor};">${statusLabel}</span>
-              </div>
-              <div>
-                <label class="field-label">Stock</label>
-                <span style="font-size:0.88rem;font-weight:700;color:#111;">${v.stock}</span>
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-              <div>
-                <label class="field-label">Base Price</label>
-                <span style="font-size:0.88rem;font-weight:700;color:#111;">₹${v.basePrice}</span>
-              </div>
-              <div>
-                <label class="field-label">Discount %</label>
-                <span style="font-size:0.88rem;font-weight:700;color:#111;">${v.discountPercentage}%</span>
-              </div>
-              <div>
-                <label class="field-label">Offer Price</label>
-                ${hasDiscount
-                  ? `<span style="font-size:0.88rem;font-weight:700;color:#15803d;">₹${v.offerPrice}</span>`
-                  : `<span style="font-size:0.88rem;color:#9ca3af;">No discount</span>`
-                }
-              </div>
-            </div>
-            <input type="hidden" name="variants[${i}][sizes]"              value="${v.sizes.join(',')}" />
-            <input type="hidden" name="variants[${i}][status]"             value="${v.status}" />
-            <input type="hidden" name="variants[${i}][stock]"              value="${v.stock}" />
-            <input type="hidden" name="variants[${i}][basePrice]"          value="${v.basePrice}" />
-            <input type="hidden" name="variants[${i}][discountPercentage]" value="${v.discountPercentage}" />
-            <input type="hidden" name="variants[${i}][offerActive]"        value="${v.offerActive}" />
-          </div>
-        `
-      })
-    }
-
-    function removeVariant(index) { variants.splice(index, 1); renderVariants() }
 
     // ── Error helpers ─────────────────────────────────────────────────────────
     function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
@@ -541,7 +449,7 @@
       })
 
       if ([0,1,2].filter(i => slotHasFile[i]).length < 3) { showErr('imgErr', 'Please upload and crop all 3 images'); valid = false } else hideErr('imgErr')
-      if (variants.length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
+      if (document.querySelectorAll('#variantsTbody tr').length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
       if (!valid) return
 
       isSubmitting = true

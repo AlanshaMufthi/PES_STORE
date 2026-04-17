@@ -49,7 +49,7 @@ const parseVariants = (variantsRaw = {})=>{
     if(!variantsRaw || typeof variantsRaw !== 'object') return []
     return Object.values(variantsRaw)
     .map(v=>{
-        const size = v.sizes ? v.sizes.split(',').map(s=>s.trim()).filter(Boolean) : []
+        const size = v.sizes ? String(v.sizes).split(',').map(s=>s.trim()).filter(Boolean) : []
         const status = v.status || 'onstock'
         const stock = parseInt(v.stock) || 0
         const productPrice = parseFloat(v.basePrice) || 0
