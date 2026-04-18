@@ -282,179 +282,231 @@
   </div>
 
   <script>
-    // ── Cropper ───────────────────────────────────────────────────────────────
-    let cropperInstance = null, currentSlotIndex = null
+  // ── Cropper ─────────────────────────────────────────────────────────────────
+  let cropperInstance = null, currentSlotIndex = null
+  const slotHasFile = { 0: false, 1: false, 2: false }
 
-    function triggerFileInput(i) { document.getElementById(`fileInput-${i}`).click() }
+  function triggerFileInput(i) { document.getElementById(`fileInput-${i}`).click() }
 
-    function handleFileSelect(event, index) {
-      const file = event.target.files[0]
-      if (!file) return
-      currentSlotIndex = index
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const cropImg = document.getElementById('cropImage')
-        cropImg.src = e.target.result
-        document.getElementById('cropModalOverlay').classList.add('open')
-        if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
-        cropperInstance = new Cropper(cropImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.9 })
-      }
-      reader.readAsDataURL(file)
-      event.target.value = ''
-    }
-
-    function applyCrop() {
-      if (!cropperInstance) return
-      const idx = currentSlotIndex
-      cropperInstance.getCroppedCanvas({ width: 600, height: 600 }).toBlob(blob => {
-        const preview = document.getElementById(`preview-${idx}`)
-        preview.src = URL.createObjectURL(blob)
-        preview.style.display = 'block'
-        document.getElementById(`placeholder-${idx}`).style.display = 'none'
-        document.getElementById(`removeBtn-${idx}`).style.display = 'flex'
-        const dt = new DataTransfer()
-        dt.items.add(new File([blob], `product_image_${idx}.jpg`, { type: 'image/jpeg' }))
-        document.getElementById(`fileInput-${idx}`).files = dt.files
-        document.getElementById(`existingImage${idx}`).value = ''
-        closeCropModal()
-      }, 'image/jpeg', 0.9)
-    }
-
-    function cancelCrop() { document.getElementById(`fileInput-${currentSlotIndex}`).value = ''; closeCropModal() }
-    function closeCropModal() {
-      document.getElementById('cropModalOverlay').classList.remove('open')
+  function handleFileSelect(event, index) {
+    const file = event.target.files[0]
+    if (!file) return
+    currentSlotIndex = index
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const cropImg = document.getElementById('cropImage')
+      cropImg.src = e.target.result
+      document.getElementById('cropModalOverlay').classList.add('open')
       if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
+      cropperInstance = new Cropper(cropImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.9 })
     }
-    function removeImage(event, index) {
-      event.stopPropagation()
-      document.getElementById(`preview-${index}`).style.display = 'none'
-      document.getElementById(`preview-${index}`).src = ''
-      document.getElementById(`placeholder-${index}`).style.display = 'flex'
-      document.getElementById(`removeBtn-${index}`).style.display = 'none'
-      document.getElementById(`fileInput-${index}`).value = ''
-      document.getElementById(`existingImage${index}`).value = ''
-    }
+    reader.readAsDataURL(file)
+  }
 
-    // ── Variants Table ────────────────────────────────────────────────────────
-    let variantCount = 0
+  function applyCrop() {
+    if (!cropperInstance) return
+    const idx = currentSlotIndex
+    cropperInstance.getCroppedCanvas({ width: 600, height: 600 }).toBlob(blob => {
+      const preview = document.getElementById(`preview-${idx}`)
+      preview.src = URL.createObjectURL(blob)
+      preview.style.display = 'block'
+      document.getElementById(`placeholder-${idx}`).style.display = 'none'
+      document.getElementById(`removeBtn-${idx}`).style.display = 'flex'
+      const dt = new DataTransfer()
+      dt.items.add(new File([blob], `product_image_${idx}.jpg`, { type: 'image/jpeg' }))
+      document.getElementById(`fileInput-${idx}`).files = dt.files
+      slotHasFile[idx] = true
+      closeCropModal()
+    }, 'image/jpeg', 0.9)
+  }
 
-    const SIZES = [4,5,6,7,8,9,10,11,12]
+  function cancelCrop() { document.getElementById(`fileInput-${currentSlotIndex}`).value = ''; closeCropModal() }
+  function closeCropModal() {
+    document.getElementById('cropModalOverlay').classList.remove('open')
+    if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null }
+  }
+  function removeImage(event, index) {
+    event.stopPropagation()
+    document.getElementById(`preview-${index}`).style.display = 'none'
+    document.getElementById(`preview-${index}`).src = ''
+    document.getElementById(`placeholder-${index}`).style.display = 'flex'
+    document.getElementById(`removeBtn-${index}`).style.display = 'none'
+    document.getElementById(`fileInput-${index}`).value = ''
+    slotHasFile[index] = false
+  }
 
-    function sizeOptions(selected) {
-      return '<option value="">Size</option>' +
-        SIZES.map(s => `<option value="${s}"${String(selected) === String(s) ? ' selected' : ''}>${s}</option>`).join('')
-    }
+  // ── Variants Table ───────────────────────────────────────────────────────────
+  let variantCount = 0
+  const SIZES = [4, 5, 6, 7, 8, 9, 10, 11, 12]
 
-    function statusOptions(selected) {
-      const opts = [['onStock','On Stock'],['outOfStock','Out of Stock'],['archived','Archived']]
-      return opts.map(([v,l]) => `<option value="${v}"${selected === v ? ' selected' : ''}>${l}</option>`).join('')
-    }
-
-    function addVariantRow(data = {}) {
-      const i = variantCount++
-      const tbody = document.getElementById('variantsTbody')
-      document.getElementById('variantsEmpty').style.display = 'none'
-
-      const basePrice = data.basePrice || ''
-      const disc = data.discountPercentage || 0
-      const offerVal = (basePrice && disc > 0) ? (basePrice - basePrice * disc / 100).toFixed(2) : ''
-      const offerText = offerVal ? `₹${offerVal}` : '-'
-      const offerColor = offerVal ? '#15803d' : '#9ca3af'
-      const toggleDisabled = (!basePrice || disc <= 0) ? 'disabled' : ''
-      const toggleChecked = data.offerActive ? 'checked' : ''
-      const hiddenVal = data.offerActive ? 'true' : 'false'
-
-      const tr = document.createElement('tr')
-      tr.className = 'variant-row'
-      tr.innerHTML = `
-        <td><select name="variants[${i}][sizes]" class="vt-select">${sizeOptions(data.size)}</select></td>
-        <td><input type="number" name="variants[${i}][stock]" class="vt-input" value="${data.stock !== undefined ? data.stock : 5}" min="0" max="50" style="width:62px;" /></td>
-        <td><input type="number" name="variants[${i}][basePrice]" id="basePrice-${i}" class="vt-input" value="${basePrice}" placeholder="1399" min="1" oninput="recalc(${i})" style="width:86px;" /></td>
-        <td><input type="number" name="variants[${i}][discountPercentage]" id="discountPct-${i}" class="vt-input" value="${disc}" min="0" max="99" oninput="recalc(${i})" style="width:74px;" /></td>
-        <td><span class="offer-price-cell${offerVal ? ' active' : ''}" id="offerDisp-${i}" style="color:${offerColor};">${offerText}</span></td>
-        <td><select name="variants[${i}][status]" class="vt-select" style="width:112px;">${statusOptions(data.status)}</select></td>
-        <td style="text-align:center;">
-          <label class="toggle-switch">
-            <input type="checkbox" id="offerToggle-${i}" ${toggleChecked} ${toggleDisabled}
-              onchange="document.getElementById('offerHidden-${i}').value = this.checked ? 'true' : 'false'" />
-            <span class="toggle-track"></span>
-          </label>
-          <input type="hidden" name="variants[${i}][offerActive]" id="offerHidden-${i}" value="${hiddenVal}" />
-        </td>
-        <td>
-          <button type="button" class="btn-remove-row" onclick="removeVariantRow(this)" title="Remove">✕</button>
-        </td>
-      `
-      tbody.appendChild(tr)
-      syncEmpty()
-    }
-
-    function removeVariantRow(btn) {
-      btn.closest('tr').remove()
-      syncEmpty()
-    }
-
-    function syncEmpty() {
-      const rows = document.querySelectorAll('#variantsTbody tr')
-      document.getElementById('variantsEmpty').style.display = rows.length ? 'none' : 'block'
-    }
-
-    function recalc(i) {
-      const base = parseFloat(document.getElementById(`basePrice-${i}`)?.value) || 0
-      const pct  = parseFloat(document.getElementById(`discountPct-${i}`)?.value) || 0
-      const disp = document.getElementById(`offerDisp-${i}`)
-      const tog  = document.getElementById(`offerToggle-${i}`)
-      const hid  = document.getElementById(`offerHidden-${i}`)
-      if (!disp) return
-      if (base > 0 && pct > 0) {
-        const offer = (base - base * pct / 100).toFixed(2)
-        disp.textContent = `₹${offer}`
-        disp.style.color = '#15803d'
-        disp.classList.add('active')
-        tog.disabled = false
-      } else {
-        disp.textContent = '-'
-        disp.style.color = '#9ca3af'
-        disp.classList.remove('active')
-        tog.disabled = true
-        tog.checked = false
-        hid.value = 'false'
-      }
-    }
-
-    // ── Pre-fill existing variants from server ────────────────────────────────
-    <% if (product.variants && product.variants.length > 0) { product.variants.forEach(function(v) { %>
-      addVariantRow({
-        size: '<%= v.size && v.size[0] ? v.size[0] : "" %>',
-        stock: <%= v.stock || 0 %>,
-        basePrice: <%= v.productPrice || 0 %>,
-        discountPercentage: <%= v.discountPercentage || 0 %>,
-        offerActive: <%= v.offerActive ? true : false %>,
-        status: '<%= v.status || "onStock" %>'
-      })
-    <% }) } %>
-
-    // ── Form validation ───────────────────────────────────────────────────────
-    function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
-    function hideErr(id) { const el = document.getElementById(id); if (el) el.classList.remove('show') }
-
-    document.getElementById('editProductForm').addEventListener('submit', function(e) {
-      let valid = true
-      ;[['name','nameErr','Product name is required'],['brand','brandErr','Please select a brand'],
-        ['gender','genderErr','Please select a gender'],['category','categoryErr','Please select a category'],
-        ['collection','collectionErr','Please select a collection'],['description','descErr','Please enter a description']
-      ].forEach(([id, errId, msg]) => {
-        const val = document.getElementById(id).value.trim()
-        if (!val) { showErr(errId, msg); valid = false } else hideErr(errId)
-      })
-      const filledImages = [0,1,2].filter(i =>
-        document.getElementById(`fileInput-${i}`).files.length > 0 ||
-        document.getElementById(`existingImage${i}`).value.trim()
-      )
-      if (filledImages.length < 3) { showErr('imgErr', 'Please ensure at least 3 images are uploaded'); valid = false } else hideErr('imgErr')
-      if (document.querySelectorAll('#variantsTbody tr').length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
-      if (!valid) e.preventDefault()
+  function getUsedSizes() {
+    const used = new Set()
+    document.querySelectorAll('#variantsTbody .size-select').forEach(sel => {
+      if (sel.value) used.add(Number(sel.value))
     })
-  </script>
+    return used
+  }
+
+  function refreshSizeDropdowns() {
+    const used = getUsedSizes()
+    document.querySelectorAll('#variantsTbody .size-select').forEach(sel => {
+      const current = sel.value ? Number(sel.value) : null
+      Array.from(sel.options).forEach(opt => {
+        if (!opt.value) return
+        const val = Number(opt.value)
+        opt.disabled = used.has(val) && val !== current
+      })
+    })
+  }
+
+  function sizeOptions(selected) {
+    return '<option value="">Size</option>' +
+      SIZES.map(s => `<option value="${s}"${String(selected) === String(s) ? ' selected' : ''}>${s}</option>`).join('')
+  }
+
+  function statusOptions(selected) {
+    const opts = [['onStock', 'On Stock'], ['outOfStock', 'Out of Stock'], ['archived', 'Archived']]
+    return opts.map(([v, l]) => `<option value="${v}"${selected === v ? ' selected' : ''}>${l}</option>`).join('')
+  }
+
+  function addVariantRow(data = {}) {
+    const i = variantCount++
+    const tbody = document.getElementById('variantsTbody')
+    document.getElementById('variantsEmpty').style.display = 'none'
+
+    const basePrice = data.basePrice || ''
+    const disc = data.discountPercentage || 0
+    const offerVal = (basePrice && disc > 0) ? (basePrice - basePrice * disc / 100).toFixed(2) : ''
+    const offerText = offerVal ? `₹${offerVal}` : '-'
+    const offerColor = offerVal ? '#15803d' : '#9ca3af'
+    const toggleDisabled = (!basePrice || disc <= 0) ? 'disabled' : ''
+    const toggleChecked = data.offerActive ? 'checked' : ''
+    const hiddenVal = data.offerActive ? 'true' : 'false'
+
+    const tr = document.createElement('tr')
+    tr.className = 'variant-row'
+    tr.dataset.idx = i
+    tr.innerHTML = `
+      <td>
+        <select name="variants[${i}][sizes]" class="vt-select size-select" onchange="refreshSizeDropdowns()">
+          ${sizeOptions(data.size)}
+        </select>
+      </td>
+      <td><input type="number" name="variants[${i}][stock]" class="vt-input" value="${data.stock !== undefined ? data.stock : 5}" min="0" max="50" style="width:62px;" /></td>
+      <td><input type="number" name="variants[${i}][basePrice]" id="basePrice-${i}" class="vt-input" value="${basePrice}" placeholder="1399" min="1" oninput="recalc(${i})" style="width:86px;" /></td>
+      <td><input type="number" name="variants[${i}][discountPercentage]" id="discountPct-${i}" class="vt-input" value="${disc}" min="0" max="99" oninput="recalc(${i})" style="width:74px;" /></td>
+      <td><span class="offer-price-cell${offerVal ? ' active' : ''}" id="offerDisp-${i}" style="color:${offerColor};">${offerText}</span></td>
+      <td><select name="variants[${i}][status]" class="vt-select" style="width:112px;">${statusOptions(data.status)}</select></td>
+      <td style="text-align:center;">
+        <label class="toggle-switch">
+          <input type="checkbox" id="offerToggle-${i}" ${toggleChecked} ${toggleDisabled}
+            onchange="document.getElementById('offerHidden-${i}').value = this.checked ? 'true' : 'false'" />
+          <span class="toggle-track"></span>
+        </label>
+        <input type="hidden" name="variants[${i}][offerActive]" id="offerHidden-${i}" value="${hiddenVal}" />
+      </td>
+      <td>
+        <button type="button" class="btn-remove-row" onclick="removeVariantRow(this)" title="Remove">✕</button>
+      </td>
+    `
+    tbody.appendChild(tr)
+    refreshSizeDropdowns()
+    syncEmpty()
+  }
+
+  function removeVariantRow(btn) {
+    btn.closest('tr').remove()
+    refreshSizeDropdowns()
+    syncEmpty()
+  }
+
+  function syncEmpty() {
+    const rows = document.querySelectorAll('#variantsTbody tr')
+    document.getElementById('variantsEmpty').style.display = rows.length ? 'none' : 'block'
+  }
+
+  function recalc(i) {
+    const base = parseFloat(document.getElementById(`basePrice-${i}`)?.value) || 0
+    const pct  = parseFloat(document.getElementById(`discountPct-${i}`)?.value) || 0
+    const disp = document.getElementById(`offerDisp-${i}`)
+    const tog  = document.getElementById(`offerToggle-${i}`)
+    const hid  = document.getElementById(`offerHidden-${i}`)
+    if (!disp) return
+    if (base > 0 && pct > 0) {
+      const offer = (base - base * pct / 100).toFixed(2)
+      disp.textContent = `₹${offer}`
+      disp.style.color = '#15803d'
+      disp.classList.add('active')
+      tog.disabled = false
+    } else {
+      disp.textContent = '-'
+      disp.style.color = '#9ca3af'
+      disp.classList.remove('active')
+      tog.disabled = true
+      tog.checked = false
+      hid.value = 'false'
+    }
+  }
+
+  // ── Error helpers ────────────────────────────────────────────────────────────
+  function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
+  function hideErr(id) { const el = document.getElementById(id); if (el) el.classList.remove('show') }
+  function showFieldErr(fid, eid, msg) { document.getElementById(fid)?.classList.add('error'); showErr(eid, msg) }
+  function clearFieldErr(fid, eid) { document.getElementById(fid)?.classList.remove('error'); hideErr(eid) }
+
+  ;[['name','nameErr'],['brand','brandErr'],['gender','genderErr'],
+    ['category','categoryErr'],['collection','collectionErr'],['description','descErr']
+  ].forEach(([f, e]) => {
+    document.getElementById(f)?.addEventListener('change', () => clearFieldErr(f, e))
+    document.getElementById(f)?.addEventListener('input',  () => clearFieldErr(f, e))
+  })
+
+  // ── Form submit ──────────────────────────────────────────────────────────────
+  let isSubmitting = false
+  document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+    e.preventDefault()
+    if (isSubmitting) return
+    let valid = true
+    document.getElementById('generalError').style.display = 'none'
+
+    ;[['name','nameErr','Product name is required'],['brand','brandErr','Please select a brand'],
+      ['gender','genderErr','Please select a gender'],['category','categoryErr','Please select a category'],
+      ['collection','collectionErr','Please select a collection'],['description','descErr','Please enter a description']
+    ].forEach(([id, errId, msg]) => {
+      const val = document.getElementById(id).value.trim()
+      if (!val) { showFieldErr(id, errId, msg); valid = false } else clearFieldErr(id, errId)
+    })
+
+    if ([0,1,2].filter(i => slotHasFile[i]).length < 3) { showErr('imgErr', 'Please upload and crop all 3 images'); valid = false } else hideErr('imgErr')
+    if (document.querySelectorAll('#variantsTbody tr').length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
+    if (!valid) return
+
+    isSubmitting = true
+    const saveBtn = document.getElementById('saveBtn')
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving...'
+
+    try {
+      const data = await fetch('/admin/products/add', { method: 'POST', body: new FormData(this) }).then(r => r.json())
+      if (data.success) {
+        window.location.href = data.redirectUrl
+      } else if (data.field === 'name') {
+        showFieldErr('name', 'nameErr', data.message); window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else if (data.field === 'images') {
+        showErr('imgErr', data.message)
+      } else if (data.field === 'variants') {
+        showErr('variantErr', data.message)
+      } else {
+        const b = document.getElementById('generalError')
+        b.textContent = data.message || 'Something went wrong.'
+        b.style.display = 'block'; window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    } catch {
+      const b = document.getElementById('generalError')
+      b.textContent = 'Network error. Please try again.'; b.style.display = 'block'
+    } finally {
+      isSubmitting = false; saveBtn.disabled = false; saveBtn.textContent = 'Save'
+    }
+  })
+</script>
 </body>
 </html>
