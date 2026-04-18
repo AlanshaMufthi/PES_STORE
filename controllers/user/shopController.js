@@ -40,94 +40,95 @@ const buildFilter = (query)=>{
     return filter
 }
 
+const buildSort = (sortParam)=>{
+    switch (sortParam){
+        case 'price_low' : return { 'variant.0.offerPrice' : 1 }
+        case 'price_high' : return { 'variant.0.offerPrice' : -1 }
+        case 'az' : return { productname : 1 }
+        case 'za' : return { productname : -1 }
+        default : return { createdAt : -1 } 
+    }
+}
+
 
 const loadShop = async(req,res)=>{
-    try {
-        const page = Math.max(1, parseInt(req.query.page) || 1)
-        const filter = buildFilter(req.query)
-        const sort = req.query.sort || ''
 
-        const [allProducts,total,categories] = await Promise.all([
-            Product.find(filter).populate('category', 'name').lean(),
+    try {
+        const page = Math.max(1, parseInt(req.query.page) || 1 )
+        const filter = buildFilter(req.query)
+        const sort = buildSort(req.query.sort)
+
+        const [products, total, categories] = await Promise.all([
+            Product.find(filter)
+            .populate('category','name')
+            .sort(sort)
+            .skip((page-1) * PAGE_SIZE )
+            .limit( PAGE_SIZE )
+            .lean(),
             Product.countDocuments(filter),
             Category.find({isBlocked : false}).lean()
         ])
-        // display offer price when offer is active. else base price
-        const getDisplayPrice = (product)=>{
-            const v = product.variants?.[0]
-            if(!v) return 0;
-            return v.offerActive ? v.offerPrice : v.productPrice
-        }
 
-        let sortedProducts = [...allProducts];
-        switch (sort){
-            case 'price_low' : 
-                sortedProducts.sort((a,b)=> getDisplayPrice(a) - getDisplayPrice(b))
-                break;
-            case 'price_high' :
-                sortedProducts.sort((a,b)=> getDisplayPrice(b) - getDisplayPrice(a))
-                break;
-            case 'az' :
-                sortedProducts.sort((a,b)=> a.productname.localeCompare(b.productname))
-                break;
-            case 'za' :
-                sortedProducts.sort((a,b)=> b.productname.localeCompare(a.productname))
-                break;
-            default :
-                sortedProducts.sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt))
-                break
-
-
-        }
-
-        // paginate after sorting
-        const paginatedProducts = sortedProducts.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE)
         const totalPages = Math.ceil(total/PAGE_SIZE)
-        const cart = await Cart.findOne({userId: req.session.user}).lean()
         const cartCount = req.session?.cart ? req.session.cart.length : 0
-        
-        let wishlistIds = []
-        if(req.session?.user){
-            try {
-                
-                const wishlist = await Wishlist.findOne({userId: req.session.user}).lean()
-                if(wishlist){
-                    wishlistIds = wishlist.products.map((p)=> 
-                    ( p.productId || '' ).toString()
-                    )
-                }
 
-            } catch (error) {
-               console.log('wishlist fetch Error : ',error)  
-            }
-        }
-
-        return res.render('shop',{
-            page:'shop',
-            products: paginatedProducts,
-            categories,
-            total,
-            totalPages,
+        return res.render('shop', {
+            page: 'shop',
+            products, categories, total, totalPages,
             currentPage : page,
             searchQuery : req.query.q || '',
-            sort,
+            sort : req.query.sort || '',
             cartCount,
-            wishlistIds,
             filter : {
                 category : req.query.category || '',
                 brand : req.query.brand || [],
                 gender : req.query.gender || '',
                 collection : req.query.collection || '',
-                minPrice : req.query.minPrice || '',
-                maxPrice : req.query.maxPrice || '',
-                minDiscount : req.query.minDiscount || ''
+                minPrice : req.query.minprice || '',
+                maxprice : req.query.maxPrice || '',
+                minDiscount : req.query.minDiscount || '',
             }
-        })
 
+        })
     } catch (error) {
-       console.log('loadShop Error : ', error)
-       res.redirect('/pageNotFound') 
+        console.log('loadShop Error : ',error)
+        res.redirect('/pageNotFound')
     }
 }
 
-export { loadShop }
+
+const loadShopProducts = async(req,res)=>{
+    try {
+        const page = Math.max(1,parseInt(req.query.page) || 1 )
+        const filter = buildFilter(req.query)
+        const sort = buildSort(req.query.sort)
+
+        const [products,total] = await Promise.all([
+            Product.find(filter)
+            .populate('category', 'name')
+            .sort(sort)
+            .skip((page-1) * PAGE_SIZE )
+            .limit(PAGE_SIZE)
+            .lean(),
+            Products.countDocuments(filter)
+        ])
+
+        return res.json({
+            products, total,
+            totalpages : Math.ceil(total/PAGE_SIZE),
+            currentPage : page
+        })
+    } catch (error) {
+        console.log('loadShopProducts Error : ',error)
+        res.status(500).json({error:'Server Error'})
+    }
+}
+
+
+
+export { 
+
+    loadShop,
+    loadShopProducts,
+
+       }

@@ -8,7 +8,7 @@ import upload from '../middlewares/upload.js';
 import checkBlocked from '../middlewares/checkBlocked.js';
 import {loadAddressBook,loadAddAddress,addAddress,loadEditAddress,editAddress,deleteAddress,setPrimaryAddress,} from '../controllers/user/addressController.js'
 import {loadProductDetails} from '../controllers/user/productDetailsController.js'
-import {loadShop} from '../controllers/user/shopController.js'
+import {loadShop, loadShopProducts} from '../controllers/user/shopController.js'
 import { loadCart, addToCart, editCartItem, removeCartItem, addFromWishlist } from '../controllers/user/cartController.js';
 import { toggleWishlist, loadWishlist, addToWishlist, removeFromWishlist, moveAllToCart } from '../controllers/user/wishlistController.js';
 import { checkReviewEligibility, submitReview, getProductReviews, uploadReviewImgs } from '../controllers/user/reviewController.js';
@@ -56,6 +56,7 @@ router.delete('/deleteAddress/:id',deleteAddress)
 router.patch('/setPrimaryAddress/:id',setPrimaryAddress)
 //shop
 router.get('/shop',loadShop)
+router.get('/shop/products', loadShopProducts)
 //productDetail
 router.get('/product/:id',loadProductDetails)
 //cart
