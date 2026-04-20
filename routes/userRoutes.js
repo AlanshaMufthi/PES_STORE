@@ -2,7 +2,8 @@ import express from 'express';
 const router = express.Router()
 import { pageNotFound, loadLanding, loadSignup, signup, verifyOtp, resendOtp, loadLogin, login, loadHome, logout, loadForgotPassword,    
   ForgotPassword,loadForgotOtp, ForgotOtp, resendForgotOtp,loadResetPassword, ResetPassword,userProfile,loadEditProfile,editProfile,
-changeEmail,verifyChangeEmail, } from '../controllers/user/userController.js'    
+changeEmail,verifyChangeEmail,
+loadSignupOtp, } from '../controllers/user/userController.js'    
 import passport from 'passport';
 import upload from '../middlewares/upload.js';
 import checkBlocked from '../middlewares/checkBlocked.js';
@@ -21,6 +22,7 @@ router.get('/pageNotFound', pageNotFound)
 router.get('/', loadLanding)
 router.get('/signup', loadSignup)
 router.post('/signup', signup)
+router.get('/signupOtp', loadSignupOtp)
 router.post('/verifyOtp', verifyOtp)
 router.post("/resendOtp", resendOtp)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
