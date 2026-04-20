@@ -2,13 +2,14 @@ import express from 'express';
 const router = express.Router()
 import { pageNotFound, loadLanding, loadSignup, signup, verifyOtp, resendOtp, loadLogin, login, loadHome, logout, loadForgotPassword,    
   ForgotPassword,loadForgotOtp, ForgotOtp, resendForgotOtp,loadResetPassword, ResetPassword,userProfile,loadEditProfile,editProfile,
-changeEmail,verifyChangeEmail, } from '../controllers/user/userController.js'    
+changeEmail,verifyChangeEmail,
+loadSignupOtp, } from '../controllers/user/userController.js'    
 import passport from 'passport';
 import upload from '../middlewares/upload.js';
 import checkBlocked from '../middlewares/checkBlocked.js';
 import {loadAddressBook,loadAddAddress,addAddress,loadEditAddress,editAddress,deleteAddress,setPrimaryAddress,} from '../controllers/user/addressController.js'
 import {loadProductDetails} from '../controllers/user/productDetailsController.js'
-import {loadShop} from '../controllers/user/shopController.js'
+import {loadShop, loadShopProducts} from '../controllers/user/shopController.js'
 import { loadCart, addToCart, editCartItem, removeCartItem, addFromWishlist } from '../controllers/user/cartController.js';
 import { toggleWishlist, loadWishlist, addToWishlist, removeFromWishlist, moveAllToCart } from '../controllers/user/wishlistController.js';
 import { checkReviewEligibility, submitReview, getProductReviews, uploadReviewImgs } from '../controllers/user/reviewController.js';
@@ -21,6 +22,7 @@ router.get('/pageNotFound', pageNotFound)
 router.get('/', loadLanding)
 router.get('/signup', loadSignup)
 router.post('/signup', signup)
+router.get('/signupOtp', loadSignupOtp)
 router.post('/verifyOtp', verifyOtp)
 router.post("/resendOtp", resendOtp)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
@@ -56,6 +58,7 @@ router.delete('/deleteAddress/:id',deleteAddress)
 router.patch('/setPrimaryAddress/:id',setPrimaryAddress)
 //shop
 router.get('/shop',loadShop)
+router.get('/shop/products', loadShopProducts)
 //productDetail
 router.get('/product/:id',loadProductDetails)
 //cart

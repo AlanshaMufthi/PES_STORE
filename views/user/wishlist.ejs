@@ -49,64 +49,82 @@
       <!-- Wishlist Items -->
       <div class="space-y-6">
       <% wishlistItems.forEach(item => { %>
-  <div id="wishlist-item-<%= item._id %>" class="flex items-start gap-5 pb-6 border-b border-gray-100">
-    
-    <!-- Image -->
-    <a href="/product/<%= item.productId._id %>" class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-      <img src="<%= item.productId.productImage?.[0] %>" 
-           alt="<%= item.productId.productname %>" 
-           class="w-full h-full object-contain p-2"/>
-    </a>
-
-    <!-- Info -->
-    <div class="flex-1 min-w-0">
-      <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
-        <%= item.productId.productname %>
         <%
-          const v = item.productId.variants?.[0]
-          const inStock = item.productId.variants?.some(v => v.status === 'onStock' && v.stock > 0)
-        %>
-        <span class="font-normal text-xs normal-case ml-2 <%= inStock ? 'text-green-500' : 'text-red-500' %>">
-          | <%= inStock ? 'In Stock' : 'Out of Stock' %>
-        </span>
-      </p>
-      <div class="flex items-center gap-3 mt-2">
-        <%
+          const isBlocked = item.productId.isBlocked
+          const inStock = !isBlocked && item.productId.variants?.some(v => v.status === 'onStock' && v.stock > 0)
           const wv = item.productId.variants?.[0]
           const price = wv ? (wv.offerActive ? wv.offerPrice : wv.productPrice) : 0
           const origPrice = wv?.productPrice || 0
         %>
-        <span class="font-bold text-sm">₹<%= price.toLocaleString('en-IN') %></span>
-        <% if(wv?.offerActive && origPrice !== price) { %>
-          <span class="text-xs text-gray-400 line-through">₹<%= origPrice.toLocaleString('en-IN') %></span>
-        <% } %>
-      </div>
-      <p class="text-xs text-gray-400 mt-2">
-        Added on <%= new Date(item.addedAt).toLocaleDateString('en-GB', {day:'2-digit', month:'2-digit', year:'numeric'}).replace(/\//g, '-') %>
-      </p>
-    </div>
+        <div id="wishlist-item-<%= item._id %>"
+          class="flex items-start gap-5 pb-6 border-b border-gray-100">
 
-    <!-- Actions -->
-    <div class="flex flex-col gap-2 flex-shrink-0">
-      <button
-        onclick="removeFromWishlist('<%= item._id %>')"
-        class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-        </svg>
-        Remove
-      </button>
-      <button
-        onclick="addToCartFromWishlist('<%= item._id %>', '<%= item.productId._id %>')"
-        class="flex items-center gap-1.5 border border-gray-300 hover:border-black text-gray-700 hover:text-black text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.39A1 1 0 007 21h10a1 1 0 00.99-.85L19 13M7 13H5.4M10 21a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2z"/>
-        </svg>
-        Add To Cart
-      </button>
-    </div>
-  </div>
-<% }) %>
+          <!-- Dimmed section: image + info -->
+          <div class="flex items-start gap-5 flex-1 min-w-0 <%= isBlocked ? 'opacity-40 pointer-events-none' : '' %>">
+
+            <!-- Image -->
+            <a href="<%= isBlocked ? '#' : '/product/' + item.productId._id %>"
+              class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+              <img src="<%= item.productId.productImage?.[0] %>"
+                   alt="<%= item.productId.productname %>"
+                   class="w-full h-full object-contain p-2"/>
+            </a>
+
+            <!-- Info -->
+            <div class="flex-1 min-w-0">
+              <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
+                <%= item.productId.productname %>
+                <% if(isBlocked) { %>
+                  <span class="font-normal text-xs normal-case ml-2 text-red-500 bg-red-50 px-2 py-0.5 rounded-md">
+                    Unavailable
+                  </span>
+                <% } else { %>
+                  <span class="font-normal text-xs normal-case ml-2 <%= inStock ? 'text-green-500' : 'text-red-500' %>">
+                    | <%= inStock ? 'In Stock' : 'Out of Stock' %>
+                  </span>
+                <% } %>
+              </p>
+              <div class="flex items-center gap-3 mt-2">
+                <span class="font-bold text-sm">₹<%= price.toLocaleString('en-IN') %></span>
+                <% if(wv?.offerActive && origPrice !== price) { %>
+                  <span class="text-xs text-gray-400 line-through">₹<%= origPrice.toLocaleString('en-IN') %></span>
+                <% } %>
+              </div>
+              <p class="text-xs text-gray-400 mt-2">
+                Added on <%= new Date(item.addedAt).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'numeric'}).replace(/\//g,'-') %>
+              </p>
+            </div>
+
+          </div><!-- end dimmed section -->
+
+          <!-- Actions — always full opacity -->
+          <div class="flex flex-col gap-2 flex-shrink-0">
+            <button
+              onclick="removeFromWishlist('<%= item._id %>')"
+              class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              Remove
+            </button>
+            <% if(!isBlocked) { %>
+              <button
+                onclick="addToCartFromWishlist('<%= item._id %>', '<%= item.productId._id %>')"
+                class="flex items-center gap-1.5 border border-gray-300 hover:border-black text-gray-700 hover:text-black text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 6.39A1 1 0 007 21h10a1 1 0 00.99-.85L19 13M7 13H5.4M10 21a1 1 0 100-2 1 1 0 000 2zm7 0a1 1 0 100-2 1 1 0 000 2z"/>
+                </svg>
+                Add To Cart
+              </button>
+            <% } else { %>
+              <span class="text-xs text-gray-400 font-semibold px-3 py-2 border border-gray-200 rounded-lg text-center">
+                Not available
+              </span>
+            <% } %>
+          </div>
+
+        </div>
+      <% }) %>
       </div>
     <% } %>
 
@@ -122,7 +140,6 @@
         if (data.success) {
           document.getElementById(`wishlist-item-${itemId}`)?.remove();
           showToast('Removed from wishlist');
-          // Update count in header
           const countEl = document.querySelector('h1 span');
           if (countEl) {
             const current = parseInt(countEl.textContent.replace(/[()]/g, ''));

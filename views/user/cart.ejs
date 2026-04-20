@@ -127,21 +127,31 @@
     }
 
     async function updateQty(itemId, delta) {
-      const el = document.getElementById(`qty-${itemId}`);
-      const newQty = Math.max(1, parseInt(el.textContent) + delta);
-      try {
-        const res = await fetch(`/cart/update/${itemId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ quantity: newQty })
-        });
-        const data = await res.json();
-        if (data.success) {
-          el.textContent = newQty;
-          updateTotals(data.subtotal);
-        }
-      } catch { showToast('Error updating quantity'); }
+  const el = document.getElementById(`qty-${itemId}`)
+  const currentQty = parseInt(el.textContent)
+  const newQty = Math.max(1, currentQty + delta)
+
+  // Don't fire request if nothing changed
+  if (newQty === currentQty && delta < 0) return
+
+  try {
+    const res = await fetch(`/cart/update/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity: newQty })
+    })
+    const data = await res.json()
+    if (data.success) {
+      el.textContent = newQty
+      updateTotals(data.subtotal)
+    } else {
+      // ✅ show the server's error (e.g. "Only 5 unit(s) available.")
+      showToast(data.message || 'Could not update quantity')
     }
+  } catch {
+    showToast('Error updating quantity')
+  }
+}
 
     function updateTotals(subtotal) {
       if (subtotal === undefined) return;

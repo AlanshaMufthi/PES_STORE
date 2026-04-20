@@ -146,9 +146,11 @@ const signup = async(req,res)=>{
         req.session.userOtp = otp;
         req.session.userData = {firstName,lastName,phone,email,password};
         
+        
+         console.log('otp sent',otp)
 
-        res.render('signupOtp')
-        console.log('otp sent',otp)
+        return res.json({ success: true, redirectUrl: '/signupOtp' })
+      
         
 
     } catch (error) {
@@ -166,6 +168,17 @@ try {
 } catch (error) {
     
 }
+}
+
+
+const loadSignupOtp = async(req,res)=>{
+    try {
+        if(!req.session.userOtp) return res.redirect('/signup')
+            res.render('signupOtp')
+    } catch (error) {
+        console.log('loadSignupOtp Error : ',error)
+        res.redirect('/pageNotFound')
+    }
 }
 const verifyOtp = async(req,res)=>{
     try {
@@ -620,6 +633,7 @@ const verifyChangeEmail = async(req,res)=>{
   pageNotFound,
   loadSignup,
   signup,
+  loadSignupOtp,
   verifyOtp,
   resendOtp,
   loadLogin,

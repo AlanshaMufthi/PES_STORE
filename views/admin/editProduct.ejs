@@ -74,6 +74,8 @@
     .btn-cancel { background: #fff; color: #e63946; border: 2px solid #e63946; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; text-decoration: none; display: inline-block; }
     .btn-cancel:hover { background: #fff5f5; }
     .variants-empty { text-align: center; padding: 28px 0; color: #bbb; font-size: 0.88rem; font-weight: 600; }
+
+    #generalError { display:none; background:#fee2e2; border:1.5px solid #fca5a5; border-radius:10px; padding:14px 20px; margin-bottom:24px; font-size:0.88rem; font-weight:700; color:#b91c1c; }
   </style>
 </head>
 <body>
@@ -99,12 +101,15 @@
     </aside>
 
     <main class="main">
+      <div id="generalError"></div>
+
       <% if (typeof error !== 'undefined' && error) { %>
         <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:14px 20px;margin-bottom:24px;font-size:0.88rem;font-weight:700;color:#b91c1c;"><%= error %></div>
       <% } %>
 
       <h1 style="font-size:1.7rem;font-weight:900;color:#111;margin-bottom:28px;">Edit Product</h1>
 
+      <!-- ✅ FIX 1: correct form id = "editProductForm" -->
       <form id="editProductForm" action="/admin/products/edit/<%= product._id %>" method="POST" enctype="multipart/form-data">
         <div class="form-card">
 
@@ -216,7 +221,7 @@
                 </tr>
               </thead>
               <tbody id="variantsTbody">
-                <!-- pre-filled by JS below -->
+                <!-- ✅ FIX 2: pre-filled by JS on page load using existing product.variants -->
               </tbody>
             </table>
             <div id="variantsEmpty" class="variants-empty" style="display:none;">
@@ -253,6 +258,16 @@
   <script>
   // ── Cropper ─────────────────────────────────────────────────────────────────
   let cropperInstance = null, currentSlotIndex = null
+<<<<<<< HEAD
+=======
+
+  // Track which slots already have images (existing or newly cropped)
+  const slotHasFile = {
+    0: !!('<%= product.productImage && product.productImage[0] ? product.productImage[0] : "" %>'),
+    1: !!('<%= product.productImage && product.productImage[1] ? product.productImage[1] : "" %>'),
+    2: !!('<%= product.productImage && product.productImage[2] ? product.productImage[2] : "" %>')
+  }
+>>>>>>> admin-editProduct-fix
 
   function triggerFileInput(i) { document.getElementById(`fileInput-${i}`).click() }
 
@@ -302,6 +317,10 @@
     document.getElementById(`removeBtn-${index}`).style.display = 'none'
     document.getElementById(`fileInput-${index}`).value = ''
     document.getElementById(`existingImage${index}`).value = ''
+<<<<<<< HEAD
+=======
+    slotHasFile[index] = false
+>>>>>>> admin-editProduct-fix
   }
 
   // ── Variants Table ───────────────────────────────────────────────────────────
@@ -417,6 +436,7 @@
     }
   }
 
+<<<<<<< HEAD
   // ── Pre-fill existing variants from server ───────────────────────────────────
   <% if (product.variants && product.variants.length > 0) { product.variants.forEach(function(v) { %>
     addVariantRow({
@@ -428,6 +448,20 @@
       status: '<%= v.status || "onStock" %>'
     })
   <% }) } %>
+=======
+  // ✅ FIX 2: Pre-fill existing variants from product data on page load
+  const existingVariants = <%- JSON.stringify(product.variants || []) %>
+  existingVariants.forEach(v => {
+    addVariantRow({
+      size:               v.size && v.size.length > 0 ? v.size[0] : '',
+      stock:              v.stock,
+      basePrice:          v.productPrice,
+      discountPercentage: v.discountPercentage,
+      offerActive:        v.offerActive,
+      status:             v.status
+    })
+  })
+>>>>>>> admin-editProduct-fix
 
   // ── Error helpers ────────────────────────────────────────────────────────────
   function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
@@ -440,7 +474,12 @@
     document.getElementById(f)?.addEventListener('input',  () => hideErr(e))
   })
 
+<<<<<<< HEAD
   // ── Form submit (standard POST — no AJAX needed for edit) ────────────────────
+=======
+  // ── Form submit ──────────────────────────────────────────────────────────────
+  // ✅ FIX 1: Changed from 'addProductForm' to 'editProductForm'
+>>>>>>> admin-editProduct-fix
   document.getElementById('editProductForm').addEventListener('submit', function(e) {
     let valid = true
 
@@ -452,15 +491,28 @@
       if (!val) { showErr(errId, msg); valid = false } else hideErr(errId)
     })
 
+<<<<<<< HEAD
     const filledImages = [0,1,2].filter(i =>
       document.getElementById(`fileInput-${i}`).files.length > 0 ||
       document.getElementById(`existingImage${i}`).value.trim()
     )
     if (filledImages.length < 3) { showErr('imgErr', 'Please ensure at least 3 images are present'); valid = false } else hideErr('imgErr')
+=======
+    // For edit: a slot is valid if it has an existing image OR a new file was cropped
+    const existingImgs = [
+      document.getElementById('existingImage0').value,
+      document.getElementById('existingImage1').value,
+      document.getElementById('existingImage2').value,
+    ]
+    const validSlots = [0,1,2].filter(i => existingImgs[i] || slotHasFile[i])
+    if (validSlots.length < 3) { showErr('imgErr', 'Please ensure all 3 image slots have an image'); valid = false } else hideErr('imgErr')
+
+>>>>>>> admin-editProduct-fix
     if (document.querySelectorAll('#variantsTbody tr').length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
 
     if (!valid) {
       e.preventDefault()
+<<<<<<< HEAD
       return
     }
 
@@ -468,6 +520,11 @@
     const saveBtn = document.getElementById('saveBtn')
     saveBtn.disabled = true
     saveBtn.textContent = 'Saving...'
+=======
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    // If valid, form submits normally (multipart POST)
+>>>>>>> admin-editProduct-fix
   })
   </script>
 </body>
