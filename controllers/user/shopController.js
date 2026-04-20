@@ -42,8 +42,8 @@ const buildFilter = (query)=>{
 
 const buildSort = (sortParam)=>{
     switch (sortParam){
-        case 'price_low' : return { 'variant.0.offerPrice' : 1 }
-        case 'price_high' : return { 'variant.0.offerPrice' : -1 }
+        case 'price_low' : return { 'variants.0.offerPrice' : 1 }
+        case 'price_high' : return { 'variants.0.offerPrice' : -1 }
         case 'az' : return { productname : 1 }
         case 'za' : return { productname : -1 }
         default : return { createdAt : -1 } 
@@ -85,7 +85,7 @@ const loadShop = async(req,res)=>{
                 gender : req.query.gender || '',
                 collection : req.query.collection || '',
                 minPrice : req.query.minprice || '',
-                maxprice : req.query.maxPrice || '',
+                maxPrice : req.query.maxPrice || '',
                 minDiscount : req.query.minDiscount || '',
             }
 
@@ -110,7 +110,7 @@ const loadShopProducts = async(req,res)=>{
             .skip((page-1) * PAGE_SIZE )
             .limit(PAGE_SIZE)
             .lean(),
-            Products.countDocuments(filter)
+            Product.countDocuments(filter)
         ])
 
         return res.json({
