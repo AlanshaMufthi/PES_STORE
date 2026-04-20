@@ -44,20 +44,44 @@
     .crop-modal { background: #fff; border-radius: 14px; padding: 28px; width: 560px; max-width: 95vw; }
     .crop-container { width: 100%; height: 340px; overflow: hidden; background: #000; border-radius: 8px; }
     .crop-container img { max-width: 100%; display: block; }
+
+    /* ── Variant Table ── */
     .variants-table-wrap { width: 100%; overflow-x: auto; }
     .variants-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-    .variants-table thead tr th { font-size: 0.72rem; font-weight: 800; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; padding: 0 10px 4px 10px; text-align: left; white-space: nowrap; }
+    .variants-table thead tr th {
+      font-size: 0.72rem; font-weight: 800; color: #6b7280;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      padding: 0 10px 4px 10px; text-align: left; white-space: nowrap;
+    }
     .variants-table tbody tr { background: #fff; }
-    .variants-table tbody tr td { padding: 6px 6px; vertical-align: middle; border-top: 1.5px solid #f1f5f9; border-bottom: 1.5px solid #f1f5f9; }
+    .variants-table tbody tr td {
+      padding: 6px 6px; vertical-align: middle;
+      border-top: 1.5px solid #f1f5f9; border-bottom: 1.5px solid #f1f5f9;
+    }
     .variants-table tbody tr td:first-child { border-left: 1.5px solid #f1f5f9; border-radius: 10px 0 0 10px; padding-left: 10px; }
     .variants-table tbody tr td:last-child  { border-right: 1.5px solid #f1f5f9; border-radius: 0 10px 10px 0; padding-right: 10px; }
     .variants-table tbody tr:hover td { border-color: #e0e7ef; background: #f8fafc; }
-    .vt-input { width: 100%; padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px; font-size: 0.83rem; font-weight: 600; color: #222; font-family: 'Nunito', sans-serif; outline: none; background: #fff; transition: border-color 0.2s; }
+
+    .vt-input {
+      width: 100%; padding: 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px;
+      font-size: 0.83rem; font-weight: 600; color: #222; font-family: 'Nunito', sans-serif;
+      outline: none; background: #fff; transition: border-color 0.2s;
+    }
     .vt-input:focus { border-color: #4f46e5; }
-    .vt-select { width: 100%; padding: 7px 28px 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px; font-size: 0.83rem; font-weight: 600; color: #222; font-family: 'Nunito', sans-serif; outline: none; appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center; cursor: pointer; transition: border-color 0.2s; }
+    .vt-select {
+      width: 100%; padding: 7px 28px 7px 10px; border: 1.5px solid #e5e7eb; border-radius: 7px;
+      font-size: 0.83rem; font-weight: 600; color: #222; font-family: 'Nunito', sans-serif;
+      outline: none; appearance: none;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 8px center;
+      cursor: pointer; transition: border-color 0.2s;
+    }
     .vt-select:focus { border-color: #4f46e5; }
-    .offer-price-cell { font-size: 0.83rem; font-weight: 800; color: #9ca3af; white-space: nowrap; min-width: 72px; display: block; padding: 7px 2px; }
+    .offer-price-cell {
+      font-size: 0.83rem; font-weight: 800; color: #9ca3af;
+      white-space: nowrap; min-width: 72px; display: block; padding: 7px 2px;
+    }
     .offer-price-cell.active { color: #15803d; }
+
     .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
     .toggle-track { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; border-radius: 999px; transition: background 0.25s; }
@@ -65,8 +89,15 @@
     .toggle-switch input:checked + .toggle-track { background: #f59e0b; }
     .toggle-switch input:checked + .toggle-track::before { transform: translateX(18px); }
     .toggle-switch input:disabled + .toggle-track { opacity: 0.35; cursor: not-allowed; }
-    .btn-remove-row { width: 30px; height: 30px; border-radius: 7px; border: none; background: #fee2e2; color: #e63946; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; transition: background 0.15s; }
+
+    .btn-remove-row {
+      width: 30px; height: 30px; border-radius: 7px; border: none;
+      background: #fee2e2; color: #e63946; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; font-weight: 900; transition: background 0.15s;
+    }
     .btn-remove-row:hover { background: #fecaca; }
+
     .btn-add-variant { display: flex; align-items: center; gap: 8px; background: #4f46e5; color: #fff; border: none; border-radius: 10px; padding: 11px 22px; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
     .btn-add-variant:hover { background: #4338ca; }
     .btn-save { background: #e63946; color: #fff; border: none; border-radius: 8px; padding: 11px 40px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s; }
@@ -258,8 +289,6 @@
   <script>
   // ── Cropper ─────────────────────────────────────────────────────────────────
   let cropperInstance = null, currentSlotIndex = null
-<<<<<<< HEAD
-=======
 
   // Track which slots already have images (existing or newly cropped)
   const slotHasFile = {
@@ -267,7 +296,6 @@
     1: !!('<%= product.productImage && product.productImage[1] ? product.productImage[1] : "" %>'),
     2: !!('<%= product.productImage && product.productImage[2] ? product.productImage[2] : "" %>')
   }
->>>>>>> admin-editProduct-fix
 
   function triggerFileInput(i) { document.getElementById(`fileInput-${i}`).click() }
 
@@ -284,7 +312,6 @@
       cropperInstance = new Cropper(cropImg, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.9 })
     }
     reader.readAsDataURL(file)
-    event.target.value = ''
   }
 
   function applyCrop() {
@@ -299,7 +326,7 @@
       const dt = new DataTransfer()
       dt.items.add(new File([blob], `product_image_${idx}.jpg`, { type: 'image/jpeg' }))
       document.getElementById(`fileInput-${idx}`).files = dt.files
-      document.getElementById(`existingImage${idx}`).value = ''
+      slotHasFile[idx] = true
       closeCropModal()
     }, 'image/jpeg', 0.9)
   }
@@ -317,10 +344,7 @@
     document.getElementById(`removeBtn-${index}`).style.display = 'none'
     document.getElementById(`fileInput-${index}`).value = ''
     document.getElementById(`existingImage${index}`).value = ''
-<<<<<<< HEAD
-=======
     slotHasFile[index] = false
->>>>>>> admin-editProduct-fix
   }
 
   // ── Variants Table ───────────────────────────────────────────────────────────
@@ -436,19 +460,6 @@
     }
   }
 
-<<<<<<< HEAD
-  // ── Pre-fill existing variants from server ───────────────────────────────────
-  <% if (product.variants && product.variants.length > 0) { product.variants.forEach(function(v) { %>
-    addVariantRow({
-      size: '<%= v.size && v.size[0] ? v.size[0] : "" %>',
-      stock: <%= v.stock || 0 %>,
-      basePrice: <%= v.productPrice || 0 %>,
-      discountPercentage: <%= v.discountPercentage || 0 %>,
-      offerActive: <%= v.offerActive ? true : false %>,
-      status: '<%= v.status || "onStock" %>'
-    })
-  <% }) } %>
-=======
   // ✅ FIX 2: Pre-fill existing variants from product data on page load
   const existingVariants = <%- JSON.stringify(product.variants || []) %>
   existingVariants.forEach(v => {
@@ -461,43 +472,34 @@
       status:             v.status
     })
   })
->>>>>>> admin-editProduct-fix
 
   // ── Error helpers ────────────────────────────────────────────────────────────
   function showErr(id, msg) { const el = document.getElementById(id); if (el) { el.textContent = msg; el.classList.add('show') } }
   function hideErr(id) { const el = document.getElementById(id); if (el) el.classList.remove('show') }
+  function showFieldErr(fid, eid, msg) { document.getElementById(fid)?.classList.add('error'); showErr(eid, msg) }
+  function clearFieldErr(fid, eid) { document.getElementById(fid)?.classList.remove('error'); hideErr(eid) }
 
   ;[['name','nameErr'],['brand','brandErr'],['gender','genderErr'],
     ['category','categoryErr'],['collection','collectionErr'],['description','descErr']
   ].forEach(([f, e]) => {
-    document.getElementById(f)?.addEventListener('change', () => hideErr(e))
-    document.getElementById(f)?.addEventListener('input',  () => hideErr(e))
+    document.getElementById(f)?.addEventListener('change', () => clearFieldErr(f, e))
+    document.getElementById(f)?.addEventListener('input',  () => clearFieldErr(f, e))
   })
 
-<<<<<<< HEAD
-  // ── Form submit (standard POST — no AJAX needed for edit) ────────────────────
-=======
   // ── Form submit ──────────────────────────────────────────────────────────────
   // ✅ FIX 1: Changed from 'addProductForm' to 'editProductForm'
->>>>>>> admin-editProduct-fix
   document.getElementById('editProductForm').addEventListener('submit', function(e) {
     let valid = true
+    document.getElementById('generalError').style.display = 'none'
 
     ;[['name','nameErr','Product name is required'],['brand','brandErr','Please select a brand'],
       ['gender','genderErr','Please select a gender'],['category','categoryErr','Please select a category'],
       ['collection','collectionErr','Please select a collection'],['description','descErr','Please enter a description']
     ].forEach(([id, errId, msg]) => {
       const val = document.getElementById(id).value.trim()
-      if (!val) { showErr(errId, msg); valid = false } else hideErr(errId)
+      if (!val) { showFieldErr(id, errId, msg); valid = false } else clearFieldErr(id, errId)
     })
 
-<<<<<<< HEAD
-    const filledImages = [0,1,2].filter(i =>
-      document.getElementById(`fileInput-${i}`).files.length > 0 ||
-      document.getElementById(`existingImage${i}`).value.trim()
-    )
-    if (filledImages.length < 3) { showErr('imgErr', 'Please ensure at least 3 images are present'); valid = false } else hideErr('imgErr')
-=======
     // For edit: a slot is valid if it has an existing image OR a new file was cropped
     const existingImgs = [
       document.getElementById('existingImage0').value,
@@ -507,24 +509,13 @@
     const validSlots = [0,1,2].filter(i => existingImgs[i] || slotHasFile[i])
     if (validSlots.length < 3) { showErr('imgErr', 'Please ensure all 3 image slots have an image'); valid = false } else hideErr('imgErr')
 
->>>>>>> admin-editProduct-fix
     if (document.querySelectorAll('#variantsTbody tr').length === 0) { showErr('variantErr', 'Please add at least one variant'); valid = false } else hideErr('variantErr')
 
     if (!valid) {
       e.preventDefault()
-<<<<<<< HEAD
-      return
-    }
-
-    // Disable save button to prevent double submit
-    const saveBtn = document.getElementById('saveBtn')
-    saveBtn.disabled = true
-    saveBtn.textContent = 'Saving...'
-=======
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
     // If valid, form submits normally (multipart POST)
->>>>>>> admin-editProduct-fix
   })
   </script>
 </body>
