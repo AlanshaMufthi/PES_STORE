@@ -49,7 +49,7 @@ const loadCart = async(req,res)=>{
 
          let hasUnavailable = false;
          const cartItems = cart.items
-         .filter((items)=> items.productId && !items.productId.isBlocked)
+         .filter((items)=> items.productId )
          .map((items)=>{
             const product = items.productId;
             const variant = product.variants?.find((v)=> v._id.toString() === items.variantId?.toString())

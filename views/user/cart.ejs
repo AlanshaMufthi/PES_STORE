@@ -8,6 +8,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Barlow', sans-serif; }
+    /* Only grey out the product content, NOT the remove button */
+    .oos-content { opacity: 0.55; pointer-events: none; }
+    /* Re-enable pointer events on the image link specifically */
+    .oos-content a { pointer-events: auto; }
+    .qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   </style>
 </head>
 <body class="bg-white text-gray-900">
@@ -31,39 +36,101 @@
 
     <% } else { %>
 
+      <!-- Out-of-stock warning banner — shown only if any item is unavailable -->
+      <% if (hasUnavailable) { %>
+        <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm font-medium px-4 py-3 rounded-xl mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+          Some items in your cart are currently unavailable. Remove them to proceed to checkout.
+        </div>
+      <% } %>
+
       <!-- Cart Items -->
       <div class="space-y-6 mb-10">
         <% cartItems.forEach(item => { %>
-          <div id="cart-item-<%= item._id %>" class="flex items-start gap-5 pb-6 border-b border-gray-100">
-            <!-- Image -->
-            <a href="/product/<%= item.product._id %>" class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-              <img src="<%= item.product.productImage?.[0] %>" alt="<%= item.product.productname %>" class="w-full h-full object-contain p-2"/>
-            </a>
+          <%
+            const oos = item.unavailable
+            const maxQty = Math.min(item.stockAvailable, 5)
+          %>
 
-            <!-- Info -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-2 flex-wrap">
-                <div>
-                  <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
-                    <%= item.product.productname %>
-                    <span class="font-normal text-xs text-<%= item.stockAvailable > 0 ? 'green' : 'red' %>-500 ml-2 normal-case">
-                      | <%= item.stockAvailable > 0 ? 'In Stock' : 'Out of Stock' %>
-                    </span>
-                  </p>
-                  <p class="text-xs text-gray-400 leading-relaxed max-w-xs"><%= item.product.brand %></p>
-                  <div class="flex items-center gap-3 mt-2">
-                    <span class="font-bold text-sm">₹<%= item.price.toLocaleString('en-IN') %></span>
-                    <% if (item.variant && item.variant.offerActive) { %>
-                      <span class="text-xs text-gray-400 line-through">₹<%= item.variant.productPrice.toLocaleString('en-IN') %></span>
+          <!-- Row wrapper: no opacity here so remove button is always full brightness -->
+          <div id="cart-item-<%= item._id %>"
+               class="flex items-start gap-5 pb-6 border-b border-gray-100 <%= oos ? 'bg-gray-50 rounded-xl px-3 pt-3' : '' %>">
+
+            <!-- IMAGE + INFO wrapped in oos-content so they grey out -->
+            <div class="flex items-start gap-5 flex-1 min-w-0 <%= oos ? 'oos-content' : '' %>">
+
+              <!-- Image -->
+              <a href="/product/<%= item.product._id %>"
+                 class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 relative">
+                <img src="<%= item.product.productImage?.[0] %>"
+                     alt="<%= item.product.productname %>"
+                     class="w-full h-full object-contain p-2 <%= oos ? 'grayscale' : '' %>"/>
+                <% if (oos) { %>
+                  <!-- Unavailable overlay on image -->
+                  <div class="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
+                    <span class="text-white text-[9px] font-bold uppercase tracking-wider text-center leading-tight px-1">Not<br/>Available</span>
+                  </div>
+                <% } %>
+              </a>
+
+              <!-- Info -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2 flex-wrap">
+                  <div>
+                    <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
+                      <%= item.product.productname %>
+                    </p>
+                    <p class="text-xs text-gray-400 mb-2"><%= item.product.brand %></p>
+
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <% if (!oos) { %>
+                        <span class="font-bold text-sm">₹<%= item.price.toLocaleString('en-IN') %></span>
+                        <% if (item.variant && item.variant.offerActive) { %>
+                          <span class="text-xs text-gray-400 line-through">₹<%= item.variant.productPrice.toLocaleString('en-IN') %></span>
+                        <% } %>
+                      <% } %>
+                      <span class="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-lg"><%= item.size %></span>
+
+                      <!-- Stock status badge -->
+                      <% if (oos) { %>
+                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-lg">Unavailable</span>
+                      <% } else if (item.stockAvailable <= 3) { %>
+                        <span class="bg-orange-100 text-orange-600 text-xs font-semibold px-2.5 py-1 rounded-lg">
+                          Only <%= item.stockAvailable %> left!
+                        </span>
+                      <% } else { %>
+                        <span class="bg-green-100 text-green-600 text-xs font-semibold px-2.5 py-1 rounded-lg">In Stock</span>
+                      <% } %>
+                    </div>
+
+                    <!-- Item subtotal (only for available items) -->
+                    <% if (!oos) { %>
+                      <p class="text-xs text-gray-400 mt-2">
+                        Item total: <span class="font-semibold text-gray-700" id="item-total-<%= item._id %>">
+                          ₹<%= (item.price * item.quantity).toLocaleString('en-IN') %>
+                        </span>
+                      </p>
                     <% } %>
-                    <span class="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-lg"><%= item.size %></span>
+
+                    <!-- Unavailable note -->
+                    <% if (oos) { %>
+                      <p class="text-xs text-red-400 mt-2 font-medium">
+                        This item is currently unavailable. Remove it to proceed.
+                      </p>
+                    <% } %>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Quantity & Remove -->
+            </div>
+            <!-- END oos-content wrapper -->
+
+            <!-- Quantity & Remove — OUTSIDE oos-content, always full opacity -->
             <div class="flex flex-col items-end gap-3 flex-shrink-0">
+
+              <!-- Remove button — always active, never greyed -->
               <button
                 onclick="removeFromCart('<%= item._id %>')"
                 class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
@@ -73,12 +140,43 @@
                 </svg>
                 Remove
               </button>
-              <div class="flex items-center gap-2 border border-gray-200 rounded-lg overflow-hidden">
-                <button onclick="updateQty('<%= item._id %>', -1)" class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm">−</button>
-                <span id="qty-<%= item._id %>" class="px-2 text-sm font-semibold min-w-[1.5rem] text-center"><%= item.quantity %></span>
-                <button onclick="updateQty('<%= item._id %>', 1)" class="px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm">+</button>
-              </div>
+
+              <!-- Quantity controls — only for available items -->
+              <% if (!oos) { %>
+                <div class="flex items-center gap-0 border border-gray-200 rounded-lg overflow-hidden">
+                  <button
+                    onclick="updateQty('<%= item._id %>', -1, <%= item.price %>, <%= maxQty %>)"
+                    class="qty-btn px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm"
+                    id="minus-<%= item._id %>"
+                    <%= item.quantity <= 1 ? 'disabled' : '' %>
+                  >−</button>
+
+                  <span id="qty-<%= item._id %>"
+                        class="px-3 text-sm font-semibold min-w-[2rem] text-center">
+                    <%= item.quantity %>
+                  </span>
+
+                  <button
+                    onclick="updateQty('<%= item._id %>', 1, <%= item.price %>, <%= maxQty %>)"
+                    class="qty-btn px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm"
+                    id="plus-<%= item._id %>"
+                    <%= item.quantity >= maxQty ? 'disabled' : '' %>
+                  >+</button>
+                </div>
+
+                <% if (item.quantity >= maxQty) { %>
+                  <p class="text-[10px] text-gray-400 text-right">
+                    <% if (item.stockAvailable <= 5) { %>
+                      Max stock reached
+                    <% } else { %>
+                      Max 5 per item
+                    <% } %>
+                  </p>
+                <% } %>
+              <% } %>
+
             </div>
+
           </div>
         <% }) %>
       </div>
@@ -101,9 +199,19 @@
               <span class="font-bold" id="totalDisplay">₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
             </div>
           </div>
-          <a href="/checkout" class="mt-6 block w-full bg-black text-white text-center py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
-            Proceed to checkout
-          </a>
+
+          <!-- Checkout button — disabled only if ALL items are unavailable (subtotal = 0) -->
+          <% if (hasUnavailable && subtotal === 0) { %>
+            <button disabled
+              class="mt-6 block w-full bg-gray-300 text-gray-500 text-center py-3 rounded-xl font-semibold cursor-not-allowed">
+              Remove unavailable items to checkout
+            </button>
+          <% } else { %>
+            <a href="/checkout"
+               class="mt-6 block w-full bg-black text-white text-center py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+              Proceed to Checkout
+            </a>
+          <% } %>
         </div>
       </div>
 
@@ -116,58 +224,77 @@
   <script>
     async function removeFromCart(itemId) {
       try {
-        const res = await fetch(`/cart/remove/${itemId}`, { method: 'DELETE' });
-        const data = await res.json();
+        const res = await fetch(`/cart/remove/${itemId}`, { method: 'DELETE' })
+        const data = await res.json()
         if (data.success) {
-          document.getElementById(`cart-item-${itemId}`)?.remove();
-          showToast('Item removed');
-          updateTotals(data.subtotal);
+          document.getElementById(`cart-item-${itemId}`)?.remove()
+          updateTotals(data.subtotal)
+          showToast('Item removed')
+          if (data.cartCount === 0) location.reload()
+        } else {
+          showToast(data.message || 'Error removing item')
         }
-      } catch { showToast('Error removing item'); }
+      } catch {
+        showToast('Error removing item')
+      }
     }
 
-    async function updateQty(itemId, delta) {
-  const el = document.getElementById(`qty-${itemId}`)
-  const currentQty = parseInt(el.textContent)
-  const newQty = Math.max(1, currentQty + delta)
+    async function updateQty(itemId, delta, unitPrice, maxQty) {
+      const el       = document.getElementById(`qty-${itemId}`)
+      const minusBtn = document.getElementById(`minus-${itemId}`)
+      const plusBtn  = document.getElementById(`plus-${itemId}`)
 
-  // Don't fire request if nothing changed
-  if (newQty === currentQty && delta < 0) return
+      const currentQty = parseInt(el.textContent)
+      const newQty = currentQty + delta
 
-  try {
-    const res = await fetch(`/cart/update/${itemId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ quantity: newQty })
-    })
-    const data = await res.json()
-    if (data.success) {
-      el.textContent = newQty
-      updateTotals(data.subtotal)
-    } else {
-      // ✅ show the server's error (e.g. "Only 5 unit(s) available.")
-      showToast(data.message || 'Could not update quantity')
+      if (newQty < 1 || newQty > maxQty) return
+
+      try {
+        const res = await fetch(`/cart/update/${itemId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ quantity: newQty })
+        })
+        const data = await res.json()
+
+        if (data.success) {
+          el.textContent = newQty
+
+          const itemTotal = document.getElementById(`item-total-${itemId}`)
+          if (itemTotal) {
+            itemTotal.textContent = '₹' + (unitPrice * newQty).toLocaleString('en-IN')
+          }
+
+          if (minusBtn) minusBtn.disabled = newQty <= 1
+          if (plusBtn)  plusBtn.disabled  = newQty >= maxQty
+
+          updateTotals(data.subtotal)
+        } else {
+          showToast(data.message || 'Could not update quantity')
+          if (data.message && data.message.includes('Only')) {
+            if (plusBtn) plusBtn.disabled = true
+          }
+        }
+      } catch {
+        showToast('Error updating quantity')
+      }
     }
-  } catch {
-    showToast('Error updating quantity')
-  }
-}
 
     function updateTotals(subtotal) {
-      if (subtotal === undefined) return;
-      const fmt = '₹' + subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 });
-      const s = document.getElementById('subtotalDisplay');
-      const t = document.getElementById('totalDisplay');
-      if (s) s.textContent = fmt;
-      if (t) t.textContent = fmt;
+      if (subtotal === undefined) return
+      const fmt = '₹' + subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })
+      const s = document.getElementById('subtotalDisplay')
+      const t = document.getElementById('totalDisplay')
+      if (s) s.textContent = fmt
+      if (t) t.textContent = fmt
     }
 
     function showToast(msg) {
-      const t = document.createElement('div');
-      t.className = 'fixed bottom-6 right-6 bg-black text-white px-5 py-3 rounded-xl text-sm shadow-lg z-50';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 2800);
+      const t = document.createElement('div')
+      t.className = 'fixed bottom-6 right-6 bg-black text-white px-5 py-3 rounded-xl text-sm shadow-lg z-50 transition-opacity'
+      t.textContent = msg
+      document.body.appendChild(t)
+      setTimeout(() => t.remove(), 2800)
     }
   </script>
 </body>
