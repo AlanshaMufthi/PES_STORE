@@ -43,15 +43,15 @@
         </button>
       </form>
 
-      <!-- CART -->
-      <a href="/cart" class="relative text-lg">
-        🛒
-        <% if (cartCount && cartCount > 0) { %>
-          <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1">
-            <%= cartCount %>
-          </span>
-        <% } %>
-      </a>
+     <!-- CART -->
+<a href="/cart" class="relative text-lg">
+  🛒
+  <span
+    id="headerCartCount"
+    class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1"
+    style="display: <%= (cartCount && cartCount > 0) ? 'inline' : 'none' %>;"
+  ><%= cartCount || 0 %></span>
+</a>
 
       <!-- ACCOUNT -->
       <a href="/profile">👤</a>

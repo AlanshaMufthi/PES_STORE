@@ -374,8 +374,6 @@
           Filters<% if(hasActiveFilters) { %> (<%= filterLabels.length %>)<% } %>
         </button>
 
-        <%# BUG FIX — Sort: removed onchange="this.form.submit()" which fired a native
-            full-page GET before JS could preventDefault. JS listener handles it instead. %>
         <form id="sortForm" method="GET" action="/shop">
           <input type="hidden" name="q"           value="<%= searchQuery %>"/>
           <input type="hidden" name="category"    value="<%= filter.category %>"/>
@@ -395,14 +393,6 @@
         </form>
       </div>
     </div>
-
-    <%# ══════════════════════════════════════════════════════════════════
-        PRODUCT GRID — id="shopGrid" wraps ONLY the cards grid.
-        Pagination lives OUTSIDE shopGrid so AJAX can swap them independently.
-        Previously pagination was nested inside shopGrid which caused two bugs:
-        1. AJAX shopGrid swap removed pagination from DOM since it was a child.
-        2. The separate pagination swap then found nothing to replace.
-    ════════════════════════════════════════════════════════════════════ %>
 
     <div id="shopGrid">
       <% if (products && products.length > 0) { %>
@@ -501,8 +491,6 @@
       <% } %>
     </div><%# ── END #shopGrid ── %>
 
-    <%# Pagination lives OUTSIDE #shopGrid so swapping shopGrid doesn't destroy it,
-        and so the AJAX pagination swap can find #shopPagination independently. %>
     <% if(totalPages > 1) { %>
       <div id="shopPagination" style="display:flex;justify-content:center;align-items:center;gap:6px;margin-top:46px;">
         <% if(currentPage > 1) { %>
@@ -674,6 +662,53 @@
     _tt = setTimeout(() => t.classList.remove('show'), 2800)
   }
 
+  /* ── Cart badge updater (shared helper) ── */
+  function updateCartBadge(count) {
+    // Targets element with id="headerCartCount" in your header.ejs
+    // Also handles common fallback selectors
+    const badge = document.getElementById('headerCartCount')
+      || document.querySelector('[data-cart-count]')
+      || document.querySelector('.cart-count-badge')
+    if (!badge) return
+    const n = parseInt(count) || 0
+    badge.textContent = n
+    // Show/hide the badge bubble based on count
+    badge.style.display = n > 0 ? '' : 'none'
+  }
+
+  /* ══════════════════════════════════════════════
+     WISHLIST STATE — client-side Set
+     Fixes: hearts resetting to empty after AJAX
+     grid swap when backend doesn't repopulate
+     wishlistIds on every AJAX request.
+  ══════════════════════════════════════════════ */
+
+  // Seed the Set from what the server rendered on first page load
+  const clientWishlistIds = new Set(
+    [...document.querySelectorAll('.wishlist-btn.wishlisted')]
+      .map(btn => btn.dataset.productId)
+      .filter(Boolean)
+  )
+
+  // Re-apply the client-side Set to all wishlist buttons currently in the DOM.
+  // Called every time the AJAX grid swap replaces #shopGrid with new server HTML.
+  function applyWishlistStates() {
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+      const pid = btn.dataset.productId
+      if (!pid) return
+      const svg = btn.querySelector('svg')
+      if (clientWishlistIds.has(pid)) {
+        btn.classList.add('wishlisted')
+        if (svg) { svg.setAttribute('fill', '#e11d48'); svg.setAttribute('stroke', '#e11d48') }
+        btn.title = 'Remove from wishlist'
+      } else {
+        btn.classList.remove('wishlisted')
+        if (svg) { svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', '#6b7280') }
+        btn.title = 'Add to wishlist'
+      }
+    })
+  }
+
   /* ══════════════════════════════════════════════
      AJAX SHOP
   ══════════════════════════════════════════════ */
@@ -684,15 +719,12 @@
     const current = new URLSearchParams(window.location.search)
     const formFields = [...new Set([...fd.keys()])]
 
-    // Keep params not owned by this form (exclude page always)
     for (const [k, v] of current.entries()) {
       if (!formFields.includes(k) && k !== 'page') params.append(k, v)
     }
-    // Apply this form's values
     for (const [k, v] of fd.entries()) {
       if (v !== '') params.append(k, v)
     }
-    // Apply any overrides (e.g. reset page)
     for (const [k, v] of Object.entries(extraParams)) {
       params.delete(k)
       if (v !== '') params.set(k, v)
@@ -721,17 +753,18 @@
       const oldGrid = document.getElementById('shopGrid')
       if (newGrid && oldGrid) oldGrid.replaceWith(newGrid)
 
-      // ── Pagination is now OUTSIDE #shopGrid so this swap works correctly.
-      // We also handle the case where new page has no pagination (only 1 page of results).
+      // ── FIX: Re-apply client wishlist state after grid swap so hearts
+      //    remain correct even if the backend AJAX response lacks wishlistIds ──
+      applyWishlistStates()
+
+      // Swap pagination
       const newPag = doc.getElementById('shopPagination')
       const oldPag = document.getElementById('shopPagination')
       if (newPag && oldPag) {
         oldPag.replaceWith(newPag)
       } else if (newPag && !oldPag) {
-        // Pagination newly appeared — insert it after shopGrid
         document.getElementById('shopGrid')?.insertAdjacentElement('afterend', newPag)
       } else if (oldPag && !newPag) {
-        // Results now fit on 1 page — remove pagination
         oldPag.remove()
       }
 
@@ -745,7 +778,7 @@
       const oldPills = document.getElementById('shopFilterPills')
       if (newPills && oldPills) oldPills.replaceWith(newPills)
 
-      // Sync sort select value to what we just requested
+      // Sync sort select value
       const currentSort = params.get('sort') || ''
       const sortSelect = document.querySelector('select[name="sort"]')
       if (sortSelect) sortSelect.value = currentSort
@@ -773,13 +806,12 @@
     submitShopForm(this, { page: '' })
   })
 
-  // ── Sort select: bind directly to <select> change, NOT form submit/change.
-  // This avoids any possibility of a native form.submit() racing with preventDefault.
+  // Sort select
   document.querySelector('#sortForm select[name="sort"]')?.addEventListener('change', function() {
     submitShopForm(this.closest('form'), { page: '' })
   })
 
-  // Header search form (submit event bubbles up)
+  // Header search form
   document.addEventListener('submit', function(e) {
     const form = e.target.closest('form[action="/shop"]')
     if (!form || ['desktopFilterForm','mobileFilterForm','sortForm'].includes(form.id)) return
@@ -787,7 +819,7 @@
     submitShopForm(form, { page: '' })
   })
 
-  // Pagination links — use event delegation so dynamically-swapped pagination works
+  // Pagination links — event delegation for dynamically-swapped pagination
   document.addEventListener('click', function(e) {
     const pageLink = e.target.closest('#shopPagination a.page-btn')
     if (!pageLink) return
@@ -825,12 +857,16 @@
       if (data.success) {
         const svg = btn.querySelector('svg')
         if (action === 'add') {
+          // ── FIX: Keep client Set in sync so state survives AJAX grid swaps ──
+          clientWishlistIds.add(productId)
           btn.classList.add('wishlisted')
           svg.setAttribute('fill', '#e11d48')
           svg.setAttribute('stroke', '#e11d48')
           btn.title = 'Remove from wishlist'
           showToast('❤️  Added to wishlist')
         } else {
+          // ── FIX: Remove from client Set ──
+          clientWishlistIds.delete(productId)
           btn.classList.remove('wishlisted')
           svg.setAttribute('fill', 'none')
           svg.setAttribute('stroke', '#6b7280')
@@ -848,5 +884,3 @@
   </script>
 </body>
 </html>
-
-

@@ -12,7 +12,10 @@ const loadWishlist = async(req,res)=>{
 
         const wishlistItems = wishlist ? wishlist.products.filter((i)=> i.productId) : []
 
-        return res.render('wishList',{page:'wishList',wishlistItems})
+        const cart = await Cart.findOne({userId : req.session.user}).lean()
+        const cartCount = cart ? cart.items.length : 0
+
+        return res.render('wishList',{page:'wishList',wishlistItems,cartCount})
     } catch (error) {
         console.log('loadWishlist Error : ',error)
         res.redirect('/pageNotFound')

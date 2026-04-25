@@ -12,7 +12,15 @@
 </head>
 <body class="bg-white text-gray-900">
 
-  <%- include('../parials/user/header.ejs', { page: 'wishlist',cartCount : 0,searchQuery:'' }) %>
+  <%#
+    FIX: cartCount was hardcoded as 0 — the header always showed an empty
+    cart badge on this page regardless of actual cart contents.
+    Now uses the cartCount variable passed from your backend controller.
+    Make sure your wishlist route does:
+      const cartCount = await Cart.countDocuments({ userId: req.user._id }) (or similar)
+      res.render('user/wishlist', { wishlistItems, cartCount })
+  %>
+  <%- include('../parials/user/header.ejs', { page: 'wishlist', cartCount: locals.cartCount || 0, searchQuery: '' }) %>
 
   <main class="max-w-5xl mx-auto px-6 py-12">
 
@@ -20,7 +28,7 @@
     <div class="flex products-center justify-between mb-8">
       <h1 class="text-lg font-bold">
         Wishlist
-        <span class="text-gray-400 font-normal">(<%= wishlistItems ? wishlistItems.length : 0 %>)</span>
+        <span id="wishlistCount" class="text-gray-400 font-normal">(<%= wishlistItems ? wishlistItems.length : 0 %>)</span>
       </h1>
       <% if (wishlistItems && wishlistItems.length > 0) { %>
         <button
@@ -133,6 +141,19 @@
   <%- include('../parials/user/footer.ejs') %>
 
   <script>
+    /* ── Cart badge updater ──
+       Targets id="headerCartCount" in your header.ejs.
+       Add that id to the <span> that shows the cart item count.        */
+    function updateCartBadge(count) {
+      const badge = document.getElementById('headerCartCount')
+        || document.querySelector('[data-cart-count]')
+        || document.querySelector('.cart-count-badge')
+      if (!badge) return
+      const n = parseInt(count) || 0
+      badge.textContent = n
+      badge.style.display = n > 0 ? '' : 'none'
+    }
+
     async function removeFromWishlist(itemId) {
       try {
         const res = await fetch(`/wishlist/remove/${itemId}`, { method: 'DELETE' });
@@ -140,7 +161,8 @@
         if (data.success) {
           document.getElementById(`wishlist-item-${itemId}`)?.remove();
           showToast('Removed from wishlist');
-          const countEl = document.querySelector('h1 span');
+          // ── FIX: update wishlist count in heading without reload ──
+          const countEl = document.getElementById('wishlistCount');
           if (countEl) {
             const current = parseInt(countEl.textContent.replace(/[()]/g, ''));
             countEl.textContent = `(${Math.max(0, current - 1)})`;
@@ -157,7 +179,21 @@
           body: JSON.stringify({ wishlistItemId, productId })
         });
         const data = await res.json();
-        showToast(data.success ? 'Added to cart!' : (data.message || 'Error'));
+        if (data.success) {
+          // FIX: remove the wishlist row from DOM immediately — no reload needed
+          document.getElementById(`wishlist-item-${wishlistItemId}`)?.remove();
+          // FIX: update the "(N)" count in the heading
+          const countEl = document.getElementById('wishlistCount');
+          if (countEl) {
+            const current = parseInt(countEl.textContent.replace(/[()]/g, '')) || 0;
+            countEl.textContent = `(${Math.max(0, current - 1)})`;
+          }
+          showToast('Added to cart!');
+          // FIX: update header cart badge — backend returns cartCount
+          if (data.cartCount !== undefined) updateCartBadge(data.cartCount);
+        } else {
+          showToast(data.message || 'Error');
+        }
       } catch { showToast('Something went wrong'); }
     }
 
@@ -167,6 +203,8 @@
         const data = await res.json();
         if (data.success) {
           showToast('All products moved to cart!');
+          // ── FIX: update cart badge before redirect ──
+          if (data.cartCount !== undefined) updateCartBadge(data.cartCount);
           setTimeout(() => window.location.href = '/cart', 1200);
         } else {
           showToast(data.message || 'Error moving products');

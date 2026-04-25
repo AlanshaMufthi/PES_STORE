@@ -222,6 +222,19 @@
   <%- include('../parials/user/footer.ejs') %>
 
   <script>
+    /* ── Cart badge updater ──
+       Targets id="headerCartCount" in your header.ejs.
+       Add that id to the <span> that shows the cart item count.        */
+    function updateCartBadge(count) {
+      const badge = document.getElementById('headerCartCount')
+        || document.querySelector('[data-cart-count]')
+        || document.querySelector('.cart-count-badge')
+      if (!badge) return
+      const n = parseInt(count) || 0
+      badge.textContent = n
+      badge.style.display = n > 0 ? '' : 'none'
+    }
+
     async function removeFromCart(itemId) {
       try {
         const res = await fetch(`/cart/remove/${itemId}`, { method: 'DELETE' })
@@ -229,6 +242,8 @@
         if (data.success) {
           document.getElementById(`cart-item-${itemId}`)?.remove()
           updateTotals(data.subtotal)
+          // ── FIX: update header cart badge immediately, no reload needed ──
+          if (data.cartCount !== undefined) updateCartBadge(data.cartCount)
           showToast('Item removed')
           if (data.cartCount === 0) location.reload()
         } else {

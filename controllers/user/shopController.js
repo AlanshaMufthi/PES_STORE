@@ -4,7 +4,7 @@ import Cart from '../../models/cartModel.js'
 import Wishlist from '../../models/wishlistModel.js'
 
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 15;
 
 const buildFilter = (query)=>{
 
@@ -54,11 +54,12 @@ const buildSort = (sortParam)=>{
 const loadShop = async(req,res)=>{
 
     try {
+        const userId = req.session?.user
         const page = Math.max(1, parseInt(req.query.page) || 1 )
         const filter = buildFilter(req.query)
         const sort = buildSort(req.query.sort)
 
-        const [products, total, categories] = await Promise.all([
+        const [products, total, categories, cart, wishlist] = await Promise.all([
             Product.find(filter)
             .populate('category','name')
             .sort(sort)
@@ -66,11 +67,16 @@ const loadShop = async(req,res)=>{
             .limit( PAGE_SIZE )
             .lean(),
             Product.countDocuments(filter),
-            Category.find({isBlocked : false}).lean()
+            Category.find({isBlocked : false}).lean(),
+            userId ? Cart.findOne({userId}).lean() : null,
+            userId ? Wishlist.findOne({userId}).lean() : null
+
         ])
 
         const totalPages = Math.ceil(total/PAGE_SIZE)
-        const cartCount = req.session?.cart ? req.session.cart.length : 0
+        
+        const cartCount = cart ? cart.items.length : 0
+        const wishlistIds = wishlist ? wishlist.products.map(p=> p.productId.toString()) : []
 
         return res.render('shop', {
             page: 'shop',
@@ -79,6 +85,7 @@ const loadShop = async(req,res)=>{
             searchQuery : req.query.q || '',
             sort : req.query.sort || '',
             cartCount,
+            wishlistIds,
             filter : {
                 category : req.query.category || '',
                 brand : req.query.brand || [],
