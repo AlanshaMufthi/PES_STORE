@@ -486,11 +486,15 @@ async function confirmToggle() {
     const res = await fetch(`/admin/customers/${pendingId}/toggle-status`, {
       method: 'PATCH'
     });
-    const data = await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    const data = contentType.includes('application/json')
+      ? await res.json()
+      : { success: false, message: 'Unexpected response from server' };
+
     if (data.success) {
       pendingCheckbox.checked = !pendingCheckbox.checked; // apply the toggle
     } else {
-      alert('Failed to update status');
+      alert(data.message || 'Failed to update status');
     }
   } catch (error) {
     alert('Something went wrong');

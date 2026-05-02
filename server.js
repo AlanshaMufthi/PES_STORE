@@ -17,15 +17,23 @@ import attachCartCount from './middlewares/cartCount.js';
 app.use(session({
     secret:process.env.SESSION_SECRET,
     resave:false,
-    saveUninitialized:true,
+    saveUninitialized:false,
     cookie:{
-        secure:false,
+        secure:'auto',
+        sameSite:'lax',
         httpOnly:true,
         maxAge:72*60*60*1000
     }
 }))
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
+app.use(nochache())
+app.use((req,res,next)=>{
+    res.setHeader('Cache-Control','no-store, no-cache, must-revalidate, private')
+    res.setHeader('Pragma','no-cache')
+    res.setHeader('Expires','0')
+    next()
+})
 app.set('view engine','ejs')
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -38,7 +46,6 @@ app.use(passport.session())
 app.use('/',userRoutes);
 app.use('/admin',adminRoutes);
 app.use(attachCartCount)
-app.use(nochache())
 
 
 app.listen(process.env.PORT,()=>{

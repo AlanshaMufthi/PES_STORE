@@ -3,15 +3,18 @@ import nodemailer from 'nodemailer'
 import bcrypt from 'bcrypt'
 import getUserId from '../../helpers/getUserId.js';
 import Product from '../../models/productModel.js';
+import Category from '../../models/categoryModel.js';
 
 
 const loadLanding = async(req,res)=>{
   
     try{
         const user = getUserId(req)
+        const activeCategories = await Category.find({isBlocked:false}).select('_id').lean()
+        const activeCategoryIds = activeCategories.map((c)=> c._id)
 
-        const latestBoots = await Product.find({ collection: 'Latest', isBlocked: false }).limit(4).lean()
-        const signatureBoots = await Product.find({ collection: 'Signature', isBlocked: false }).limit(3).lean()
+        const latestBoots = await Product.find({ collection: 'Latest', isBlocked: false, category: { $in: activeCategoryIds } }).limit(4).lean()
+        const signatureBoots = await Product.find({ collection: 'Signature', isBlocked: false, category: { $in: activeCategoryIds } }).limit(3).lean()
 
         if(user){
             return res.redirect("/home")
@@ -51,10 +54,8 @@ const pageNotFound = async(req,res)=>{
 const loadSignup = async (req, res) => {
     try {
         const user = getUserId(req)
-        if (user) {
-                
-            
-            return res.render('signup', { message: 'You are already logged in.' });
+        if (user) {   
+            return res.redirect('/home');
         }
         return res.render('signup');
     } catch (error) {
@@ -199,8 +200,14 @@ const verifyOtp = async(req,res)=>{
                 profileImg:'img/Solidão____.jpg'
             })
             await saveUserData.save();
-            req.session.user = saveUserData._id;
-            res.json({success:true,redirectUrl:'/home'})
+            req.session.user = saveUserData._id.toString();
+            return req.session.save((sessionError)=>{
+                if(sessionError){
+                    console.log('Session save error after signup verify',sessionError)
+                    return res.status(500).json({success:false,message:'Session error. Please login again'})
+                }
+                return res.json({success:true,redirectUrl:'/home'})
+            })
         }else{
             res.status(400).json({success:false,message:'Invalid OTP,Please try again'})
         }
@@ -247,10 +254,11 @@ const resendOtp = async(req,res)=>{
 const loadLogin = async(req,res)=>{
     try {
         
-         if(!req.session.user){
+         const userId = getUserId(req)
+         if(!userId){
             return res.render('login')
          }else{
-            res.redirect('/')
+            return res.redirect('/home')
          }
 
     } catch (error) {
@@ -283,8 +291,14 @@ const login = async(req,res)=>{
         return res.render('login',{message:'Incorrect Password'})
        }
 
-       req.session.user = findUser._id;
-       res.redirect('/home')
+       req.session.user = findUser._id.toString();
+       return req.session.save((sessionError)=>{
+        if(sessionError){
+            console.log('Session save error after login',sessionError)
+            return res.render('login',{message:'Session error. Please try again'})
+        }
+        return res.redirect('/home')
+       })
 
     } catch (error) {
        
@@ -301,13 +315,24 @@ const loadHome = async(req,res)=>{
         
         if(userId){
           const userData = await User.findOne({_id:userId})
+          if(!userData || userData.isBlocked){
+            delete req.session.user
+            if(req.session.passport){
+                delete req.session.passport
+            }
+            return res.redirect('/login')
+          }
           const cartCount = req.session.cart ? req.session.cart.length : 0
+          const activeCategories = await Category.find({isBlocked:false}).select('_id').lean()
+          const activeCategoryIds = activeCategories.map((c)=> c._id)
           
-          const latestBoots = await Product.find({ collection: 'Latest', isBlocked: false }).limit(4).lean()
-          const signatureBoots = await Product.find({ collection: 'Signature', isBlocked: false }).limit(3).lean()
+          const latestBoots = await Product.find({ collection: 'Latest', isBlocked: false, category: { $in: activeCategoryIds } }).limit(4).lean()
+          const signatureBoots = await Product.find({ collection: 'Signature', isBlocked: false, category: { $in: activeCategoryIds } }).limit(3).lean()
 
-         res.render('home',{user:userData, cartCount:cartCount, latestBoots, signatureBoots})
+         return res.render('home',{user:userData, cartCount:cartCount, latestBoots, signatureBoots})
         }
+
+        return res.redirect('/login')
     }catch(error){
       
         console.log('Home page not loading',error)
@@ -326,7 +351,7 @@ const logout = async(req,res)=>{
             console.log('Session destuction error',error.message)
             return res.redirect('/pageNotFound')
         }
-
+        res.clearCookie('connect.sid')
         return res.redirect('/')
        })
       

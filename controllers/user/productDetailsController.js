@@ -7,10 +7,10 @@ import Review from "../../models/reviewModel.js";
 const loadProductDetails = async(req,res)=>{
     try {
         const product = await Product.findById(req.params.id)
-        .populate('category','name')
+        .populate({ path:'category', select:'name isBlocked', match:{ isBlocked:false } })
         .lean()
 
-        if(!product || product.isBlocked){
+        if(!product || product.isBlocked || !product.category){
             req.flash?.('error','This product is no longer available')
             return res.redirect('/shop')
         }

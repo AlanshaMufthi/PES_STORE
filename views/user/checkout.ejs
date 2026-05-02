@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout – PES Store</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    * { font-family: 'Barlow', sans-serif; }
+    .heading-font { font-family: 'Barlow Condensed', sans-serif; }
+
+    /* Custom radio */
+    input[type="radio"] {
+      accent-color: #111;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    /* Address card selected state */
+    .address-card.selected {
+      border-color: #111;
+      background: #fafafa;
+    }
+
+    /* Smooth hover for buttons */
+    .btn-primary {
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-primary:hover {
+      background: #333;
+      transform: translateY(-1px);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    /* Divider line */
+    .section-divider {
+      border-top: 1.5px solid #e5e7eb;
+    }
+
+    /* Sidebar sticky */
+    .sidebar-sticky {
+      position: sticky;
+      top: 2rem;
+    }
+
+    /* Coupon input focus */
+    .coupon-input:focus {
+      outline: 2px solid #111;
+      outline-offset: 0;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-900 min-h-screen">
+
+  <!-- ═══════════════════════════════════════ NAVBAR ═══════════════════════════════════════ -->
+  <header class="border-b border-gray-200 px-6 md:px-12 py-4 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2">
+      <div class="w-14 h-14 flex items-center justify-center border-2 border-black rounded-sm">
+        <!-- Crown / Shield SVG matching PES logo style -->
+        <svg viewBox="0 0 48 52" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-10 h-10">
+          <path d="M24 2L44 10V28C44 39 34 47 24 50C14 47 4 39 4 28V10L24 2Z" fill="black"/>
+          <path d="M14 18L18 14L22 18L24 14L26 18L30 14L34 18" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M12 22H36" stroke="white" stroke-width="1.5"/>
+          <text x="15" y="36" fill="white" font-size="10" font-weight="800" font-family="Barlow Condensed, sans-serif" letter-spacing="1">PES</text>
+        </svg>
+      </div>
+    </a>
+
+    <!-- Search -->
+    <div class="flex-1 max-w-sm mx-8 hidden md:block">
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="search product..."
+          class="w-full border border-gray-300 rounded-full px-4 py-2 text-sm pr-10 focus:outline-none focus:border-gray-600"
+        />
+        <button class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- User Icon -->
+    <a href="/account" class="text-gray-700 hover:text-black transition-colors">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+          d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
+      </svg>
+    </a>
+  </header>
+
+  <!-- ═══════════════════════════════════════ MAIN ═══════════════════════════════════════ -->
+  <main class="max-w-6xl mx-auto px-4 md:px-8 py-8">
+
+    <!-- Page Title -->
+    <h1 class="heading-font text-3xl font-extrabold tracking-wide uppercase mb-6">Checkout</h1>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+
+      <!-- ─────────────── LEFT COLUMN ─────────────── -->
+      <div class="flex-1 min-w-0">
+
+        <!-- Cart Items -->
+        <div class="border border-gray-200 rounded-sm divide-y divide-gray-200 mb-8">
+
+          <% if (typeof cartItems !== 'undefined' && cartItems.length > 0) { %>
+            <% cartItems.forEach(function(item) { %>
+            <div class="flex gap-4 p-4">
+              <!-- Product Image -->
+              <div class="w-36 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-sm">
+                <img
+                  src="<%= item.image %>"
+                  alt="<%= item.name %>"
+                  class="w-full h-full object-contain"
+                />
+              </div>
+
+              <!-- Details -->
+              <div class="flex-1 flex flex-col justify-between py-1">
+                <p class="font-semibold text-sm leading-snug"><%= item.name %></p>
+
+                <div class="flex items-center gap-6 mt-2">
+                  <!-- Size Badge -->
+                  <div class="border border-gray-400 rounded px-3 py-1 text-sm font-bold w-12 text-center">
+                    <%= item.size %>
+                  </div>
+                  <!-- Qty -->
+                  <span class="text-sm text-gray-600">qty:<%= item.quantity %></span>
+                </div>
+
+                <!-- Price -->
+                <p class="font-bold text-base mt-2">MRP : ₹<%= item.price.toLocaleString('en-IN') %></p>
+              </div>
+            </div>
+            <% }) %>
+
+          <% } else { %>
+            <!-- ── Fallback static items matching Figma ── -->
+            <!-- Item 1 -->
+            <div class="flex gap-4 p-4">
+              <div class="w-36 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-sm">
+                <img src="/images/shoe1.png" alt="Puma Football Shoe" class="w-full h-full object-contain"/>
+              </div>
+              <div class="flex-1 flex flex-col justify-between py-1">
+                <p class="font-semibold text-sm leading-snug">Puma Unisex-Adult Ultra 5 Ultimate Fg Football Shoe</p>
+                <div class="flex items-center gap-6 mt-2">
+                  <div class="border border-gray-400 rounded px-3 py-1 text-sm font-bold w-12 text-center">9</div>
+                  <span class="text-sm text-gray-600">qty:1</span>
+                </div>
+                <p class="font-bold text-base mt-2">MRP : ₹7,999</p>
+              </div>
+            </div>
+            <!-- Item 2 -->
+            <div class="flex gap-4 p-4">
+              <div class="w-36 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-sm">
+                <img src="/images/shoe2.png" alt="Puma Football Shoe" class="w-full h-full object-contain"/>
+              </div>
+              <div class="flex-1 flex flex-col justify-between py-1">
+                <p class="font-semibold text-sm leading-snug">Puma Unisex-Adult Ultra 5 Ultimate Fg Football Shoe</p>
+                <div class="flex items-center gap-6 mt-2">
+                  <div class="border border-gray-400 rounded px-3 py-1 text-sm font-bold w-12 text-center">8</div>
+                  <span class="text-sm text-gray-600">qty:1</span>
+                </div>
+                <p class="font-bold text-base mt-2">MRP : ₹7,699</p>
+              </div>
+            </div>
+          <% } %>
+
+        </div><!-- /Cart Items -->
+
+
+        <!-- ─── Billing Details ─── -->
+        <section class="mb-8">
+          <h2 class="text-xl font-bold mb-5">Billing Details</h2>
+
+          <!-- Delivery Address -->
+          <div class="mb-6">
+            <h3 class="font-semibold text-sm uppercase tracking-wider text-gray-600 mb-3">Delivery Address</h3>
+
+            <div class="space-y-3">
+              <% if (typeof addresses !== 'undefined' && addresses.length > 0) { %>
+                <% addresses.forEach(function(addr, i) { %>
+                <label class="address-card <%= i === 0 ? 'selected' : '' %> flex items-start gap-3 border border-gray-300 rounded-sm p-4 cursor-pointer hover:border-gray-600 transition-colors">
+                  <input
+                    type="radio"
+                    name="delivery_address"
+                    value="<%= addr._id %>"
+                    class="mt-0.5 flex-shrink-0"
+                    <%= i === 0 ? 'checked' : '' %>
+                  />
+                  <div class="text-sm leading-relaxed">
+                    <p>Name:<%= addr.name %></p>
+                    <p>Place: <%= addr.place %></p>
+                    <p>pincode:<%= addr.pincode %></p>
+                    <p>Contact : +91 <%= addr.contact %></p>
+                  </div>
+                </label>
+                <% }) %>
+
+              <% } else { %>
+                <!-- Static fallback addresses matching Figma -->
+                <label class="address-card selected flex items-start gap-3 border border-gray-300 rounded-sm p-4 cursor-pointer hover:border-gray-600 transition-colors">
+                  <input type="radio" name="delivery_address" value="addr1" class="mt-0.5 flex-shrink-0" checked />
+                  <div class="text-sm leading-relaxed">
+                    <p>Name:ALNSHA</p>
+                    <p>Place: Kerala</p>
+                    <p>pincode:686672</p>
+                    <p>Contact : +91 1234567890</p>
+                  </div>
+                </label>
+
+                <label class="address-card flex items-start gap-3 border border-gray-300 rounded-sm p-4 cursor-pointer hover:border-gray-600 transition-colors">
+                  <input type="radio" name="delivery_address" value="addr2" class="mt-0.5 flex-shrink-0" />
+                  <div class="text-sm leading-relaxed">
+                    <p>Name:JOHN</p>
+                    <p>Place, Kerala</p>
+                    <p>pincode:689743</p>
+                    <p>Contact : +91 0987654321</p>
+                  </div>
+                </label>
+              <% } %>
+            </div>
+
+            <!-- Add New Address -->
+            <div class="mt-4 text-center">
+              <a href="/account/address/add"
+                class="inline-block bg-black text-white text-sm font-semibold px-10 py-3 rounded-sm btn-primary">
+                Add New Address
+              </a>
+            </div>
+          </div>
+
+          <!-- Payment Methods -->
+          <div>
+            <h3 class="font-semibold mb-1">Payment Methods</h3>
+            <p class="text-sm text-gray-500 mb-4">Select any payment methods</p>
+
+            <div class="space-y-4">
+              <!-- Debit / Credit Card -->
+              <label class="flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <input type="radio" name="payment" value="card" class="flex-shrink-0" />
+                  <span class="text-sm font-medium">Debit Card / Credit Card</span>
+                </div>
+                <!-- Card logos -->
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-orange-500 border border-orange-300 px-1 rounded">kbc</span>
+                  <span class="text-xs font-bold text-blue-700 border border-blue-300 px-1 rounded">VISA</span>
+                  <span class="w-8 h-5 bg-gradient-to-r from-red-500 to-yellow-400 rounded-sm"></span>
+                  <span class="text-xs font-bold text-red-700 border border-red-200 px-1 rounded">রুপে</span>
+                </div>
+              </label>
+
+              <!-- Bank -->
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="payment" value="bank" class="flex-shrink-0" />
+                <span class="text-sm font-medium">Bank</span>
+              </label>
+
+              <!-- UPI -->
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="payment" value="upi" class="flex-shrink-0" />
+                <span class="text-sm font-medium">UPI Method</span>
+              </label>
+
+              <!-- Cash on Delivery -->
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="radio" name="payment" value="cod" class="flex-shrink-0" />
+                <span class="text-sm font-medium">Cash on delivery</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Place Order -->
+        <div>
+          <form action="/checkout/place-order" method="POST" id="checkoutForm">
+            <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
+            <button
+              type="submit"
+              class="bg-black text-white font-bold text-base px-16 py-4 rounded-sm btn-primary w-48">
+              Place Order
+            </button>
+          </form>
+        </div>
+
+      </div><!-- /Left Column -->
+
+
+      <!-- ─────────────── RIGHT SIDEBAR ─────────────── -->
+      <div class="w-full lg:w-80 flex-shrink-0">
+        <div class="sidebar-sticky space-y-4">
+
+          <!-- Checkout Details Box -->
+          <div class="border border-gray-200 rounded-sm overflow-hidden">
+            <div class="bg-black text-white text-center font-bold tracking-wide py-4 text-base">
+              Checkout Details
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">
+                  <% if (typeof cartItems !== 'undefined') { %>
+                    <%= cartItems.length %> ITEMS
+                  <% } else { %>
+                    2 ITEMS
+                  <% } %>
+                </span>
+                <span class="font-semibold">
+                  ₹<%= typeof subtotal !== 'undefined' ? subtotal.toLocaleString('en-IN') : '19,698' %>/-
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Delivery Charges</span>
+                <span class="font-semibold text-green-600">Free</span>
+              </div>
+              <% if (typeof discount !== 'undefined' && discount > 0) { %>
+              <div class="flex justify-between">
+                <span class="text-blue-500">Discount <%= discountPercent %>%</span>
+                <span class="font-semibold text-blue-500">- ₹<%= discount.toLocaleString('en-IN') %></span>
+              </div>
+              <% } else { %>
+              <div class="flex justify-between">
+                <span class="text-blue-500">Discount 20%</span>
+                <span class="font-semibold text-blue-500">- ₹4,000</span>
+              </div>
+              <% } %>
+              <div class="section-divider pt-3 flex justify-between">
+                <span class="font-extrabold text-base uppercase tracking-wide">TOTAL</span>
+                <span class="font-extrabold text-base">
+                  ₹<%= typeof total !== 'undefined' ? total.toLocaleString('en-IN') : '15,698' %>/-
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Free Delivery & Returns -->
+          <div class="border border-gray-200 rounded-sm divide-y divide-gray-200">
+            <div class="flex items-start gap-3 p-4">
+              <div class="flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                    d="M9 17a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm10 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Free Delivery</p>
+                <p class="text-xs text-gray-500 mt-0.5">Enter your postal code for Delivery Availability</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3 p-4">
+              <div class="flex-shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-sm">Return Delivery</p>
+                <p class="text-xs text-gray-500 mt-0.5">Free 30 Days Delivery Returns. <a href="/return-policy" class="underline">Details</a></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Coupon Code -->
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="couponInput"
+              placeholder="Coupon Code"
+              class="coupon-input flex-1 border border-gray-300 px-4 py-3 text-sm rounded-sm"
+            />
+            <button
+              onclick="applyCoupon()"
+              class="bg-black text-white font-semibold text-sm px-5 py-3 rounded-sm btn-primary whitespace-nowrap">
+              Apply Coupon
+            </button>
+          </div>
+          <div id="couponMsg" class="text-xs hidden"></div>
+
+        </div>
+      </div><!-- /Sidebar -->
+
+    </div>
+  </main>
+
+
+  <!-- ═══════════════════════════════════════ FOOTER ═══════════════════════════════════════ -->
+  <footer class="bg-white border-t border-gray-200 mt-16 pt-10 pb-8 px-6 md:px-12">
+    <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+
+      <!-- Exclusive / Subscribe -->
+      <div>
+        <h4 class="heading-font font-extrabold text-lg uppercase tracking-wide mb-1">Exclusive</h4>
+        <p class="font-semibold mb-1">Subscribe</p>
+        <p class="text-gray-500 text-xs mb-3">Get 10% off your first order</p>
+        <div class="flex border border-gray-400 rounded-sm overflow-hidden">
+          <input
+            type="email"
+            placeholder="Enter your email"
+            class="flex-1 px-3 py-2 text-xs focus:outline-none"
+          />
+          <button class="px-3 bg-white border-l border-gray-400 hover:bg-gray-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div>
+        <h4 class="font-bold uppercase tracking-wide mb-3">Support</h4>
+        <p class="text-gray-600 leading-relaxed text-xs">111 Bijoy sarani,<br/>Dhaka, DH 1515,<br/>Bangladesh.</p>
+        <p class="text-gray-600 mt-2 text-xs">exclusive@gmail.com</p>
+        <p class="text-gray-600 mt-1 text-xs">+88015-88888-9999</p>
+      </div>
+
+      <!-- Account -->
+      <div>
+        <h4 class="font-bold uppercase tracking-wide mb-3">Account</h4>
+        <ul class="space-y-1 text-gray-600 text-xs">
+          <li><a href="/account" class="hover:text-black transition-colors">My Account</a></li>
+          <li><a href="/login" class="hover:text-black transition-colors">Login / Register</a></li>
+          <li><a href="/cart" class="hover:text-black transition-colors">Cart</a></li>
+          <li><a href="/wishlist" class="hover:text-black transition-colors">Wishlist</a></li>
+          <li><a href="/logout" class="hover:text-black transition-colors">Logout</a></li>
+        </ul>
+      </div>
+
+      <!-- Quick Link -->
+      <div>
+        <h4 class="font-bold uppercase tracking-wide mb-3">Quick Link</h4>
+        <ul class="space-y-1 text-gray-600 text-xs">
+          <li><a href="/privacy-policy" class="hover:text-black transition-colors">Privacy Policy</a></li>
+          <li><a href="/terms" class="hover:text-black transition-colors">Terms Of Use</a></li>
+          <li><a href="/faq" class="hover:text-black transition-colors">FAQ</a></li>
+          <li><a href="/contact" class="hover:text-black transition-colors">Contact</a></li>
+        </ul>
+      </div>
+
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════ SCRIPTS ═══════════════════════════════════════ -->
+  <script>
+    // ── Address card selection highlight ──
+    document.querySelectorAll('input[name="delivery_address"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('.address-card').forEach(card => card.classList.remove('selected'));
+        radio.closest('.address-card').classList.add('selected');
+      });
+    });
+
+    // ── Sync payment selection to hidden form field ──
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        let hidden = document.getElementById('paymentHidden');
+        if (!hidden) {
+          hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.id = 'paymentHidden';
+          hidden.name = 'paymentMethod';
+          document.getElementById('checkoutForm').appendChild(hidden);
+        }
+        hidden.value = radio.value;
+      });
+    });
+
+    // ── Sync address selection to form ──
+    document.querySelectorAll('input[name="delivery_address"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        let hidden = document.getElementById('addressHidden');
+        if (!hidden) {
+          hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.id = 'addressHidden';
+          hidden.name = 'addressId';
+          document.getElementById('checkoutForm').appendChild(hidden);
+        }
+        hidden.value = radio.value;
+      });
+    });
+
+    // ── Coupon apply (AJAX) ──
+    async function applyCoupon() {
+      const code = document.getElementById('couponInput').value.trim();
+      const msgEl = document.getElementById('couponMsg');
+      if (!code) {
+        msgEl.textContent = 'Please enter a coupon code.';
+        msgEl.className = 'text-xs text-red-500';
+        msgEl.classList.remove('hidden');
+        return;
+      }
+      try {
+        const res = await fetch('/checkout/apply-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coupon: code })
+        });
+        const data = await res.json();
+        if (data.success) {
+          msgEl.textContent = `✓ Coupon applied! You saved ₹${data.discount}`;
+          msgEl.className = 'text-xs text-green-600';
+        } else {
+          msgEl.textContent = data.message || 'Invalid coupon code.';
+          msgEl.className = 'text-xs text-red-500';
+        }
+        msgEl.classList.remove('hidden');
+      } catch {
+        msgEl.textContent = 'Could not apply coupon. Please try again.';
+        msgEl.className = 'text-xs text-red-500';
+        msgEl.classList.remove('hidden');
+      }
+    }
+
+    // ── Place Order validation ──
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+      const address = document.querySelector('input[name="delivery_address"]:checked');
+      const payment = document.querySelector('input[name="payment"]:checked');
+      if (!address) {
+        e.preventDefault();
+        alert('Please select a delivery address.');
+        return;
+      }
+      if (!payment) {
+        e.preventDefault();
+        alert('Please select a payment method.');
+        return;
+      }
+    });
+  </script>
+
+</body>
+</html>

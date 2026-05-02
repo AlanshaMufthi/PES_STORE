@@ -13,60 +13,66 @@ import {loadShop, loadShopProducts} from '../controllers/user/shopController.js'
 import { loadCart, addToCart, editCartItem, removeCartItem, addFromWishlist } from '../controllers/user/cartController.js';
 import { toggleWishlist, loadWishlist, addToWishlist, removeFromWishlist, moveAllToCart } from '../controllers/user/wishlistController.js';
 import { checkReviewEligibility, submitReview, getProductReviews, uploadReviewImgs } from '../controllers/user/reviewController.js';
-import {userAuth} from '../middlewares/auth.js'
+import {userAuth,userGuest} from '../middlewares/auth.js'
+import { getCheckout, placeOrder, getOrderSuccess } from '../controllers/user/checkoutController.js';
 
 
 
 router.use(checkBlocked)
 router.get('/pageNotFound', pageNotFound)
 router.get('/', loadLanding)
-router.get('/signup', loadSignup)
-router.post('/signup', signup)
-router.get('/signupOtp', loadSignupOtp)
+router.get('/signup', userGuest, loadSignup)
+router.post('/signup', userGuest, signup)
+router.get('/signupOtp', userGuest, loadSignupOtp)
 router.post('/verifyOtp', verifyOtp)
 router.post("/resendOtp", resendOtp)
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email']}));
 router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/signup' }), (req, res) => {
-    req.session.user = req.user._id;
-    res.redirect('/')
+    req.session.user = req.user._id.toString();
+    req.session.save((sessionError)=>{
+        if(sessionError){
+            return res.redirect('/login')
+        }
+        return res.redirect('/home')
+    })
 })
-router.get('/login', loadLogin)
-router.post('/login', login)
+router.get('/login', userGuest, loadLogin)
+router.post('/login', userGuest, login)
 
 router.get('/logout', logout)
-router.get('/forgotPassword', loadForgotPassword)
-router.post('/forgotPassword', ForgotPassword);
-router.get('/forgotOtp', loadForgotOtp);
-router.post('/forgotOtp', ForgotOtp);
-router.post('/resendForgotOtp', resendForgotOtp);
-router.get('/resetPassword', loadResetPassword);
-router.post('/resetPassword', ResetPassword);
-router.get('/home', loadHome)
+router.get('/forgotPassword', userGuest, loadForgotPassword)
+router.post('/forgotPassword', userGuest, ForgotPassword);
+router.get('/forgotOtp', userGuest, loadForgotOtp);
+router.post('/forgotOtp', userGuest, ForgotOtp);
+router.post('/resendForgotOtp', userGuest, resendForgotOtp);
+router.get('/resetPassword', userGuest, loadResetPassword);
+router.post('/resetPassword', userGuest, ResetPassword);
+router.get('/home', userAuth, loadHome)
 //profile
-router.get('/profile',userProfile);
-router.get('/editProfile',loadEditProfile)
-router.post('/editProfile',upload.single('profileImage'),editProfile)
-router.patch('/changeEmail',changeEmail)
-router.patch('/verifyChangeEmail',verifyChangeEmail)
+router.get('/profile',userAuth,userProfile);
+router.get('/editProfile',userAuth,loadEditProfile)
+router.post('/editProfile',userAuth,upload.single('profileImage'),editProfile)
+router.patch('/changeEmail',userAuth,changeEmail)
+router.patch('/verifyChangeEmail',userAuth,verifyChangeEmail)
 //address
-router.get('/addressBook',loadAddressBook);
-router.get('/addAddress',loadAddAddress)
-router.post('/addAddress',addAddress)
-router.get('/editAddress/:id',loadEditAddress)
-router.post('/editAddress/:id',editAddress)
-router.delete('/deleteAddress/:id',deleteAddress)
-router.patch('/setPrimaryAddress/:id',setPrimaryAddress)
+router.get('/addressBook',userAuth,loadAddressBook);
+router.get('/addAddress',userAuth,loadAddAddress)
+router.post('/addAddress',userAuth,addAddress)
+router.get('/editAddress/:id',userAuth,loadEditAddress)
+router.post('/editAddress/:id',userAuth,editAddress)
+router.delete('/deleteAddress/:id',userAuth,deleteAddress)
+router.patch('/setPrimaryAddress/:id',userAuth,setPrimaryAddress)
 //shop
 router.get('/shop',loadShop)
 router.get('/shop/products', loadShopProducts)
 //productDetail
 router.get('/product/:id',loadProductDetails)
 //cart
-router.get('/cart',loadCart)
-router.post('/cart/add', addToCart)
-router.patch('/cart/update/:itemId', editCartItem)
-router.delete('/cart/remove/:itemId', removeCartItem)
-router.post('/cart/add-from-wishlist', addFromWishlist)
+router.get('/cart',userAuth,loadCart)
+router.post('/cart/add', userAuth, addToCart)
+router.patch('/cart/update/:itemId', userAuth, editCartItem)
+router.delete('/cart/remove/:itemId', userAuth, removeCartItem)
+router.post('/cart/add-from-wishlist', userAuth, addFromWishlist)
 //wishlist
 router.post('/wishlist/toggle', toggleWishlist)
 router.get('/wishlist',userAuth, loadWishlist)
@@ -77,6 +83,11 @@ router.post('/wishlist/move-all-to-cart',userAuth, moveAllToCart)
 router.get('/products/:id/review/check', userAuth, checkReviewEligibility);
 router.post('/product/:id/review', userAuth, uploadReviewImgs, submitReview)
 router.get('/product/:id/reviews', getProductReviews)
+// checkout 
+router.get('/checkout', userAuth,getCheckout)
+router.post('/checkout/place-order', userAuth,placeOrder)
+// order success
+router.get('/orders/success/:orderId', userAuth,getOrderSuccess)
 
 
 

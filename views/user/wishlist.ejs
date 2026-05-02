@@ -59,7 +59,10 @@
       <% wishlistItems.forEach(item => { %>
         <%
           const isBlocked = item.productId.isBlocked
-          const inStock = !isBlocked && item.productId.variants?.some(v => v.status === 'onStock' && v.stock > 0)
+          const inStock = !isBlocked && item.productId.variants?.some(v => {
+            const status = (v.status || '').toString().toLowerCase()
+            return status !== 'archived' && status !== 'outofstock' && v.stock > 0
+          })
           const wv = item.productId.variants?.[0]
           const price = wv ? (wv.offerActive ? wv.offerPrice : wv.productPrice) : 0
           const origPrice = wv?.productPrice || 0
@@ -116,6 +119,23 @@
               Remove
             </button>
             <% if(!isBlocked) { %>
+              <select
+                id="variantSelect-<%= item._id %>"
+                class="border border-gray-300 text-xs rounded-lg px-2 py-1.5 max-w-[180px]">
+                <% item.productId.variants?.forEach(v => { %>
+                  <%
+                    const status = (v.status || '').toString().toLowerCase()
+                    const availableVariant = status !== 'archived' && status !== 'outofstock' && v.stock > 0
+                  %>
+                  <% if (availableVariant && v.size?.length) { %>
+                    <% v.size.forEach(s => { %>
+                      <option value="<%= v._id %>|<%= s %>">
+                        Variant: <%= v._id.toString().slice(-6) %> | Size: <%= s %> | Stock: <%= v.stock %>
+                      </option>
+                    <% }) %>
+                  <% } %>
+                <% }) %>
+              </select>
               <button
                 onclick="addToCartFromWishlist('<%= item._id %>', '<%= item.productId._id %>')"
                 class="flex items-center gap-1.5 border border-gray-300 hover:border-black text-gray-700 hover:text-black text-xs font-semibold px-3 py-2 rounded-lg transition-colors">
@@ -172,11 +192,18 @@
     }
 
     async function addToCartFromWishlist(wishlistItemId, productId) {
+      const selector = document.getElementById(`variantSelect-${wishlistItemId}`);
+      if (!selector || !selector.value) {
+        showToast('Please choose variant and size');
+        return;
+      }
+      const [variantId, size] = selector.value.split('|');
+
       try {
         const res = await fetch('/cart/add-from-wishlist', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ wishlistItemId, productId })
+          body: JSON.stringify({ wishlistItemId, productId, variantId, size })
         });
         const data = await res.json();
         if (data.success) {

@@ -5,11 +5,25 @@ import Wishlist from '../../models/wishlistModel.js'
 
 const MAX_PER_ITEM = 5;
 
+const isVariantAvailable = (variant)=>{
+    if(!variant) return false
+
+    const status = (variant.status || '').toString().toLowerCase()
+    if(status === 'archived') return false
+    if(status === 'outofstock') return false
+
+    return Number(variant.stock) > 0
+}
+
 const validateVariant = async(productId, variantId, size, requiredQty = 1)=>{
     const product = await Product.findById(productId).lean()
 
     if(!product) return {ok : false, message : 'Product not found.'}
     if(product.isBlocked) return {ok : false, message : `"${product.productname}" is unavailable.`}
+    if(!product.category) return {ok:false, message:'Product category is unavailable.'}
+
+    const category = await Category.findById(product.category).lean()
+    if(!category || category.isBlocked) return {ok:false, message:'Product category is unavailable.'}
 
 
 const variant = product.variants.find((v)=> v._id.toString() === variantId.toString())
@@ -36,7 +50,11 @@ const getOrCreateCart = async(userId)=>{
 const loadCart = async(req,res)=>{
     try {
         const cart = await Cart.findOne({userId : req.session.user})
-         .populate('items.productId','productname productImage variants isBlocked brand')
+         .populate({
+            path:'items.productId',
+            select:'productname productImage variants isBlocked brand category',
+            populate:{ path:'category', select:'isBlocked', match:{ isBlocked:false } }
+         })
         .lean()
         
        
@@ -49,12 +67,12 @@ const loadCart = async(req,res)=>{
 
          let hasUnavailable = false;
          const cartItems = cart.items
-         .filter((items)=> items.productId )
+         .filter((items)=> items.productId && items.productId.category)
          .map((items)=>{
             const product = items.productId;
             const variant = product.variants?.find((v)=> v._id.toString() === items.variantId?.toString())
 
-            const unavailable = product.isBlocked || !variant || variant.status !== 'onStock' || variant.stock === 0
+            const unavailable = product.isBlocked || !isVariantAvailable(variant)
             if(unavailable) hasUnavailable = true;
 
             return {
@@ -75,10 +93,7 @@ const loadCart = async(req,res)=>{
             const qty = Number(i.quantity) || 0
             return sum + price * qty
          },0)
-         //temp
-         cartItems.forEach(i => {
-    console.log('price:', i.price, 'qty:', i.quantity, 'unavailable:', i.unavailable)
-})
+       
 
          return res.render('cart',{page:'cart',cartItems,subtotal,hasUnavailable,cartCount: cartItems.filter(i=> !i.unavailable).length})
 
@@ -90,7 +105,7 @@ const loadCart = async(req,res)=>{
 
 
 const addToCart = async(req,res)=>{
-    console.log('cart body :', req.body)
+    
     try {
         if(!req.session || !req.session.user){
             return res.status(401).json({success:false, message:'Please login to continue.'})
@@ -231,18 +246,26 @@ const addFromWishlist = async(req,res)=>{
         if(!req.session || !req.session.user){
             return res.status(401).json({success:false, message:'Please login to continue.'})
         }
-        const {productId} = req.body;
+        const {productId, variantId, size, wishlistItemId} = req.body;
+
+        if(!productId || !variantId || !size){
+            return res.status(400).json({success:false,message:'Please select a variant and size'})
+        }
 
         const product = await Product.findById(productId).lean()
         if(!product || product.isBlocked){
             return res.status(400).json({success:false,message:'Product Unavailable'})
         }
 
-        const variant = product.variants.find((v)=> v.status === 'onStock' && v.stock > 0)
-        if(!variant) return res.status(400).json({success:false,message:'No stock available for this product'})
+        const variant = product.variants.find((v)=> v._id.toString() === variantId.toString())
+        if(!variant || !isVariantAvailable(variant)){
+            return res.status(400).json({success:false,message:'Selected variant is unavailable'})
+        }
 
-        const size = variant.size[0]
-        const variantId = variant._id.toString()
+        if(!variant.size?.includes(size)){
+            return res.status(400).json({success:false,message:'Selected size is unavailable for this variant'})
+        }
+
         const unitPrice = variant.offerActive ? variant.offerPrice : variant.productPrice
 
         const cart = await getOrCreateCart(req.session.user)
@@ -271,11 +294,17 @@ const addFromWishlist = async(req,res)=>{
 
         await cart.save()
 
-        //remove from wishlist
-        await Wishlist.updateOne(
-            {userId : req.session.user},
-            {$pull : { products : {productId}}}
-        )
+        if(wishlistItemId){
+            await Wishlist.updateOne(
+                {userId : req.session.user},
+                {$pull : { products : {_id: wishlistItemId}}}
+            )
+        }else{
+            await Wishlist.updateOne(
+                {userId : req.session.user},
+                {$pull : { products : {productId}}}
+            )
+        }
         return res.json({success:true,message:'Moved to cart!',cartCount : cart.items.length})
     } catch (error) {
         console.log('addFromWishlist Error : ',error)

@@ -1,41 +1,43 @@
-import User from '../models/userModel.js'
+import getUserId from '../helpers/getUserId.js'
 
  const userAuth = (req,res,next)=>{
-    if(req.session.user){
-        User.findById(req.session.user)
-        .then((data)=>{
-            if(data && !data.isBlocked){
-                next()
-            }else{
-                res.redirect('/login')
-            }
-        })
-        .catch((error)=>{
-            console.log('Error in user auth middleware')
-            res.status(500).send('Internal Server Error')
-        })
-    }else{
-        res.redirect('/login')
+    const userId = getUserId(req)
+    if(userId){
+        return next()
     }
+
+    return res.redirect('/login')
 }
 
  const adminAuth = (req,res,next)=>{
-    User.findOne({isAdmin:true})
-    .then((data)=>{
-        if(data){
-            next()
-        }else{
-            res.redirect('/admin/login')
-        }
-    })
-    .catch((error)=>{
-        console.log('Error in admin auth middleware')
-        res.status(500).send('Internal Server Error')
-    })
+    if(req.session.admin && req.session.admin.isAdmin){
+        return next()
+    }
+
+    return res.redirect('/admin/login')
+}
+
+const userGuest = (req,res,next)=>{
+    const userId = getUserId(req)
+    if(userId){
+        return res.redirect('/home')
+    }
+
+    return next()
+}
+
+const adminGuest = (req,res,next)=>{
+    if(req.session.admin && req.session.admin.isAdmin){
+        return res.redirect('/admin/dashboard')
+    }
+
+    return next()
 }
 
 export  {
     userAuth,
-    adminAuth
+    adminAuth,
+    userGuest,
+    adminGuest
 }
 

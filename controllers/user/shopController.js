@@ -50,6 +50,17 @@ const buildSort = (sortParam)=>{
     }
 }
 
+const applyActiveCategoryFilter = (filter, activeCategoryIds, requestedCategory)=>{
+    if(requestedCategory){
+        const isRequestedActive = activeCategoryIds.some((id)=> id.toString() === requestedCategory.toString())
+        filter.category = isRequestedActive ? requestedCategory : null
+        return filter
+    }
+
+    filter.category = { $in: activeCategoryIds }
+    return filter
+}
+
 
 const loadShop = async(req,res)=>{
 
@@ -58,8 +69,11 @@ const loadShop = async(req,res)=>{
         const page = Math.max(1, parseInt(req.query.page) || 1 )
         const filter = buildFilter(req.query)
         const sort = buildSort(req.query.sort)
+        const activeCategories = await Category.find({isBlocked : false}).select('_id name').lean()
+        const activeCategoryIds = activeCategories.map((c)=> c._id)
+        applyActiveCategoryFilter(filter, activeCategoryIds, req.query.category)
 
-        const [products, total, categories, cart, wishlist] = await Promise.all([
+        const [products, total, cart, wishlist] = await Promise.all([
             Product.find(filter)
             .populate('category','name')
             .sort(sort)
@@ -67,7 +81,6 @@ const loadShop = async(req,res)=>{
             .limit( PAGE_SIZE )
             .lean(),
             Product.countDocuments(filter),
-            Category.find({isBlocked : false}).lean(),
             userId ? Cart.findOne({userId}).lean() : null,
             userId ? Wishlist.findOne({userId}).lean() : null
 
@@ -80,7 +93,7 @@ const loadShop = async(req,res)=>{
 
         return res.render('shop', {
             page: 'shop',
-            products, categories, total, totalPages,
+            products, categories: activeCategories, total, totalPages,
             currentPage : page,
             searchQuery : req.query.q || '',
             sort : req.query.sort || '',
@@ -109,6 +122,9 @@ const loadShopProducts = async(req,res)=>{
         const page = Math.max(1,parseInt(req.query.page) || 1 )
         const filter = buildFilter(req.query)
         const sort = buildSort(req.query.sort)
+        const activeCategories = await Category.find({isBlocked : false}).select('_id').lean()
+        const activeCategoryIds = activeCategories.map((c)=> c._id)
+        applyActiveCategoryFilter(filter, activeCategoryIds, req.query.category)
 
         const [products,total] = await Promise.all([
             Product.find(filter)

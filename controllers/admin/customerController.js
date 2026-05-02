@@ -56,12 +56,16 @@ const customerInfo = async(req,res)=>{
 const customerStatus = async(req,res)=>{
     try {
         const customer = await User.findById(req.params.id);
-        //boolean value
+        if(!customer){
+            return res.status(404).json({success:false,message:'Customer not found'});
+        }
+
         customer.isBlocked = !customer.isBlocked;
         await customer.save();
-        res.status(200).json({success:true});
+
+        return res.status(200).json({success:true,isBlocked:customer.isBlocked});
     } catch (error) {
-        res.status(500).json({success:false})
+        return res.status(500).json({success:false,message:'Failed to update customer status'});
     }
 }
 

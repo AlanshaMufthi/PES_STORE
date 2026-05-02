@@ -11,7 +11,7 @@ const pageNotFound = async(req,res)=>{
 
  const loadLogin = (req,res)=>{
     if(req.session.admin){
-        return res.redirect('/dashboard')
+        return res.redirect('/admin/dashboard')
     }
     res.render('adminLogin',{message:null})
 }
@@ -21,9 +21,12 @@ const pageNotFound = async(req,res)=>{
         const {email,password}=req.body;
         const admin = await User.findOne({email,isAdmin:true})
         if(admin){
-            const passwordMatch = bcrypt.compare(password,admin.password)
+            const passwordMatch = await bcrypt.compare(password,admin.password)
             if(passwordMatch){
-                req.session.admin=true;
+                req.session.admin = {
+                    id: admin._id,
+                    isAdmin: true
+                };
                 return res.redirect('/admin/dashboard')
             }else{
                 return res.redirect('/admin/login')
@@ -45,11 +48,13 @@ const pageNotFound = async(req,res)=>{
       
         try {
             
-            res.render('dashboard')
+            return res.render('dashboard')
         } catch (error) {
-            res.redirect('/pageNotFound')
+            return res.redirect('/admin/pageNotFound')
         }
     }
+
+    return res.redirect('/admin/login')
 }
 
 const logout = async(req,res)=>{
@@ -59,6 +64,7 @@ const logout = async(req,res)=>{
                 console.log('Error destroying session',error)
                 return res.redirect('/admin/pageNotFound')
             }
+            res.clearCookie('connect.sid')
             res.redirect('/admin/login')
         })
     } catch (error) {

@@ -7,10 +7,14 @@ const MAX_PER_ITEM = 5
 const loadWishlist = async(req,res)=>{
     try {
         const wishlist = await Wishlist.findOne({userId : req.session.user})
-        .populate('products.productId', 'productname productImage variants brand isBlocked')
+        .populate({
+            path:'products.productId',
+            select:'productname productImage variants brand isBlocked category',
+            populate:{ path:'category', select:'isBlocked', match:{ isBlocked:false } }
+        })
         .lean()
 
-        const wishlistItems = wishlist ? wishlist.products.filter((i)=> i.productId) : []
+        const wishlistItems = wishlist ? wishlist.products.filter((i)=> i.productId && i.productId.category) : []
 
         const cart = await Cart.findOne({userId : req.session.user}).lean()
         const cartCount = cart ? cart.items.length : 0
@@ -32,8 +36,8 @@ const addToWishlist = async(req,res)=>{
         }
 
         // check product exist and not blocked
-        const product = await Product.findById(productId).lean()
-        if(!product || product.isBlocked) return res.status(400).json({success:false,message:'Product is Unavailable'})
+        const product = await Product.findById(productId).populate({ path:'category', select:'isBlocked', match:{ isBlocked:false } }).lean()
+        if(!product || product.isBlocked || !product.category) return res.status(400).json({success:false,message:'Product is Unavailable'})
 
         let wishlist = await Wishlist.findOne({userId : req.session.user})
         if(!wishlist){
@@ -179,8 +183,8 @@ const toggleWishlist = async (req, res) => {
         const { productId, action } = req.body
         if (!productId) return res.status(400).json({ success: false, message: 'Product ID required' })
 
-        const product = await Product.findById(productId).lean()
-        if (!product || product.isBlocked)
+        const product = await Product.findById(productId).populate({ path:'category', select:'isBlocked', match:{ isBlocked:false } }).lean()
+        if (!product || product.isBlocked || !product.category)
             return res.status(400).json({ success: false, message: 'Product unavailable' })
 
         let wishlist = await Wishlist.findOne({ userId })
