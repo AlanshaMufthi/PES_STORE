@@ -8,6 +8,7 @@ import { customerInfo,customerStatus,} from '../controllers/admin/customerContro
 import {adminAuth,adminGuest} from '../middlewares/auth.js'
 import { loadCategories, loadAddCategory, addCategory, loadEditCategory, editCategory, categoryStatus,toggleCategoryOffer } from '../controllers/admin/categoryController.js'
 import {loadProductManagement,loadAddProduct,addProduct,toggleVariantOffer,loadEditProduct,editProduct,productStatus} from '../controllers/admin/productController.js'
+import { loadOrderManagement, loadOrderDetails, updateOrderStatus, exportOrders, loadOrderStatus } from '../controllers/admin/orderController.js'
 
 router.get('/pageNotFound',pageNotFound)
 router.get('/login',adminGuest,loadLogin)
@@ -34,7 +35,12 @@ router.patch('/products/:id/variants/:variantId/toggle-offer',adminAuth,toggleVa
 router.get('/products/edit/:id',adminAuth,loadEditProduct)
 router.post('/products/edit/:id', adminAuth, upload.array('productImages',3), editProduct)
 router.patch('/products/:id/toggle-status',adminAuth,productStatus)
-
+//orders
+router.get('/orders', adminAuth, loadOrderManagement)
+router.get('/orders/export', adminAuth, exportOrders)
+router.get('/orders/:id', adminAuth, loadOrderDetails)
+router.get('/orders/:id/status', adminAuth, loadOrderStatus)
+router.patch('/orders/:id/status', adminAuth, updateOrderStatus)
 
 
 
