@@ -4,11 +4,9 @@ import Address from '../../models/addressModel.js'
 import getUserId from '../../helpers/getUserId.js'
 
 
-
-const getCheckout = async(req,res)=>{
+const loadCheckout = async(req,res)=>{
     try {
         const userId = getUserId(req)
-
         const cart = await Cart.findOne({userId}).populate('items.productId')
 
         if(!cart || cart.items.length === 0){
@@ -21,28 +19,31 @@ const getCheckout = async(req,res)=>{
         }
 
         const cartItems = validItems.map(item=>({
-            productId: item.productId._id,
+           productId: item.productId._id,
             variantId: item.variantId,
-            name: item.productId.name,
-            image: item.productId.images?.[0] || '',
+            productName: item.productId.productname, 
+            image: item.productId.productImage?.[0] || '',
             size: item.size,
             quantity: item.quantity,
             price: item.price,
             totalPrice: item.totalPrice
         }))
 
-        const subtotal = cartItems.reduce((sum,i)=> sum + i.totalPrice,0);
-        const deliveryCharge = 0;
-        const total = subtotal + deliveryCharge
+        const itemsTotal = cartItems.reduce((sum, i)=> sum + i.totalPrice,0)
+        const shippingCharge = 0
+        const grandTotal = itemsTotal + shippingCharge
 
-        const addresses = await Address.find({userId});
+        const addressDocument = await Address.findOne({userId})
+        const addresses = addressDocument ? addressDocument.address : []
 
         return res.render('checkout',{
-            cartItems, addresses, subtotal, deliveryCharge, total
+             cartItems, addresses,
+            itemsTotal, shippingCharge, grandTotal
         })
+
     } catch (error) {
-        console.log('getacheckout Error : ',error)
-        return res.status(500).render('error',{message: 'Something Went Wrong. Please try again.'})
+         console.log('loadCheckout Error : ', error)
+        return res.redirect('/cart') 
     }
 }
 
@@ -50,12 +51,16 @@ const getCheckout = async(req,res)=>{
 const placeOrder = async(req,res)=>{
     try {
         const userId = getUserId(req)
-        const { addressId, paymentMethod = 'cod'} = req.body;
+        const { addressId, paymentMethod = 'COD'} = req.body;
 
-        const selectedAddress = await Address.findOne({_id: addressId, userId})
+        const addressDocument = await Address.findOne({ userId })
+        if(!addressDocument){
+            return res.status(400).json({ success: false, message: 'Please Select a valid delivery address'})
+        }
 
+        const selectedAddress = addressDocument.address.id(addressId)
         if(!selectedAddress){
-            return res.status(400).json({success: false, message:' Please select a valid delivery address'})
+            return res.status(400).json({ success: false, message: 'Please Select a valid delivery address'})
         }
 
         const cart = await Cart.findOne({userId}).populate('items.productId')
@@ -71,67 +76,68 @@ const placeOrder = async(req,res)=>{
         const orderItems = validItems.map(item=>({
             productId: item.productId._id,
             variantId: item.variantId,
-            name: item.productId.name,
-            image: item.productId.images?.[0] || '',
+            name: item.productId.productname,
+            image: item.productId.productImage?.[0] || '',
             size: item.size,
             quantity: item.quantity,
             price: item.price,
             totalPrice: item.totalPrice
         }))
 
-        const subtotal = orderItems.reduce((sum , i)=> sum + i.totalPrice, 0)
-        const deliveryCharge = 0
-        const total = subtotal + delivaryCharge;
+        const itemsTotal = orderItems.reduce((sum, i )=> sum + i.totalPrice, 0)
+        const shippingCharge = 0;
+        const grandTotal = itemsTotal + shippingCharge
+
+        const orderId = 'ORD' + Date.now().toString().slice(-8)
 
         const newOrder = await Order.create({
-            userId,
+            userId, 
             items: orderItems,
             deliveryAddress: {
-                name: selectedAddress.name,
-                place: selectedAddress.place,
-                pincode: selectedAddress.pincode,
-                contact: selectedAddress.contact
-
+                name: (selectedAddress.firstName + ' ' + selectedAddress.lastName).trim(),
+                place: [selectedAddress.addressLine, selectedAddress.town, selectedAddress.state].filter(Boolean).join(', '),
+                pincode: selectedAddress.pincode || '',
+                contact: selectedAddress.phone || ''
             },
-            paymentMethod,
+            paymentMethod: paymentMethod.toLowerCase(),
             paymentStatus: 'pending',
             orderStatus: 'placed',
-            subtotal,
-            deliveryCharge,
-            total
+            subtotal: itemsTotal,
+            deliveryCharge: shippingCharge,
+            total: grandTotal
+            
         })
 
+        await Cart.findOneAndUpdate({userId}, {$pull: {items: {status: 'onStock'}}})
 
-        await Cart.findOneAndUpdate({userId},{$pull: {items: { status: 'onStock'}}})
-        return res.redirect(`orders/success/${newOrder._id}`)
+        return res.json({ success: true, url: `/orders/success/${newOrder._id}` });
     } catch (error) {
-        console.log('palceOrder Error : ',error)
-        return res.status(500).render('error', {message: 'Could not place order. Please try again.'})
-        
+        console.log('placeOrder Error : ', error)
+        return res.status(500).json({success: false, message:'Could not place order. Please try again.'})
     }
 }
 
 
-const getOrderSuccess = async(req,res)=>{
+const loadOrderSuccess = async(req,res)=>{
     try {
         const userId = getUserId(req)
-        const order = await Order.findById(req.params.orderId)
+        const order = await Order.findById(req.params.orderId).lean()
+
         if(!order || order.userId.toString() !== userId.toString()){
-            return res.status(404).render('error', { message: 'Order not found.'})
+            return res.redirect('/orders')
         }
 
-        return res.render('orderSuccess', { order });
-          
-      
+        return res.render('orderPlaced', {order})
     } catch (error) {
-          return res.render('getOrderSuccess Error : ', error)
-        return res.status(500).render('error', { message: 'Something went Wrong'})
+        console.log('loadOrderSuccess Error : ', error)
+        return res.redirect('/orders')
     }
 }
 
 
 export {
-    getCheckout,
+
+    loadCheckout,
     placeOrder,
-    getOrderSuccess
+    loadOrderSuccess
 }

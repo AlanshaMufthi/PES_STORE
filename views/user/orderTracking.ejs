@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Track Order - PES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<%- include('../partials/user/header.ejs', { page: 'orders', cartCount: locals.cartCount || 0, searchQuery: locals.searchQuery || '' }) %>
+
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: #f7f7f7; color: #0a0a0a; }
+
+  .page-wrapper { max-width:1100px; margin:0 auto; padding:40px 24px; display:flex; gap:36px; }
+  .sidebar { width:200px; flex-shrink:0; }
+  .main { flex:1; min-width:0; }
+
+  .sidebar-avatar { width:80px; height:80px; border-radius:50%; overflow:hidden; border:2px solid #e5e7eb; margin:0 auto 10px; }
+  .sidebar-avatar img { width:100%; height:100%; object-fit:cover; }
+  .sidebar-name { background:#f3f4f6; border:1px solid #d1d5db; border-radius:4px; padding:5px 14px; font-size:0.82rem; font-weight:600; color:#374151; display:inline-block; }
+  .sidebar-section-label { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.78rem; text-transform:uppercase; letter-spacing:1.5px; color:#0a0a0a; margin-bottom:8px; }
+  .sidebar-link { display:block; font-size:0.85rem; text-decoration:none; padding:5px 0; color:#6b7280; transition:color 0.15s; }
+  .sidebar-link:hover { color:#c0392b; }
+  .sidebar-link.active { color:#c0392b; font-weight:700; }
+  .sidebar-link.main { color:#0a0a0a; font-weight:700; font-size:0.88rem; padding:5px 0; }
+  .sidebar-link.main:hover { color:#c0392b; }
+  .sidebar-link.main.active { color:#c0392b; }
+  .sidebar-link.danger { color:#c0392b; font-weight:700; }
+
+  .breadcrumb { font-size:0.8rem; color:#bbb; margin-bottom:24px; display:flex; align-items:center; gap:6px; }
+  .breadcrumb a { color:#bbb; text-decoration:none; transition:color 0.2s; }
+  .breadcrumb a:hover { color:#0a0a0a; }
+  .breadcrumb span { color:#ddd; }
+
+  /* ── Product Card ── */
+  .product-card {
+    background:#fff; border:1.5px solid #e8e8e8; border-radius:10px;
+    padding:20px 24px; margin-bottom:16px;
+    display:flex; gap:18px; align-items:center;
+  }
+  .product-img {
+    width:84px; height:84px; object-fit:cover;
+    border-radius:8px; background:#f5f5f5; flex-shrink:0; border:1px solid #efefef;
+  }
+  .product-name { font-family:'Barlow Condensed',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:5px; line-height:1.3; }
+  .product-sub { font-size:0.82rem; color:#888; }
+  .order-id-chip {
+    font-family:'Barlow Condensed',sans-serif; font-size:0.82rem; font-weight:700;
+    letter-spacing:1px; background:#f3f4f6; border:1px solid #e2e2e2;
+    padding:4px 10px; border-radius:4px; display:inline-block; margin-top:6px;
+  }
+
+  /* ── Tracker Card ── */
+  .tracker-card {
+    background:#fff; border:1.5px solid #e8e8e8; border-radius:10px;
+    padding:28px 32px; margin-bottom:16px;
+  }
+
+  .tracker-card-title {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:0.75rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:1.5px; color:#888; margin-bottom:28px;
+    border-bottom:1px solid #efefef; padding-bottom:12px;
+  }
+
+  /* ── Tracker ── */
+  .tracker { position:relative; padding-left:36px; }
+
+  .tracker-spine {
+    position:absolute; left:13px; top:14px; bottom:14px; width:2px; background:#e8e8e8;
+  }
+  .tracker-spine-fill {
+    position:absolute; left:13px; top:14px; width:2px; background:#27ae60;
+    transition:height 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .track-step { position:relative; margin-bottom:36px; display:flex; gap:0; align-items:flex-start; }
+  .track-step:last-child { margin-bottom:0; }
+
+  .step-dot {
+    position:absolute; left:-36px; top:2px;
+    width:26px; height:26px; border-radius:50%; border:2px solid #e8e8e8;
+    background:#fff; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; z-index:2; transition:all 0.3s;
+  }
+  .step-dot.completed {
+    background:#27ae60; border-color:#27ae60;
+    box-shadow:0 0 0 4px rgba(39,174,96,0.12);
+  }
+  .step-dot.active {
+    background:#0a0a0a; border-color:#0a0a0a;
+    box-shadow:0 0 0 5px rgba(10,10,10,0.1);
+    animation:pulse 1.8s infinite;
+  }
+  .step-dot.cancelled-dot { background:#c0392b; border-color:#c0392b; box-shadow:0 0 0 4px rgba(192,57,43,0.12); }
+
+  @keyframes pulse {
+    0%,100% { box-shadow:0 0 0 5px rgba(10,10,10,0.1); }
+    50% { box-shadow:0 0 0 8px rgba(10,10,10,0.04); }
+  }
+
+  .step-dot svg { width:13px; height:13px; stroke:white; stroke-width:2.5; fill:none; }
+
+  .step-content { padding-top:2px; }
+
+  .step-label {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:1.05rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:1px; color:#ccc; margin-bottom:3px;
+    transition:color 0.3s;
+  }
+  .step-label.completed { color:#27ae60; }
+  .step-label.active { color:#0a0a0a; }
+  .step-label.cancelled-label { color:#c0392b; }
+
+  .step-date { font-size:0.78rem; color:#aaa; margin-top:2px; }
+  .step-desc { font-size:0.8rem; color:#aaa; margin-top:3px; }
+
+  /* ── Active step extra card ── */
+  .active-step-card {
+    background:#f9f9f9; border:1px solid #efefef; border-radius:6px;
+    padding:10px 14px; margin-top:8px; font-size:0.82rem; color:#555;
+  }
+
+  /* ── Estimated delivery ── */
+  .eta-bar {
+    background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:8px;
+    padding:14px 20px; margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .eta-icon { width:36px; height:36px; background:#22c55e; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  .cancelled-bar {
+    background:#fff5f5; border:1.5px solid #fecaca; border-radius:8px;
+    padding:14px 20px; margin-bottom:16px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .cancelled-icon { width:36px; height:36px; background:#c0392b; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+
+  /* ── Back link ── */
+  .back-link {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.82rem; font-weight:600; color:#888;
+    text-decoration:none; transition:color 0.2s;
+  }
+  .back-link:hover { color:#0a0a0a; }
+</style>
+
+<div class="page-wrapper">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div class="sidebar-avatar">
+        <img src="<%= user.profileImage || '/images/avatar.png' %>" alt="Profile" onerror="this.src='/images/avatar.png'">
+      </div>
+      <div class="sidebar-name"><%= user.name || 'Customer' %></div>
+    </div>
+    <div class="sidebar-section-label">My Account</div>
+    <div style="padding-left:10px; margin-bottom:16px;">
+      <a href="/profile" class="sidebar-link">My Profile</a>
+      <a href="/addressBook" class="sidebar-link">Address Book</a>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:1px;">
+      <a href="/orders"   class="sidebar-link main active">My Orders</a>
+      <a href="/privacy"  class="sidebar-link main">Privacy</a>
+      <a href="/wallet"   class="sidebar-link main">Wallet</a>
+      <a href="/coupons"  class="sidebar-link main">Coupons</a>
+      <a href="/wishlist" class="sidebar-link main">My Wishlist</a>
+      <a href="/logout"   class="sidebar-link main danger" style="margin-top:14px;">Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="/orders">My Orders</a>
+      <span>›</span>
+      <a href="/orders/<%= order._id %>">Order Details</a>
+      <span>›</span>
+      <span style="color:#0a0a0a; font-weight:600;">Track</span>
+    </div>
+
+    <!-- Product card -->
+    <div class="product-card">
+      <img class="product-img"
+        src="<%= item.image || '/images/placeholder.png' %>"
+        alt="<%= item.name %>"
+        onerror="this.src='/images/placeholder.png'">
+      <div>
+        <div class="product-name"><%= item.name %></div>
+        <div class="product-sub">
+          Qty: <%= item.quantity %>
+          <% if (item.size) { %> &nbsp;·&nbsp; Size: <%= item.size %><% } %>
+          &nbsp;·&nbsp; ₹<%= item.price ? item.price.toLocaleString('en-IN') : '0' %>
+        </div>
+        <div class="order-id-chip"># <%= order.orderId || order._id.toString().slice(-8).toUpperCase() %></div>
+      </div>
+    </div>
+
+    <%
+      const steps = ['Pending', 'Processing', 'Shipped', 'Delivered'];
+      const cancelledSteps = ['Pending', 'Processing', 'Cancelled'];
+      const returnedSteps = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Return Requested', 'Returned'];
+
+      let currentStatus = order.orderStatus || 'pending';
+      if (currentStatus === 'placed') currentStatus = 'Pending';
+      let displaySteps = steps;
+      if (currentStatus.toLowerCase() === 'cancelled') displaySteps = cancelledSteps;
+      else if (['returned', 'return requested', 'return_requested'].includes(currentStatus.toLowerCase())) displaySteps = returnedSteps;
+
+      const currentIdx = displaySteps.findIndex(s => s.toLowerCase() === currentStatus.toLowerCase());
+      const isCancelled = currentStatus.toLowerCase() === 'cancelled';
+      const isDelivered = currentStatus.toLowerCase() === 'delivered';
+    %>
+
+    <!-- ETA / Status bar -->
+    <% if (isDelivered) { %>
+    <div class="eta-bar">
+      <div class="eta-icon">
+        <svg width="18" height="18" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <p style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:900; color:#15803d; text-transform:uppercase; letter-spacing:1px;">Order Delivered</p>
+        <p style="font-size:0.8rem; color:#16a34a; margin-top:1px;">Your order has been successfully delivered.</p>
+      </div>
+    </div>
+    <% } else if (isCancelled) { %>
+    <div class="cancelled-bar">
+      <div class="cancelled-icon">
+        <svg width="18" height="18" fill="none" stroke="white" stroke-width="3" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div>
+        <p style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:900; color:#c0392b; text-transform:uppercase; letter-spacing:1px;">Order Cancelled</p>
+        <p style="font-size:0.8rem; color:#e57373; margin-top:1px;">This order has been cancelled.</p>
+      </div>
+    </div>
+    <% } else if (currentIdx >= 0) { %>
+    <div class="eta-bar" style="background:#eff6ff; border-color:#bfdbfe;">
+      <div class="eta-icon" style="background:#2563eb;">
+        <svg width="18" height="18" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div>
+        <p style="font-family:'Barlow Condensed',sans-serif; font-size:1rem; font-weight:900; color:#1d4ed8; text-transform:uppercase; letter-spacing:1px;"><%= currentStatus %></p>
+        <p style="font-size:0.8rem; color:#3b82f6; margin-top:1px;">Your order is currently <strong><%= currentStatus.toLowerCase() %></strong>.</p>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Tracker -->
+    <div class="tracker-card">
+      <div class="tracker-card-title">Order Timeline</div>
+      <div class="tracker" id="tracker">
+        <div class="tracker-spine"></div>
+        <div class="tracker-spine-fill" id="trackerFill" style="height:0"></div>
+
+        <% displaySteps.forEach((step, i) => {
+          const isComp = i < currentIdx;
+          const isActive = i === currentIdx;
+          const isCancelStep = step.toLowerCase() === 'cancelled';
+          let dotClass = '';
+          let labelClass = '';
+          if (isCancelStep && isActive) { dotClass = 'cancelled-dot'; labelClass = 'active cancelled-label'; }
+          else if (isComp) { dotClass = 'completed'; labelClass = 'completed'; }
+          else if (isActive) { dotClass = 'active'; labelClass = 'active'; }
+        %>
+        <div class="track-step">
+          <div class="step-dot <%= dotClass %>">
+            <% if (isComp) { %>
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <% } else if (isActive && isCancelStep) { %>
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18" stroke="white" stroke-width="2.5"/><line x1="6" y1="6" x2="18" y2="18" stroke="white" stroke-width="2.5"/></svg>
+            <% } %>
+          </div>
+          <div class="step-content">
+            <div class="step-label <%= labelClass %>"><%= step %></div>
+            <% if (order.statusTimeline && order.statusTimeline[step.toLowerCase()]) { %>
+              <div class="step-date">
+                <%= new Date(order.statusTimeline[step.toLowerCase()]).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) %>
+              </div>
+            <% } else if (isComp || isActive) { %>
+              <div class="step-date" style="color:#ccc;">Date not recorded</div>
+            <% } %>
+            <% if (isActive && !isCancelStep) { %>
+              <div class="active-step-card">
+                <% if (step === 'Processing') { %>
+                  Your order is being prepared and packed.
+                <% } else if (step === 'Shipped') { %>
+                  Your package is on its way! Estimated delivery in 2–3 business days.
+                <% } else { %>
+                  Awaiting confirmation.
+                <% } %>
+              </div>
+            <% } %>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <a href="/orders/<%= order._id %>" class="back-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to Order Details
+    </a>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('load', () => {
+    const steps = document.querySelectorAll('.track-step');
+    const fill = document.getElementById('trackerFill');
+    const activeIdx = <%= currentIdx %>;
+    if (steps.length > 0 && activeIdx > 0) {
+      const trackerEl = document.getElementById('tracker');
+      const firstDot = steps[0].querySelector('.step-dot');
+      const targetDot = steps[Math.min(activeIdx, steps.length - 1)].querySelector('.step-dot');
+      const trackerRect = trackerEl.getBoundingClientRect();
+      const targetRect = targetDot.getBoundingClientRect();
+      const height = targetRect.top - trackerRect.top + 13;
+      // Animate after a short delay
+      setTimeout(() => {
+        fill.style.height = Math.max(0, height) + 'px';
+      }, 200);
+    }
+  });
+</script>
+
+<%- include('../partials/user/footer.ejs') %>
+</body>
+</html>
