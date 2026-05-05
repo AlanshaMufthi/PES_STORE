@@ -106,7 +106,7 @@
         <p class="font-bold text-base text-gray-800">Personal Information</p>
       </div>
 
-      <form id="addAddressForm" action="/addAddress" method="POST">
+      <form id="addAddressForm" action="/addAddress<%= typeof source !== 'undefined' && source ? '?source=' + source : '' %>" method="POST">
         <div class="space-y-5">
 
           <div class="grid grid-cols-2 gap-5">

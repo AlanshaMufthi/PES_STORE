@@ -96,7 +96,7 @@
 </head>
 <body class="bg-white text-gray-900">
 
-  <%- include('../parials/user/header.ejs', { page: 'shop', cartCount, searchQuery }) %>
+  <%- include('../partials/user/header.ejs', { page: 'shop', cartCount, searchQuery }) %>
 
   <!-- Toast -->
   <div id="toast"><span id="toastMsg"></span></div>
@@ -625,7 +625,7 @@
 
   </main>
 
-  <%- include('../parials/user/footer.ejs') %>
+  <%- include('../partials/user/footer.ejs') %>
 
   <script>
     const SIZE_MAP   = <%- JSON.stringify(sizeVariantMap) %>

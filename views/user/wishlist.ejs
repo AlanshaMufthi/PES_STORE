@@ -20,7 +20,7 @@
       const cartCount = await Cart.countDocuments({ userId: req.user._id }) (or similar)
       res.render('user/wishlist', { wishlistItems, cartCount })
   %>
-  <%- include('../parials/user/header.ejs', { page: 'wishlist', cartCount: locals.cartCount || 0, searchQuery: '' }) %>
+  <%- include('../partials/user/header.ejs', { page: 'wishlist', cartCount: locals.cartCount || 0, searchQuery: '' }) %>
 
   <main class="max-w-5xl mx-auto px-6 py-12">
 
@@ -28,9 +28,9 @@
     <div class="flex products-center justify-between mb-8">
       <h1 class="text-lg font-bold">
         Wishlist
-        <span id="wishlistCount" class="text-gray-400 font-normal">(<%= wishlistItems ? wishlistItems.length : 0 %>)</span>
+        <span id="wishlistCount" class="text-gray-400 font-normal">(<%= typeof wishlistItems !== 'undefined' && wishlistItems ? wishlistItems.length : 0 %>)</span>
       </h1>
-      <% if (wishlistItems && wishlistItems.length > 0) { %>
+      <% if (typeof wishlistItems !== 'undefined' && wishlistItems && wishlistItems.length > 0) { %>
         <button
           onclick="moveAllToBag()"
           class="border border-gray-900 text-gray-900 font-semibold text-sm px-6 py-2.5 rounded-lg hover:bg-black hover:text-white transition-all duration-200"
@@ -40,7 +40,7 @@
       <% } %>
     </div>
 
-    <% if (!wishlistItems || wishlistItems.length === 0) { %>
+    <% if (typeof wishlistItems === 'undefined' || !wishlistItems || wishlistItems.length === 0) { %>
       <!-- Empty wishlist -->
       <div class="text-center py-24">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto mb-5 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -158,7 +158,7 @@
 
   </main>
 
-  <%- include('../parials/user/footer.ejs') %>
+  <%- include('../partials/user/footer.ejs') %>
 
   <script>
     /* ── Cart badge updater ──

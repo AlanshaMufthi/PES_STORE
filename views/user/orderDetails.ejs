@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Details - PES</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+<%- include('../partials/user/header.ejs', { page: 'orders', cartCount: locals.cartCount || 0, searchQuery: locals.searchQuery || '' }) %>
+
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: #f7f7f7; color: #0a0a0a; }
+
+  .page-wrapper { max-width:1100px; margin:0 auto; padding:40px 24px; display:flex; gap:36px; }
+  .sidebar { width:200px; flex-shrink:0; }
+  .main { flex:1; min-width:0; }
+
+  .sidebar-avatar { width:80px; height:80px; border-radius:50%; overflow:hidden; border:2px solid #e5e7eb; margin:0 auto 10px; }
+  .sidebar-avatar img { width:100%; height:100%; object-fit:cover; }
+  .sidebar-name { background:#f3f4f6; border:1px solid #d1d5db; border-radius:4px; padding:5px 14px; font-size:0.82rem; font-weight:600; color:#374151; display:inline-block; }
+  .sidebar-section-label { font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.78rem; text-transform:uppercase; letter-spacing:1.5px; color:#0a0a0a; margin-bottom:8px; }
+  .sidebar-link { display:block; font-size:0.85rem; text-decoration:none; padding:5px 0; color:#6b7280; transition:color 0.15s; }
+  .sidebar-link:hover { color:#c0392b; }
+  .sidebar-link.active { color:#c0392b; font-weight:700; }
+  .sidebar-link.main { color:#0a0a0a; font-weight:700; font-size:0.88rem; padding:5px 0; }
+  .sidebar-link.main:hover { color:#c0392b; }
+  .sidebar-link.main.active { color:#c0392b; }
+  .sidebar-link.danger { color:#c0392b; font-weight:700; }
+
+  .breadcrumb { font-size:0.8rem; color:#bbb; margin-bottom:24px; display:flex; align-items:center; gap:6px; }
+  .breadcrumb a { color:#bbb; text-decoration:none; transition:color 0.2s; }
+  .breadcrumb a:hover { color:#0a0a0a; }
+  .breadcrumb span { color:#ddd; }
+
+  .page-heading { font-family:'Barlow Condensed',sans-serif; font-size:1.7rem; font-weight:900; text-transform:uppercase; letter-spacing:2px; margin-bottom:6px; }
+
+  /* ── Order header bar ── */
+  .order-meta-bar {
+    background:#fff; border:1.5px solid #e8e8e8; border-radius:8px;
+    padding:16px 20px; margin-bottom:16px;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    font-size:0.85rem;
+  }
+  .order-meta-bar strong { color:#0a0a0a; font-weight:700; }
+  .order-meta-divider { color:#e2e2e2; }
+
+  .invoice-link {
+    margin-left:auto; font-size:0.82rem; font-weight:700;
+    color:#2980b9; text-decoration:none;
+    border:1.5px solid #2980b9; padding:6px 14px; border-radius:5px;
+    transition:background 0.2s, color 0.2s; font-family:'DM Sans',sans-serif;
+    white-space:nowrap;
+  }
+  .invoice-link:hover { background:#2980b9; color:#fff; }
+
+  /* ── Detail Grid ── */
+  .detail-grid {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:0; border:1.5px solid #e8e8e8; border-radius:8px;
+    margin-bottom:16px; background:#fff; overflow:hidden;
+  }
+
+  .detail-cell { padding:18px 20px; border-right:1px solid #efefef; }
+  .detail-cell:last-child { border-right:none; }
+
+  .detail-cell-title {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:0.72rem; font-weight:800; text-transform:uppercase;
+    letter-spacing:1.5px; margin-bottom:12px; color:#0a0a0a;
+    padding-bottom:8px; border-bottom:2px solid #0a0a0a; display:inline-block;
+  }
+
+  .detail-cell-content { font-size:0.84rem; color:#666; line-height:1.8; }
+
+  .summary-row { display:flex; justify-content:space-between; font-size:0.84rem; margin-bottom:6px; color:#777; }
+  .summary-row.total-row {
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:1rem; font-weight:900; color:#0a0a0a;
+    border-top:1.5px solid #efefef; padding-top:10px; margin-top:6px;
+    letter-spacing:0.5px;
+  }
+
+  /* ── Items ── */
+  .items-section { display:flex; flex-direction:column; gap:10px; }
+
+  .item-row {
+    background:#fff; border:1.5px solid #e8e8e8; border-radius:8px;
+    padding:16px 20px; display:flex; gap:16px; align-items:center;
+    transition:box-shadow 0.2s;
+  }
+  .item-row:hover { box-shadow:0 4px 16px rgba(0,0,0,0.07); }
+
+  .item-img {
+    width:76px; height:76px; object-fit:cover;
+    border-radius:6px; background:#f5f5f5; flex-shrink:0; border:1px solid #efefef;
+  }
+
+  .item-info { flex:1; min-width:0; }
+  .item-name { font-size:0.92rem; font-weight:600; margin-bottom:5px; }
+  .item-sub { font-size:0.8rem; color:#888; line-height:1.6; }
+  .item-price { font-size:0.9rem; font-weight:700; color:#0a0a0a; margin-top:4px; }
+
+  .item-right { display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0; }
+
+  /* ── Status badge ── */
+  .status-badge {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.68rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:0.8px; padding:4px 10px; border-radius:20px;
+  }
+  .status-badge::before { content:''; width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .status-delivered   { color:#16a34a; background:#dcfce7; }
+  .status-processing  { color:#c2410c; background:#ffedd5; }
+  .status-pending     { color:#92400e; background:#fef3c7; }
+  .status-shipped     { color:#1d4ed8; background:#dbeafe; }
+  .status-cancelled   { color:#dc2626; background:#fee2e2; }
+  .status-returned    { color:#7e22ce; background:#f3e8ff; }
+
+  .item-actions { display:flex; gap:7px; }
+
+  .btn-sm {
+    padding:7px 14px; font-family:'DM Sans',sans-serif;
+    font-size:0.79rem; font-weight:600; border-radius:5px;
+    border:none; cursor:pointer; text-decoration:none;
+    display:inline-block; transition:background 0.2s, transform 0.15s;
+  }
+  .btn-sm:hover { transform:translateY(-1px); }
+  .btn-dark { background:#0a0a0a; color:#fff; }
+  .btn-dark:hover { background:#333; }
+  .btn-red { background:#c0392b; color:#fff; }
+  .btn-red:hover { background:#a93226; }
+
+  /* ── Modal ── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(2px); }
+  .modal-box { background:white; border-radius:12px; padding:36px; width:90%; max-width:480px; box-shadow:0 24px 64px rgba(0,0,0,0.2); border:1.5px solid #e2e2e2; }
+  .modal-title { font-family:'Barlow Condensed',sans-serif; font-size:1.4rem; font-weight:900; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:20px; }
+  .modal-textarea { width:100%; border:1.5px solid #e2e2e2; border-radius:6px; padding:12px; font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none; resize:vertical; background:#fafafa; transition:border-color 0.2s; }
+  .modal-textarea:focus { border-color:#0a0a0a; background:#fff; }
+  .modal-actions { display:flex; gap:10px; margin-top:20px; }
+  .modal-btn { flex:1; padding:13px; border:none; border-radius:6px; font-family:'Barlow Condensed',sans-serif; font-weight:800; font-size:0.95rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
+
+  /* ── Back link ── */
+  .back-link {
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.82rem; font-weight:600; color:#888;
+    text-decoration:none; margin-top:24px;
+    transition:color 0.2s;
+  }
+  .back-link:hover { color:#0a0a0a; }
+</style>
+
+<div class="page-wrapper">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div class="sidebar-avatar">
+        <img src="<%= user.profileImage || '/images/avatar.png' %>" alt="Profile" onerror="this.src='/images/avatar.png'">
+      </div>
+      <div class="sidebar-name"><%= user.name || 'Customer' %></div>
+    </div>
+    <div class="sidebar-section-label">My Account</div>
+    <div style="padding-left:10px; margin-bottom:16px;">
+      <a href="/profile" class="sidebar-link">My Profile</a>
+      <a href="/addressBook" class="sidebar-link">Address Book</a>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:1px;">
+      <a href="/orders"   class="sidebar-link main active">My Orders</a>
+      <a href="/privacy"  class="sidebar-link main">Privacy</a>
+      <a href="/wallet"   class="sidebar-link main">Wallet</a>
+      <a href="/coupons"  class="sidebar-link main">Coupons</a>
+      <a href="/wishlist" class="sidebar-link main">My Wishlist</a>
+      <a href="/logout"   class="sidebar-link main danger" style="margin-top:14px;">Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="/orders">My Orders</a>
+      <span>›</span>
+      <span style="color:#0a0a0a; font-weight:600;">Order Details</span>
+    </div>
+
+    <!-- Page heading + meta -->
+    <h1 class="page-heading">Order Details</h1>
+
+    <div class="order-meta-bar">
+      <span style="color:#888;">Ordered on</span>
+      <strong><%= new Date(order.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' }) %></strong>
+      <span class="order-meta-divider">|</span>
+      <span style="color:#888;">Order #</span>
+      <strong style="font-family:'Barlow Condensed',sans-serif; letter-spacing:1px; font-size:0.95rem;"><%= order.orderId || order._id.toString().slice(-8).toUpperCase() %></strong>
+      <a href="/orders/<%= order._id %>/invoice" class="invoice-link">Download Invoice ↓</a>
+    </div>
+
+    <!-- Detail grid -->
+    <div class="detail-grid">
+      <div class="detail-cell">
+        <div class="detail-cell-title">Shipping To</div>
+        <div class="detail-cell-content">
+          <% if (order.deliveryAddress) { %>
+            <strong style="color:#0a0a0a; font-weight:600;"><%= order.deliveryAddress.name %></strong><br>
+            <%= order.deliveryAddress.place %><br>
+            Pincode: <%= order.deliveryAddress.pincode %><br>
+            <%= order.deliveryAddress.contact %>
+          <% } else { %><span style="color:#bbb;">No address on file</span><% } %>
+        </div>
+      </div>
+
+      <div class="detail-cell">
+        <div class="detail-cell-title">Payment</div>
+        <div class="detail-cell-content">
+          <% const pm = order.paymentMethod; %>
+          <% if (pm === 'cod') { %>
+            <span class="status-badge" style="background:#f0fdf4; color:#16a34a; margin-bottom:6px; display:inline-flex;">Cash on Delivery</span>
+          <% } else if (pm === 'upi') { %>
+            <span class="status-badge" style="background:#f5f3ff; color:#7e22ce; margin-bottom:6px; display:inline-flex;">UPI</span>
+          <% } else if (pm === 'card') { %>
+            <span class="status-badge" style="background:#eff6ff; color:#1d4ed8; margin-bottom:6px; display:inline-flex;">Card</span>
+          <% } else { %>
+            <span class="status-badge" style="background:#fafafa; color:#555; margin-bottom:6px; display:inline-flex;"><%= pm ? pm.toUpperCase() : '—' %></span>
+          <% } %>
+          <br>
+          <span style="font-size:0.8rem; color:#aaa;">Payment captured on order</span>
+        </div>
+      </div>
+
+      <div class="detail-cell">
+        <div class="detail-cell-title">Summary</div>
+        <div class="detail-cell-content">
+          <div class="summary-row">
+            <span>Items Total</span>
+            <span style="color:#0a0a0a; font-weight:600;">₹<%= order.subtotal ? order.subtotal.toLocaleString('en-IN') : '0' %></span>
+          </div>
+          <% if (order.discount && order.discount > 0) { %>
+          <div class="summary-row" style="color:#16a34a;">
+            <span>Discount</span>
+            <span>−₹<%= order.discount.toLocaleString('en-IN') %></span>
+          </div>
+          <% } %>
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span style="color:#16a34a; font-weight:600;">Free</span>
+          </div>
+          <div class="summary-row total-row">
+            <span>Grand Total</span>
+            <span>₹<%= order.total ? order.total.toLocaleString('en-IN') : '0' %></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div style="font-family:'Barlow Condensed',sans-serif; font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:1.5px; color:#888; margin-bottom:10px;">
+      Items in this order
+    </div>
+    <div class="items-section">
+      <% if (order.items && order.items.length > 0) { %>
+        <% order.items.forEach(item => {
+          const iStatus = item.status || order.orderStatus || 'pending';
+          const iStatusKey = iStatus.toLowerCase().replace(/\s+/g, '-');
+        %>
+        <div class="item-row">
+          <img class="item-img"
+            src="<%= item.image || '/images/placeholder.png' %>"
+            alt="<%= item.name %>"
+            onerror="this.src='/images/placeholder.png'">
+          <div class="item-info">
+            <div class="item-name"><%= item.name %></div>
+            <div class="item-sub">Size: <%= item.size || 'N/A' %> &nbsp;·&nbsp; Qty: <%= item.quantity %></div>
+            <div class="item-price">₹<%= item.price ? item.price.toLocaleString('en-IN') : '0' %></div>
+          </div>
+          <div class="item-right">
+            <span class="status-badge status-<%= iStatusKey %>"><%= iStatus %></span>
+            <div class="item-actions">
+              <a href="/orders/<%= order._id %>/track/<%= item._id %>" class="btn-sm btn-dark">Track Order</a>
+              <% if (iStatus === 'Delivered' || iStatus === 'delivered') { %>
+                <button class="btn-sm btn-red" onclick="returnItem('<%= order._id %>', '<%= item._id %>')">Return</button>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <a href="/orders" class="back-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Back to My Orders
+    </a>
+  </div>
+</div>
+
+<!-- Return Modal -->
+<div id="returnModal" class="modal-overlay">
+  <div class="modal-box">
+    <h2 class="modal-title">Return Item</h2>
+    <textarea id="returnReason" rows="5" class="modal-textarea" placeholder="Please describe your reason for return (required)..."></textarea>
+    <p id="returnError" style="color:#c0392b;font-size:0.8rem;margin-top:6px;display:none;">Reason is required for returns.</p>
+    <div class="modal-actions">
+      <button onclick="closeReturnModal()" class="modal-btn" style="background:#f3f4f6; color:#0a0a0a;">Discard</button>
+      <button onclick="submitReturn()" class="modal-btn" style="background:#c0392b; color:white;">Submit Return</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let activeOrderId = null, activeItemId = null;
+
+  function returnItem(orderId, itemId) {
+    activeOrderId = orderId; activeItemId = itemId;
+    document.getElementById('returnReason').value = '';
+    document.getElementById('returnError').style.display = 'none';
+    document.getElementById('returnModal').style.display = 'flex';
+  }
+  function closeReturnModal() { document.getElementById('returnModal').style.display = 'none'; }
+
+  function submitReturn() {
+    const reason = document.getElementById('returnReason').value.trim();
+    if (!reason) { document.getElementById('returnError').style.display = 'block'; return; }
+    fetch(`/orders/${activeOrderId}/return-item`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ itemId: activeItemId, reason })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) { closeReturnModal(); location.reload(); }
+      else Swal.fire('Error', data.message || 'Return failed', 'error');
+    });
+  }
+</script>
+
+<%- include('../partials/user/footer.ejs') %>
+</body>
+</html>

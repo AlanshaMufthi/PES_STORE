@@ -63,7 +63,7 @@ const orderSchema = new Schema({
 
     orderStatus: {
         type: String,
-        enum: ['placed','processing','shipped','delivered','cancelled'],
+        enum: ['placed','processing','shipped','delivered','cancelled', 'return_requested', 'returned'],
         default: 'placed'
     },
 
@@ -79,6 +79,20 @@ const orderSchema = new Schema({
         type: Number,
         required: true
     },
+    cancellationReason: {
+        type: String,
+        default: ''
+    },
+    cancelledAt: {
+        type: Date
+    },
+    returnReason: {
+        type: String,
+        default: ''
+    },
+    returnRequestedAt: {
+        type: Date
+    }
 },{timestamps: true})
 
 const Order = mongoose.model('Order',orderSchema)

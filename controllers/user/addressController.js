@@ -26,7 +26,8 @@ const loadAddAddress = async(req,res)=>{
     try {
         const userId = getUserId(req)
         const user = await User.findById(userId)
-        res.render('Addaddress',{user})
+        const source = req.query.source || null;
+        res.render('Addaddress',{user, source})
     } catch (error) {
        console.log('loadAddAddress error : ',error)
        res.redirect('/pageNotFound') 
@@ -54,7 +55,11 @@ const addAddress = async(req,res)=>{
         }
 
         await addressDocument.save()
-        res.redirect('/addressBook')
+        if (req.query.source === 'checkout') {
+            res.redirect('/checkout')
+        } else {
+            res.redirect('/addressBook')
+        }
     } catch (error) {
         console.log('addAddress error: ',error)
         res.redirect('/pageNotFound')

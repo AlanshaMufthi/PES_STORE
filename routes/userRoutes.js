@@ -14,7 +14,9 @@ import { loadCart, addToCart, editCartItem, removeCartItem, addFromWishlist } fr
 import { toggleWishlist, loadWishlist, addToWishlist, removeFromWishlist, moveAllToCart } from '../controllers/user/wishlistController.js';
 import { checkReviewEligibility, submitReview, getProductReviews, uploadReviewImgs } from '../controllers/user/reviewController.js';
 import {userAuth,userGuest} from '../middlewares/auth.js'
-import { getCheckout, placeOrder, getOrderSuccess } from '../controllers/user/checkoutController.js';
+import { loadCheckout, placeOrder, loadOrderSuccess } from '../controllers/user/checkoutController.js';
+import { loadOrders, loadOrderDetails, loadOrderTracking, cancelItem, returnItem, cancelOrder,
+        returnOrder, downloadInvoice } from '../controllers/user/orderController.js';
 
 
 
@@ -84,10 +86,19 @@ router.get('/products/:id/review/check', userAuth, checkReviewEligibility);
 router.post('/product/:id/review', userAuth, uploadReviewImgs, submitReview)
 router.get('/product/:id/reviews', getProductReviews)
 // checkout 
-router.get('/checkout', userAuth,getCheckout)
+router.get('/checkout', userAuth, loadCheckout)
 router.post('/checkout/place-order', userAuth,placeOrder)
-// order success
-router.get('/orders/success/:orderId', userAuth,getOrderSuccess)
+router.get('/orders/success/:orderId', userAuth,loadOrderSuccess)
+// order 
+router.get('/orders', userAuth, loadOrders)
+router.get('/orders/:orderId', userAuth, loadOrderDetails)
+router.get('/orders/:orderId/invoice', userAuth, downloadInvoice)
+router.get('/orders/:orderId/track/:itemId', userAuth, loadOrderTracking)
+router.post('/orders/:orderId/cancel-item', userAuth, cancelItem)
+router.post('/orders/:orderId/return-item', userAuth, returnItem)
+router.post('/orders/:orderId/cancel', userAuth, cancelOrder) 
+router.post('/orders/:orderId/return', userAuth, returnOrder) 
+
 
 
 
