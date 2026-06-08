@@ -18,10 +18,28 @@ const orderItemSchema = new Schema({
     size: {type: String, required: true},
     quantity: {type: Number, required: true, min: 1},
     price: {type: Number, required: true},
-    totalPrice: {type: Number, required: true}
+    totalPrice: {type: Number, required: true},
+    status: {
+        type: String,
+        enum: ['placed', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'cancel_requested', 'return_requested', 'returned'],
+        default: 'placed'
+    },
+    returnStatus: {
+        type: String,
+        enum: ['none', 'Requested', 'Accepted', 'Rejected'],
+        default: 'none'
+    },
+    returnReason: {
+        type: String,
+        default: ''
+    }
 })
 
 const orderSchema = new Schema({
+    orderId: {
+        type: String,
+        unique: true
+    },
     userId: {
         type: Schema.Types.ObjectId,
         ref:'User',
@@ -63,7 +81,7 @@ const orderSchema = new Schema({
 
     orderStatus: {
         type: String,
-        enum: ['placed','processing','shipped','delivered','cancelled', 'return_requested', 'returned'],
+        enum: ['placed','processing','shipped','out_for_delivery','delivered','cancelled', 'cancel_requested', 'return_requested', 'returned'],
         default: 'placed'
     },
 
@@ -95,6 +113,27 @@ const orderSchema = new Schema({
     }
 },{timestamps: true})
 
-const Order = mongoose.model('Order',orderSchema)
+orderSchema.pre('save', async function() {
+    if (this.orderId) return
+
+    const datePart = new Date().toISOString().slice(2, 10).replace(/-/g, '')
+    let attempt = 0
+
+    while (attempt < 10) {
+        const randomPart = Math.floor(1000 + Math.random() * 9000)
+        const candidate = `ORD${datePart}${randomPart}`
+        const exists = await mongoose.models.Order.exists({ orderId: candidate })
+
+        if (!exists) {
+            this.orderId = candidate
+            return
+        }
+        attempt += 1
+    }
+
+    this.orderId = `ORD${datePart}${Date.now().toString().slice(-6)}`
+});
+
+const Order = mongoose.model('Order', orderSchema)
 
 export default Order;

@@ -4,13 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cart – PES</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+   
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tailwind.css">
+
+<style>
+  .profile-dropdown {
+    position: absolute; right: 0; top: calc(100% + 10px);
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 160px;
+    z-index: 100; overflow: hidden; display: none;
+  }
+  .profile-dropdown.open { display: block; }
+  .profile-dropdown a {
+    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    font-size: 0.82rem; font-weight: 600; color: #111;
+    text-decoration: none; transition: background 0.15s;
+  }
+  .profile-dropdown a:hover { background: #f5f5f5; }
+  .profile-dropdown a.logout { color: #e63946; }
+  .profile-dropdown .divider { height: 1px; background: #eee; margin: 2px 0; }
+  .profile-wrap { position: relative; }
+  .icon-btn {
+    background: none; border: none; cursor: pointer; padding: 6px;
+    border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; color: #111;
+  }
+  .icon-btn:hover { background: #f3f3f3; }
+  .cart-wrap { position: relative; display: flex; align-items: center; }
+  .cart-count {
+    position: absolute; top: -7px; right: -7px;
+    background: #e63946; color: #fff; font-size: 0.6rem; font-weight: 800;
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .search-input {
+    background: #f3f3f3; border: 1px solid #ddd; border-radius: 6px;
+    padding: 0.35rem 2rem 0.35rem 0.75rem; font-size: 0.8rem;
+    outline: none; width: 180px; color: #555;
+  }
+  .search-wrap { position: relative; }
+</style>
   <style>
     body { font-family: 'Barlow', sans-serif; }
-    /* Only grey out the product content, NOT the remove button */
     .oos-content { opacity: 0.55; pointer-events: none; }
-    /* Re-enable pointer events on the image link specifically */
     .oos-content a { pointer-events: auto; }
     .qty-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   </style>
@@ -36,7 +73,6 @@
 
     <% } else { %>
 
-      <!-- Out-of-stock warning banner — shown only if any item is unavailable -->
       <% if (hasUnavailable) { %>
         <div class="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 text-sm font-medium px-4 py-3 rounded-xl mb-6">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -50,25 +86,25 @@
       <div class="space-y-6 mb-10">
         <% cartItems.forEach(item => { %>
           <%
+            // FIX: null-safe guard — skip rendering this item entirely if product is missing
+            if (!item.product) return;
             const oos = item.unavailable
-            const maxQty = Math.min(item.stockAvailable, 5)
+            const maxQty = Math.min(item.stockAvailable || 0, 5)
           %>
 
-          <!-- Row wrapper: no opacity here so remove button is always full brightness -->
           <div id="cart-item-<%= item._id %>"
                class="flex items-start gap-5 pb-6 border-b border-gray-100 <%= oos ? 'bg-gray-50 rounded-xl px-3 pt-3' : '' %>">
 
             <!-- IMAGE + INFO wrapped in oos-content so they grey out -->
             <div class="flex items-start gap-5 flex-1 min-w-0 <%= oos ? 'oos-content' : '' %>">
 
-              <!-- Image -->
+              <!-- Image — FIX: null-safe product._id -->
               <a href="/product/<%= item.product._id %>"
                  class="w-24 h-24 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0 relative">
-                <img src="<%= item.product.productImage?.[0] %>"
-                     alt="<%= item.product.productname %>"
+                <img src="<%= item.product.productImage?.[0] || '' %>"
+                     alt="<%= item.product.productname || 'Product' %>"
                      class="w-full h-full object-contain p-2 <%= oos ? 'grayscale' : '' %>"/>
                 <% if (oos) { %>
-                  <!-- Unavailable overlay on image -->
                   <div class="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
                     <span class="text-white text-[9px] font-bold uppercase tracking-wider text-center leading-tight px-1">Not<br/>Available</span>
                   </div>
@@ -80,20 +116,19 @@
                 <div class="flex items-start justify-between gap-2 flex-wrap">
                   <div>
                     <p class="font-bold text-sm uppercase tracking-wide leading-tight mb-1">
-                      <%= item.product.productname %>
+                      <%= item.product.productname || 'Unknown Product' %>
                     </p>
-                    <p class="text-xs text-gray-400 mb-2"><%= item.product.brand %></p>
+                    <p class="text-xs text-gray-400 mb-2"><%= item.product.brand || '' %></p>
 
                     <div class="flex items-center gap-2 flex-wrap">
                       <% if (!oos) { %>
-                        <span class="font-bold text-sm">₹<%= item.price.toLocaleString('en-IN') %></span>
+                        <span class="font-bold text-sm">₹<%= (item.price || 0).toLocaleString('en-IN') %></span>
                         <% if (item.variant && item.variant.offerActive) { %>
-                          <span class="text-xs text-gray-400 line-through">₹<%= item.variant.productPrice.toLocaleString('en-IN') %></span>
+                          <span class="text-xs text-gray-400 line-through">₹<%= (item.variant.productPrice || 0).toLocaleString('en-IN') %></span>
                         <% } %>
                       <% } %>
                       <span class="bg-gray-100 text-gray-700 text-xs font-semibold px-2.5 py-1 rounded-lg"><%= item.size %></span>
 
-                      <!-- Stock status badge -->
                       <% if (oos) { %>
                         <span class="bg-red-100 text-red-600 text-xs font-bold px-2.5 py-1 rounded-lg">Unavailable</span>
                       <% } else if (item.stockAvailable <= 3) { %>
@@ -105,16 +140,14 @@
                       <% } %>
                     </div>
 
-                    <!-- Item subtotal (only for available items) -->
                     <% if (!oos) { %>
                       <p class="text-xs text-gray-400 mt-2">
                         Item total: <span class="font-semibold text-gray-700" id="item-total-<%= item._id %>">
-                          ₹<%= (item.price * item.quantity).toLocaleString('en-IN') %>
+                          ₹<%= ((item.price || 0) * (item.quantity || 0)).toLocaleString('en-IN') %>
                         </span>
                       </p>
                     <% } %>
 
-                    <!-- Unavailable note -->
                     <% if (oos) { %>
                       <p class="text-xs text-red-400 mt-2 font-medium">
                         This item is currently unavailable. Remove it to proceed.
@@ -125,12 +158,10 @@
               </div>
 
             </div>
-            <!-- END oos-content wrapper -->
 
-            <!-- Quantity & Remove — OUTSIDE oos-content, always full opacity -->
+            <!-- Quantity & Remove -->
             <div class="flex flex-col items-end gap-3 flex-shrink-0">
 
-              <!-- Remove button — always active, never greyed -->
               <button
                 onclick="removeFromCart('<%= item._id %>')"
                 class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors"
@@ -141,30 +172,29 @@
                 Remove
               </button>
 
-              <!-- Quantity controls — only for available items -->
               <% if (!oos) { %>
                 <div class="flex items-center gap-0 border border-gray-200 rounded-lg overflow-hidden">
                   <button
-                    onclick="updateQty('<%= item._id %>', -1, <%= item.price %>, <%= maxQty %>)"
+                    onclick="updateQty('<%= item._id %>', -1, <%= item.price || 0 %>, <%= maxQty %>)"
                     class="qty-btn px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm"
                     id="minus-<%= item._id %>"
-                    <%= item.quantity <= 1 ? 'disabled' : '' %>
+                    <%= (item.quantity || 1) <= 1 ? 'disabled' : '' %>
                   >−</button>
 
                   <span id="qty-<%= item._id %>"
                         class="px-3 text-sm font-semibold min-w-[2rem] text-center">
-                    <%= item.quantity %>
+                    <%= item.quantity || 1 %>
                   </span>
 
                   <button
-                    onclick="updateQty('<%= item._id %>', 1, <%= item.price %>, <%= maxQty %>)"
+                    onclick="updateQty('<%= item._id %>', 1, <%= item.price || 0 %>, <%= maxQty %>)"
                     class="qty-btn px-2.5 py-1.5 text-gray-500 hover:bg-gray-100 transition-colors text-sm"
                     id="plus-<%= item._id %>"
-                    <%= item.quantity >= maxQty ? 'disabled' : '' %>
+                    <%= (item.quantity || 1) >= maxQty ? 'disabled' : '' %>
                   >+</button>
                 </div>
 
-                <% if (item.quantity >= maxQty) { %>
+                <% if ((item.quantity || 1) >= maxQty) { %>
                   <p class="text-[10px] text-gray-400 text-right">
                     <% if (item.stockAvailable <= 5) { %>
                       Max stock reached
@@ -188,7 +218,7 @@
           <div class="space-y-3 text-sm">
             <div class="flex justify-between pb-3 border-b border-gray-100">
               <span class="text-gray-600">Subtotal:</span>
-              <span class="font-semibold" id="subtotalDisplay">₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
+              <span class="font-semibold" id="subtotalDisplay">₹<%= (subtotal || 0).toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
             </div>
             <div class="flex justify-between pb-3 border-b border-gray-100">
               <span class="text-gray-600">Shipping:</span>
@@ -196,11 +226,10 @@
             </div>
             <div class="flex justify-between">
               <span class="font-bold">Total:</span>
-              <span class="font-bold" id="totalDisplay">₹<%= subtotal.toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
+              <span class="font-bold" id="totalDisplay">₹<%= (subtotal || 0).toLocaleString('en-IN', {minimumFractionDigits:2}) %></span>
             </div>
           </div>
 
-          <!-- Checkout button — disabled only if ALL items are unavailable (subtotal = 0) -->
           <% if (hasUnavailable && subtotal === 0) { %>
             <button disabled
               class="mt-6 block w-full bg-gray-300 text-gray-500 text-center py-3 rounded-xl font-semibold cursor-not-allowed">
@@ -222,9 +251,6 @@
   <%- include('../partials/user/footer.ejs') %>
 
   <script>
-    /* ── Cart badge updater ──
-       Targets id="headerCartCount" in your header.ejs.
-       Add that id to the <span> that shows the cart item count.        */
     function updateCartBadge(count) {
       const badge = document.getElementById('headerCartCount')
         || document.querySelector('[data-cart-count]')
@@ -242,7 +268,6 @@
         if (data.success) {
           document.getElementById(`cart-item-${itemId}`)?.remove()
           updateTotals(data.subtotal)
-          // ── FIX: update header cart badge immediately, no reload needed ──
           if (data.cartCount !== undefined) updateCartBadge(data.cartCount)
           showToast('Item removed')
           if (data.cartCount === 0) location.reload()
@@ -274,15 +299,12 @@
 
         if (data.success) {
           el.textContent = newQty
-
           const itemTotal = document.getElementById(`item-total-${itemId}`)
           if (itemTotal) {
             itemTotal.textContent = '₹' + (unitPrice * newQty).toLocaleString('en-IN')
           }
-
           if (minusBtn) minusBtn.disabled = newQty <= 1
           if (plusBtn)  plusBtn.disabled  = newQty >= maxQty
-
           updateTotals(data.subtotal)
         } else {
           showToast(data.message || 'Could not update quantity')

@@ -9,103 +9,73 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
-    body { background: #f0f0f0; margin: 0; }
+    body { background: #f8fafc; margin: 0; color: #334155; }
 
-    .topbar {
-      background: #d4d4d4; height: 72px; display: flex; align-items: center;
-      padding: 0 28px; gap: 20px; position: sticky; top: 0; z-index: 50;
-    }
-    .topbar-logo img { width: 58px; height: 58px; object-fit: contain; }
-    .icon-circle {
-      width: 42px; height: 42px; border-radius: 50%; background: #fff;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
+    /* ── Topbar ── */
+    .topbar { background: #fff; height: 72px; display: flex; align-items: center; padding: 0 32px; gap: 20px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e2e8f0; }
+    .topbar-logo img { width: 52px; height: 52px; object-fit: contain; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .icon-circle { width: 40px; height: 40px; border-radius: 12px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; border: 1px solid #e2e8f0; }
+    .icon-circle:hover { background: #e2e8f0; transform: translateY(-1px); }
+    .avatar img { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; border: 2px solid var(--primary-color); }
 
+    /* ── Layout ── */
     .layout { display: flex; min-height: calc(100vh - 72px); }
+    .main { flex: 1; padding: 40px; background: #f8fafc; max-width: 900px; margin: 0 auto; }
 
-    .sidebar { width: 200px; flex-shrink: 0; padding: 28px 16px; display: flex; flex-direction: column; gap: 4px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px; padding: 11px 16px;
-      border-radius: 10px; font-size: 0.97rem; font-weight: 600; color: #333;
-      cursor: pointer; text-decoration: none; transition: background 0.15s;
-    }
-    .nav-item:hover { background: rgba(0,0,0,0.06); }
-    .nav-item.active { background: #e63946; color: #fff; }
-    .nav-item.active svg { stroke: #fff; }
-    .nav-item.signout { color: #e63946; }
-    .nav-item.signout svg { stroke: #e63946; }
+    /* ── Header ── */
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .page-title { font-size: 1.85rem; font-weight: 800; color: #0f172a; letter-spacing: -0.02em; }
 
-    .main { flex: 1; padding: 28px 28px 40px 20px; }
-
+    /* ── Card ── */
     .form-card {
-      background: #fff; border-radius: 14px; padding: 36px 40px;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.07); max-width: 860px;
+      background: #fff; border-radius: 24px; border: 1px solid #e2e8f0;
+      padding: 40px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
     }
 
-    .field-label { font-size: 0.88rem; font-weight: 700; color: #111; margin-bottom: 8px; display: block; }
-
-    .field-input {
-      width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb;
-      border-radius: 8px; font-size: 0.88rem; font-weight: 500;
-      color: #333; font-family: 'Nunito', sans-serif; outline: none;
-      transition: border-color 0.2s; background: #fff;
+    /* ── Fields ── */
+    .field-group { margin-bottom: 24px; }
+    .field-label { display: block; font-size: 0.85rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field-input, .field-select, .field-textarea {
+      width: 100%; padding: 12px 16px; border-radius: 12px; border: 1.5px solid #e2e8f0;
+      font-size: 0.95rem; font-weight: 600; color: #1e293b; transition: all 0.2s; outline: none; background: #fcfdfe;
     }
-    .field-input:focus { border-color: #22c55e; }
-    .field-input.error { border-color: #e63946; }
-    .field-input::placeholder { color: #bbb; }
+    .field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+    .field-textarea { min-height: 120px; resize: vertical; }
 
-    textarea.field-input { resize: none; height: 120px; }
+    .field-input.error { border-color: #ef4444; background: #fff1f2; }
+    .error-msg { font-size: 0.8rem; color: #ef4444; font-weight: 700; margin-top: 6px; display: none; }
+    .error-msg.show { display: block; animation: shake 0.3s ease-in-out; }
 
-    .field-select {
-      width: 100%; padding: 12px 16px; border: 1.5px solid #e5e7eb;
-      border-radius: 8px; font-size: 0.88rem; font-weight: 500;
-      color: #333; font-family: 'Nunito', sans-serif; outline: none;
-      appearance: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 14px center;
-      cursor: pointer; transition: border-color 0.2s;
-    }
-    .field-select:focus { border-color: #22c55e; }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
 
-    .error-msg { font-size: 0.75rem; color: #e63946; font-weight: 600; margin-top: 4px; display: none; }
-    .error-msg.show { display: block; }
+    /* ── Toggle Switch ── */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 24px; }
+    .toggle-info div:first-child { font-size: 0.95rem; font-weight: 800; color: #1e293b; }
+    .toggle-info div:last-child { font-size: 0.8rem; font-weight: 600; color: #64748b; margin-top: 2px; }
 
+    .switch { position: relative; display: inline-block; width: 46px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 34px; transition: 0.4s; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
+    input:checked + .slider { background: var(--bg-active); }
+    input:checked + .slider:before { transform: translateX(22px); }
+    input:disabled + .slider { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Buttons ── */
     .btn-save {
-      background: #e63946; color: #fff; border: none; border-radius: 8px;
-      padding: 11px 36px; font-size: 0.88rem; font-weight: 700;
-      cursor: pointer; font-family: 'Nunito', sans-serif; transition: background 0.15s;
+      background: var(--bg-active); color: #fff; border: none; padding: 14px 32px;
+      border-radius: 14px; font-size: 1rem; font-weight: 800; cursor: pointer;
+      transition: all 0.3s; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
     }
-    .btn-save:hover { background: #c0303b; }
-
+    .btn-save:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4); }
+    
     .btn-cancel {
-      background: #fff; color: #e63946; border: 2px solid #e63946;
-      border-radius: 8px; padding: 11px 36px; font-size: 0.88rem;
-      font-weight: 700; cursor: pointer; font-family: 'Nunito', sans-serif;
-      text-decoration: none; transition: background 0.15s; display: inline-block;
+      background: #f1f5f9; color: #64748b; padding: 14px 32px; border-radius: 14px;
+      font-size: 1rem; font-weight: 800; text-decoration: none; transition: all 0.2s;
+      border: 1px solid #e2e8f0;
     }
-    .btn-cancel:hover { background: #fff5f5; }
-
-    /* Offer toggle row — matches product variant modal style */
-    .offer-toggle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      background: #fffbeb; border: 1.5px solid #fde68a;
-      border-radius: 8px; padding: 12px 16px;
-    }
-    .offer-toggle-label { font-size: 0.88rem; font-weight: 700; color: #92400e; }
-    .offer-toggle-sub { font-size: 0.75rem; color: #b45309; font-weight: 600; margin-top: 2px; }
-    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-track {
-      position: absolute; cursor: pointer; inset: 0;
-      background: #d1d5db; border-radius: 999px; transition: background 0.25s;
-    }
-    .toggle-track::before {
-      content: ''; position: absolute; width: 18px; height: 18px;
-      border-radius: 50%; background: #fff; left: 3px; top: 3px;
-      transition: transform 0.25s;
-    }
-    .toggle-switch input:checked + .toggle-track { background: #f59e0b; }
-    .toggle-switch input:checked + .toggle-track::before { transform: translateX(20px); }
-    .toggle-switch input:disabled + .toggle-track { opacity: 0.4; cursor: not-allowed; }
+    .btn-cancel:hover { background: #e2e8f0; color: #1e293b; }
   </style>
 </head>
 <body>
@@ -113,119 +83,80 @@
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-logo"><img src="/img/pes.logo.png" alt="2ES Logo" /></div>
-    <div class="icon-circle" style="overflow:hidden; margin-left:auto;">
-      <img src="/images/admin-avatar.jpg" alt="Admin" style="width:42px;height:42px;object-fit:cover;border-radius:50%;" />
+    <div class="topbar-actions">
+      <div class="icon-circle"><svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div class="avatar"><img src="/images/admin-avatar.jpg" alt="Admin" /></div>
     </div>
   </div>
 
-  <!-- LAYOUT -->
   <div class="layout">
+    <%- include('../partials/admin/sidebar.ejs', { activePage: 'categories' }) %>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <a href="/admin/dashboard" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard
-      </a>
-      <a href="/admin/orders" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>Order
-      </a>
-      <a href="/admin/products" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Products
-      </a>
-      <a href="/admin/sales" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Sales report
-      </a>
-      <a href="/admin/customers" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Customer
-      </a>
-      <a href="/admin/coupons" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Coupon
-      </a>
-      <a href="/admin/categories" class="nav-item active">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Category
-      </a>
-      <a href="/admin/refunds" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>Refund/Return
-      </a>
-      <a href="/admin/logout" class="nav-item signout">
-        <svg width="18" height="18" fill="none" stroke-width="2.2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
-      </a>
-    </aside>
-
-    <!-- MAIN -->
     <main class="main">
-      <h1 style="font-size:1.7rem;font-weight:900;color:#111;margin-bottom:28px;">Edit Category</h1>
+      <div class="page-header">
+        <h1 class="page-title">Edit Category</h1>
+      </div>
 
       <div class="form-card">
         <form id="editCategoryForm" novalidate>
-          <div style="display:flex;flex-direction:column;gap:22px;">
-
-            <!-- Category Name -->
-            <div>
-              <label class="field-label">Category Name</label>
-              <input type="text" id="name" name="name" class="field-input"
-                placeholder="AG-Artificial Ground" value="<%= category.name %>" />
-              <p class="error-msg" id="nameErr"></p>
-            </div>
-
-            <!-- Category Description -->
-            <div>
-              <label class="field-label">Category Description</label>
-              <textarea id="description" name="description" class="field-input"
-                placeholder="Write your description here..."><%= category.description %></textarea>
-              <p class="error-msg" id="descErr"></p>
-            </div>
-
-            <!-- Visibility Status + Discounts -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-              <div>
-                <label class="field-label">Visibility Status</label>
-                <select id="isBlocked" name="isBlocked" class="field-select">
-                  <option value="true"  <%= !category.isBlocked ? 'selected' : '' %>>Active</option>
-                  <option value="false" <%= category.isBlocked ? 'selected' : '' %>>Inactive</option>
-                </select>
-              </div>
-              <div>
-                <label class="field-label">Discounts/Offers</label>
-                <select id="offer" name="offer" class="field-select" onchange="handleOfferChange()">
-                  <% [0,5,10,15,20,25,30,50].forEach(val => { %>
-                    <option value="<%= val %>" <%= category.categoryOffer == val ? 'selected' : '' %>><%= val %>%</option>
-                  <% }) %>
-                </select>
-              </div>
-            </div>
-
-            <!-- ── Offer Active Toggle ── -->
-            <div class="offer-toggle-row">
-              <div>
-                <div class="offer-toggle-label">Activate Offer</div>
-                <div class="offer-toggle-sub" id="offerToggleSub">
-                  <% if (category.categoryOffer > 0) { %>
-                    Toggle to enable or disable the <%= category.categoryOffer %>% offer
-                  <% } else { %>
-                    Set a discount % above to enable
-                  <% } %>
-                </div>
-              </div>
-              <label class="toggle-switch">
-                <input type="checkbox" id="offerActive"
-                  <%= category.categoryOffer > 0 ? '' : 'disabled' %>
-                  <%= category.offerActive ? 'checked' : '' %> />
-                <span class="toggle-track"></span>
-              </label>
-            </div>
-
-            <!-- Buttons -->
-            <div style="display:flex;justify-content:center;gap:16px;margin-top:8px;">
-              <a href="/admin/categories" class="btn-cancel">Cancel</a>
-              <button type="submit" class="btn-save">Save</button>
-            </div>
-
+          
+          <div class="field-group">
+            <label class="field-label">Category Name</label>
+            <input type="text" id="name" name="name" class="field-input" placeholder="e.g. Football Cleats" value="<%= category.name %>" />
+            <p class="error-msg" id="nameErr"></p>
           </div>
+
+          <div class="field-group">
+            <label class="field-label">Category Description</label>
+            <textarea id="description" name="description" class="field-input" placeholder="Describe the category..."><%= category.description %></textarea>
+            <p class="error-msg" id="descErr"></p>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="field-group">
+              <label class="field-label">Visibility Status</label>
+              <select id="isBlocked" name="isBlocked" class="field-select">
+                <option value="true"  <%= !category.isBlocked ? 'selected' : '' %>>Active</option>
+                <option value="false" <%= category.isBlocked ? 'selected' : '' %>>Inactive</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label">Discount Percentage</label>
+              <select id="offer" name="offer" class="field-select" onchange="handleOfferChange()">
+                <% [0,5,10,15,20,25,30,50].forEach(val => { %>
+                  <option value="<%= val %>" <%= category.categoryOffer == val ? 'selected' : '' %>><%= val %><%= val === 0 ? '% (None)' : '%' %></option>
+                <% }) %>
+              </select>
+            </div>
+          </div>
+
+          <div class="toggle-row">
+            <div class="toggle-info">
+              <div>Activate Offer</div>
+              <div id="offerToggleSub">
+                <% if (category.categoryOffer > 0) { %>
+                  Toggle to enable or disable the <%= category.categoryOffer %>% offer
+                <% } else { %>
+                  Set a discount % to enable
+                <% } %>
+              </div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="offerActive" <%= category.categoryOffer > 0 ? '' : 'disabled' %> <%= category.offerActive ? 'checked' : '' %> />
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 16px; justify-content: flex-end; margin-top: 32px;">
+            <a href="/admin/categories" class="btn-cancel">Cancel</a>
+            <button type="submit" class="btn-save">Update Category</button>
+          </div>
+
         </form>
       </div>
     </main>
   </div>
+
 
   <script>
     function showErr(id, errId, msg) {

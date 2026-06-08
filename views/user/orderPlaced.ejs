@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Placed - PES</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  
 </head>
 <body>
 <%- include('../partials/user/header.ejs', { page: 'orders', cartCount: locals.cartCount || 0, searchQuery: locals.searchQuery || '' }) %>
@@ -71,10 +71,7 @@
     margin-bottom: 10px;
   }
 
-  .order-detail-table tr {
-    border-bottom: 1px solid var(--border);
-  }
-
+  .order-detail-table tr { border-bottom: 1px solid var(--border); }
   .order-detail-table tr:last-child { border-bottom: none; }
 
   .order-detail-table td {
@@ -82,15 +79,8 @@
     font-size: 0.82rem;
   }
 
-  .order-detail-table td:first-child {
-    color: var(--gray-600);
-    width: 48%;
-  }
-
-  .order-detail-table td:last-child {
-    font-weight: 600;
-    text-align: right;
-  }
+  .order-detail-table td:first-child { color: var(--gray-600); width: 48%; }
+  .order-detail-table td:last-child { font-weight: 600; text-align: right; }
 
   .eta {
     font-family: 'Syne', sans-serif;
@@ -154,11 +144,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  .success-card > * {
-    animation: fadeUp 0.4s ease forwards;
-    opacity: 0;
-  }
-
+  .success-card > * { animation: fadeUp 0.4s ease forwards; opacity: 0; }
   .success-card > *:nth-child(1) { animation-delay: 0.1s; }
   .success-card > *:nth-child(2) { animation-delay: 0.2s; }
   .success-card > *:nth-child(3) { animation-delay: 0.3s; }
@@ -173,7 +159,7 @@
       <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
 
-    <div class="success-title">Payment Successful</div>
+    <div class="success-title">Order Placed Successfully!</div>
 
     <table class="order-detail-table">
       <tr>
@@ -190,7 +176,12 @@
       </tr>
       <tr>
         <td>Payment Method</td>
-        <td><%= order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod.toUpperCase() %></td>
+        <%
+          // FIX: null-safe — order.paymentMethod could be undefined, crashing .toUpperCase()
+          const pm = order.paymentMethod || 'cod';
+          const pmDisplay = pm === 'cod' ? 'Cash on Delivery' : pm.toUpperCase();
+        %>
+        <td><%= pmDisplay %></td>
       </tr>
       <tr>
         <td>Amount</td>

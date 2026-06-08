@@ -4,23 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sign Up – 2ES Store</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            body: ['Raleway', 'sans-serif'],
-            display: ['Playfair Display', 'serif'],
-          }
-        }
-      }
-    }
-  </script>
+
 
   <style>
     * { font-family: 'Raleway', sans-serif; box-sizing: border-box; }
@@ -211,18 +200,7 @@
     }
     .terms-label a:hover { color: rgba(255,255,255,0.85); }
 
-    /* General error banner */
-    #generalError {
-      display: none;
-      margin-bottom: 1rem;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      background: rgba(239, 68, 68, 0.2);
-      border: 1px solid #f87171;
-      color: #fecaca;
-      text-align: center;
-      font-size: 0.875rem;
-    }
+  <%- include('../partials/sweetalert.ejs') %>
   </style>
 </head>
 <body class="bg-black">
@@ -243,8 +221,6 @@
           <h1 class="signup-heading mb-5">Sign-Up</h1>
           <p class="sub-label">Enter your details below</p>
 
-          <!-- General error banner (for server errors like email send failure) -->
-          <div id="generalError"></div>
 
           <!-- No action/method — handled entirely by fetch -->
           <form id="signupForm" class="flex flex-col gap-4" novalidate>
@@ -389,13 +365,16 @@
     }
 
     function showGeneralError(message) {
-      const banner = document.getElementById('generalError');
-      banner.textContent = message;
-      banner.style.display = 'block';
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: message,
+        confirmButtonColor: '#ef4444'
+      });
     }
 
     function hideGeneralError() {
-      document.getElementById('generalError').style.display = 'none';
+      // No longer needed with SweetAlerts
     }
 
     /* ── Clear errors on input ── */

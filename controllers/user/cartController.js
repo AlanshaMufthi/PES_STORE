@@ -10,8 +10,9 @@ const isVariantAvailable = (variant)=>{
 
     const status = (variant.status || '').toString().toLowerCase()
     if(status === 'archived') return false
-    if(status === 'outofstock') return false
-
+    
+    // If status is outofstock but we have stock, it's actually available
+    // unless the admin explicitly archived it.
     return Number(variant.stock) > 0
 }
 
@@ -30,7 +31,6 @@ const variant = product.variants.find((v)=> v._id.toString() === variantId.toStr
 
 if(!variant) return {ok:false,message:'Variant not found.'}
 if(variant.status === 'archived') return {ok:false,message:'This variant is no longer available'}
-if(variant.status === 'outOfStock') return {ok:false,message:'The variant is Out Of Stock.'}
 if(variant.stock <= 0) return {ok:false,message:'This item is out of stock'}
 if(!variant.size.includes(size)) return {ok:false,message:`Size ${size} is not available`}
 if(variant.stock < requiredQty) {
@@ -55,9 +55,7 @@ const loadCart = async(req,res)=>{
             select:'productname productImage variants isBlocked brand category',
             populate:{ path:'category', select:'isBlocked', match:{ isBlocked:false } }
          })
-        .lean()
         
-       
 
         if(!cart || !cart.items.length){
             return res.render('cart',{
@@ -66,25 +64,45 @@ const loadCart = async(req,res)=>{
         }
 
          let hasUnavailable = false;
+         let cartNeedsUpdate = false;
+
          const cartItems = cart.items
          .filter((items)=> items.productId && items.productId.category)
          .map((items)=>{
             const product = items.productId;
             const variant = product.variants?.find((v)=> v._id.toString() === items.variantId?.toString())
 
-            const unavailable = product.isBlocked || !isVariantAvailable(variant)
+            // Live availability check against real-time stock
+            const stockAvailable = variant?.stock ?? 0
+            const isOutOfStock = stockAvailable <= 0
+            const unavailable = product.isBlocked || !variant || variant.status === 'archived' || isOutOfStock
+
             if(unavailable) hasUnavailable = true;
 
+            // If this item was 'onstock' but live stock is now 0, mark it in the DB
+            if(isOutOfStock && (items.status || '').toLowerCase() === 'onstock'){
+                items.status = 'outOfStock'
+                cartNeedsUpdate = true
+            }
+            // If variant was restocked (stock > 0) but item was 'outofstock', refresh it
+            if(!isOutOfStock && !product.isBlocked && variant?.status !== 'archived'
+               && (items.status || '').toLowerCase() === 'outofstock'){
+                items.status = 'onStock'
+                cartNeedsUpdate = true
+            }
+
             return {
-                ...items,
+                ...items.toObject ? items.toObject() : items,
                 product,
                 variant,
                 quantity : items.quantity || 0,
-                stockAvailable : variant?.stock || 0,
+                stockAvailable,
                 unavailable,
                 livePrice : variant?.offerActive ? variant.offerPrice : variant?.productPrice
             }
          })
+
+         if(cartNeedsUpdate) await cart.save()
 
          const subtotal = cartItems
          .filter((i)=> !i.unavailable)
@@ -102,6 +120,7 @@ const loadCart = async(req,res)=>{
         res.redirect('/pageNotFound')
     }
 }
+
 
 
 const addToCart = async(req,res)=>{

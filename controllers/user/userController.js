@@ -72,6 +72,11 @@ function generateOtp(){
 
 async function sendVerificationEmail(email,otp){
     try {
+        if(!process.env.NODEMAILER_EMAIL || !process.env.NODEMAILER_PASSWORD){
+            // Fallback for local/dev environments: keep auth flow working and show OTP in server log.
+            console.log(`NODEMAILER credentials are missing. OTP for ${email}: ${otp}`)
+            return true
+        }
         const transporter = nodemailer.createTransport({
             service:'gmail',
             port:587,
@@ -86,8 +91,6 @@ async function sendVerificationEmail(email,otp){
             }
             
         })
-        console.log(process.env.NODEMAILER_EMAIL)
-            console.log(process.env.NODEMAILER_PASSWORD)
 
         const info = await transporter.sendMail({
             from:process.env.NODEMAILER_EMAIL,
@@ -119,7 +122,7 @@ const signup = async(req,res)=>{
         return res.status(400).json({success:false,field:'firstName',message:'First name must be at least 3 characters'})
        }
        if(!lastName || (lastName.match(/[a-zA-Z]/g) || []).length<2){
-        return res.status(400).json({success:false,dield:'lastName',message:'Last name must be at least 2 characters'})
+        return res.status(400).json({success:false,field:'lastName',message:'Last name must be at least 2 characters'})
        }
        if(!phone || !/^[0-9]{10}$/.test(phone.trim())){
         return res.status(400).json({success:false,field:'phone',message:'Enter a valid 10-digit phone number'})
@@ -133,19 +136,20 @@ const signup = async(req,res)=>{
         if(password !== confirmPassword){
             return res.status(400).json({success:false,field:'confirmPassword',message:'Passwords do not match'})
         }
-        const findUser = await User.findOne({email})
+        const normalizedEmail = email.trim().toLowerCase()
+        const findUser = await User.findOne({email: normalizedEmail})
         if(findUser){
-            return res.render('signup',{message:'User with this email already exist'});
+            return res.status(409).json({success:false,field:'email',message:'User with this email already exists'})
         }
         const otp = generateOtp()
         
-        const emailSent = await sendVerificationEmail(email,otp)
+        const emailSent = await sendVerificationEmail(normalizedEmail,otp)
               
         if(!emailSent){
-            return res.json('email-error')
+            return res.status(500).json({success:false,message:'Unable to send OTP now. Please try again later'})
         }
         req.session.userOtp = otp;
-        req.session.userData = {firstName,lastName,phone,email,password};
+        req.session.userData = {firstName,lastName,phone,email: normalizedEmail,password};
         
         
          console.log('otp sent',otp)
@@ -272,11 +276,18 @@ const loadLogin = async(req,res)=>{
 const login = async(req,res)=>{
     try {
         
-
        const {email,password}=req.body;
+       const normalizedEmail = (email || '').trim().toLowerCase()
+
+       if(!normalizedEmail){
+        return res.render('login',{message:'Email is required'})
+       }
+       if(!password){
+        return res.render('login',{message:'Password is required'})
+       }
        
        
-       const findUser = await User.findOne({isAdmin:0,email:email});
+       const findUser = await User.findOne({isAdmin:false,email:normalizedEmail});
        
        
        if(!findUser){
@@ -284,6 +295,9 @@ const login = async(req,res)=>{
        }
        if(findUser.isBlocked){
         return res.render('login',{message:'user is blocked by admin'})
+       }
+       if(findUser.googleId && !findUser.password){
+        return res.render('login',{message:'This account uses Google login. Please continue with Google.'})
        }
 
        const passwordMatch = await bcrypt.compare(password,findUser.password)

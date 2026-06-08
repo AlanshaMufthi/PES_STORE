@@ -4,17 +4,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Checkout – PES Store</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/tailwind.css">
+
+<style>
+  .profile-dropdown {
+    position: absolute; right: 0; top: calc(100% + 10px);
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); min-width: 160px;
+    z-index: 100; overflow: hidden; display: none;
+  }
+  .profile-dropdown.open { display: block; }
+  .profile-dropdown a {
+    display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+    font-size: 0.82rem; font-weight: 600; color: #111;
+    text-decoration: none; transition: background 0.15s;
+  }
+  .profile-dropdown a:hover { background: #f5f5f5; }
+  .profile-dropdown a.logout { color: #e63946; }
+  .profile-dropdown .divider { height: 1px; background: #eee; margin: 2px 0; }
+  .profile-wrap { position: relative; }
+  .icon-btn {
+    background: none; border: none; cursor: pointer; padding: 6px;
+    border-radius: 6px; display: flex; align-items: center;
+    justify-content: center; color: #111;
+  }
+  .icon-btn:hover { background: #f3f3f3; }
+  .cart-wrap { position: relative; display: flex; align-items: center; }
+  .cart-count {
+    position: absolute; top: -7px; right: -7px;
+    background: #e63946; color: #fff; font-size: 0.6rem; font-weight: 800;
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .search-input {
+    background: #f3f3f3; border: 1px solid #ddd; border-radius: 6px;
+    padding: 0.35rem 2rem 0.35rem 0.75rem; font-size: 0.8rem;
+    outline: none; width: 180px; color: #555;
+  }
+  .search-wrap { position: relative; }
+</style>
   <style>
     * { font-family: 'Barlow', sans-serif; box-sizing: border-box; }
     .heading-font { font-family: 'Barlow Condensed', sans-serif; }
 
-    /* ── Radio custom ── */
     input[type="radio"] { accent-color: #0a0a0a; width: 17px; height: 17px; cursor: pointer; flex-shrink: 0; }
 
-    /* ── Address card ── */
     .address-card {
       border: 1.5px solid #e2e2e2;
       border-radius: 6px;
@@ -26,13 +63,8 @@
       transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
     .address-card:hover { border-color: #bbb; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
-    .address-card.selected {
-      border-color: #0a0a0a;
-      background: #fafafa;
-      box-shadow: 0 0 0 1px #0a0a0a;
-    }
+    .address-card.selected { border-color: #0a0a0a; background: #fafafa; box-shadow: 0 0 0 1px #0a0a0a; }
 
-    /* ── Payment option ── */
     .pay-option {
       border: 1.5px solid #e2e2e2;
       border-radius: 6px;
@@ -46,7 +78,14 @@
     .pay-option:hover { border-color: #bbb; }
     .pay-option.selected { border-color: #0a0a0a; background: #fafafa; box-shadow: 0 0 0 1px #0a0a0a; }
 
-    /* ── Buttons ── */
+    /* FIX: disabled payment options — greyed out, not clickable */
+    .pay-option.disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .pay-option.disabled input[type="radio"] { pointer-events: none; }
+
     .btn-black {
       background: #0a0a0a; color: #fff;
       border: none; border-radius: 5px;
@@ -72,7 +111,6 @@
     }
     .btn-outline-black:hover { background: #0a0a0a; color: #fff; }
 
-    /* ── Inline error ── */
     .inline-error {
       display: none; align-items: center; gap: 7px;
       color: #c0392b; font-size: 0.82rem;
@@ -84,19 +122,11 @@
     }
     .inline-error.show { display: flex; }
 
-    .section-error { border: 1.5px solid #c0392b !important; border-radius: 6px; padding: 12px; }
-
-    /* ── Sidebar ── */
     .sidebar-sticky { position: sticky; top: 28px; }
-
-    /* ── Coupon ── */
     .coupon-input { transition: border-color 0.2s; }
     .coupon-input:focus { outline: none; border-color: #0a0a0a; }
-
-    /* ── Divider ── */
     .divider { border: none; border-top: 1px solid #e2e2e2; margin: 0; }
 
-    /* ── Step indicator ── */
     .step-dot {
       width: 28px; height: 28px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
@@ -106,44 +136,34 @@
     .step-active { background: #0a0a0a; color: #fff; }
     .step-done { background: #27ae60; color: #fff; }
     .step-inactive { background: #e2e2e2; color: #999; }
-
-    /* ── Progress bar ── */
     .progress-line { height: 2px; flex: 1; background: #e2e2e2; }
     .progress-line.done { background: #27ae60; }
 
-    /* ── Section label ── */
     .section-label {
       font-family: 'Barlow Condensed', sans-serif;
       font-size: 0.75rem; font-weight: 700;
       text-transform: uppercase; letter-spacing: 1.5px;
       color: #888; margin-bottom: 10px;
     }
-
-    /* ── Tag badges ── */
     .tag { font-size: 0.62rem; font-weight: 800; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px; }
 
-    /* ── Item card ── */
     .item-card {
       display: flex; gap: 16px; padding: 16px;
       border-radius: 6px; background: #fafafa;
       border: 1px solid #efefef;
     }
-
-    /* ── Summary row ── */
     .summary-row { display: flex; justify-content: space-between; font-size: 0.88rem; }
 
-    /* ── Scroll bar ── */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
 
-    /* ── Animations ── */
     @keyframes slideIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
     .slide-in { animation: slideIn 0.3s ease forwards; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900 min-h-screen">
 
-  <!-- ═══════════ NAVBAR ═══════════ -->
+  <!-- NAVBAR -->
   <header class="bg-white border-b border-gray-200 px-6 md:px-12 py-3 flex items-center justify-between sticky top-0 z-30 shadow-sm">
     <a href="/" class="flex items-center gap-2">
       <div class="w-11 h-11 flex items-center justify-center border-2 border-black rounded-sm">
@@ -157,7 +177,6 @@
       <span class="heading-font text-xl font-extrabold tracking-widest uppercase hidden sm:block">PES Store</span>
     </a>
 
-    <!-- Breadcrumb steps -->
     <div class="hidden md:flex items-center gap-2">
       <div class="step-dot step-done">
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
@@ -169,14 +188,14 @@
       <div class="ml-3 text-xs font-semibold text-gray-500 uppercase tracking-widest">Checkout</div>
     </div>
 
-    <a href="/account" class="text-gray-600 hover:text-black transition-colors">
+    <a href="/profile" class="text-gray-600 hover:text-black transition-colors">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
       </svg>
     </a>
   </header>
 
-  <!-- ═══════════ MAIN ═══════════ -->
+  <!-- MAIN -->
   <main class="max-w-6xl mx-auto px-4 md:px-8 py-8">
 
     <div class="mb-7 flex items-center gap-3">
@@ -190,7 +209,7 @@
 
     <div class="flex flex-col lg:flex-row gap-7">
 
-      <!-- ─────────── LEFT ─────────── -->
+      <!-- LEFT -->
       <div class="flex-1 min-w-0 space-y-6">
 
         <!-- Cart Items -->
@@ -198,43 +217,25 @@
           <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 class="heading-font font-bold text-lg uppercase tracking-wider">
               Order Items
-              <% if (typeof cartItems !== 'undefined') { %>
-                <span class="text-sm font-normal text-gray-400 ml-2 normal-case tracking-normal">(<%= cartItems.length %> items)</span>
-              <% } %>
+              <span class="text-sm font-normal text-gray-400 ml-2 normal-case tracking-normal">(<%= cartItems.length %> items)</span>
             </h2>
           </div>
           <div class="divide-y divide-gray-100 px-5 py-3">
-            <% if (typeof cartItems !== 'undefined' && cartItems.length > 0) { %>
-              <% cartItems.forEach(function(item) { %>
-              <div class="item-card my-3">
-                <div class="w-24 h-20 bg-white flex-shrink-0 overflow-hidden rounded-md border border-gray-100">
-                  <img src="<%= item.image %>" alt="<%= item.name %>" class="w-full h-full object-contain"/>
-                </div>
-                <div class="flex-1 flex flex-col justify-between min-w-0">
-                  <p class="font-semibold text-sm leading-snug text-gray-900 truncate"><%= item.name %></p>
-                  <div class="flex items-center gap-3 mt-1">
-                    <span class="bg-gray-100 border border-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded">Size <%= item.size %></span>
-                    <span class="text-xs text-gray-400 font-medium">Qty: <%= item.quantity %></span>
-                  </div>
-                  <p class="font-bold text-sm mt-1 text-gray-900">₹<%= item.price.toLocaleString('en-IN') %></p>
-                </div>
+            <% cartItems.forEach(function(item) { %>
+            <div class="item-card my-3">
+              <div class="w-24 h-20 bg-white flex-shrink-0 overflow-hidden rounded-md border border-gray-100">
+                <img src="<%= item.image || '' %>" alt="<%= item.name %>" class="w-full h-full object-contain"/>
               </div>
-              <% }) %>
-            <% } else { %>
-              <div class="item-card my-3">
-                <div class="w-24 h-20 bg-white flex-shrink-0 overflow-hidden rounded-md border border-gray-100">
-                  <img src="/images/shoe1.png" alt="Puma Football Shoe" class="w-full h-full object-contain"/>
+              <div class="flex-1 flex flex-col justify-between min-w-0">
+                <p class="font-semibold text-sm leading-snug text-gray-900 truncate"><%= item.name %></p>
+                <div class="flex items-center gap-3 mt-1">
+                  <span class="bg-gray-100 border border-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded">Size <%= item.size %></span>
+                  <span class="text-xs text-gray-400 font-medium">Qty: <%= item.quantity %></span>
                 </div>
-                <div class="flex-1 flex flex-col justify-between min-w-0">
-                  <p class="font-semibold text-sm leading-snug text-gray-900">Puma Unisex-Adult Ultra 5 Ultimate Fg Football Shoe</p>
-                  <div class="flex items-center gap-3 mt-1">
-                    <span class="bg-gray-100 border border-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded">Size 9</span>
-                    <span class="text-xs text-gray-400 font-medium">Qty: 1</span>
-                  </div>
-                  <p class="font-bold text-sm mt-1">₹7,999</p>
-                </div>
+                <p class="font-bold text-sm mt-1 text-gray-900">₹<%= (item.price || 0).toLocaleString('en-IN') %></p>
               </div>
-            <% } %>
+            </div>
+            <% }) %>
           </div>
         </div>
 
@@ -257,27 +258,19 @@
                       <% if (addr.isPrimary) { %><span class="tag bg-gray-900 text-white">PRIMARY</span><% } %>
                     </div>
                     <p class="text-sm text-gray-600 leading-relaxed"><%= addr.addressLine %>, <%= addr.town %>, <%= addr.state %> – <%= addr.pincode %></p>
-                    <p class="text-sm text-gray-500 mt-1">📞 +91 <%= addr.phone %></p>
+                    <div class="flex items-center justify-between mt-1">
+                      <p class="text-sm text-gray-500">📞 +91 <%= addr.phone %></p>
+                      <a href="/editAddress/<%= addr._id %>?source=checkout" class="text-xs font-bold text-blue-600 hover:underline">Edit</a>
+                    </div>
                   </div>
                 </label>
                 <% }) %>
               <% } else { %>
-                <label class="address-card selected">
-                  <input type="radio" name="delivery_address" value="addr1" class="mt-0.5" checked/>
-                  <div class="flex-1">
-                    <p class="font-bold text-sm mb-1">ALNSHA</p>
-                    <p class="text-sm text-gray-600">Kerala – 686672</p>
-                    <p class="text-sm text-gray-500 mt-1">📞 +91 1234567890</p>
-                  </div>
-                </label>
-                <label class="address-card">
-                  <input type="radio" name="delivery_address" value="addr2" class="mt-0.5"/>
-                  <div class="flex-1">
-                    <p class="font-bold text-sm mb-1">JOHN</p>
-                    <p class="text-sm text-gray-600">Kerala – 689743</p>
-                    <p class="text-sm text-gray-500 mt-1">📞 +91 0987654321</p>
-                  </div>
-                </label>
+                <!-- No addresses saved -->
+                <div class="text-center py-8">
+                  <p class="text-sm text-gray-500 mb-3">No saved addresses found.</p>
+                  <a href="/addAddress?source=checkout" class="btn-black px-6 py-2.5 text-sm">+ Add Delivery Address</a>
+                </div>
               <% } %>
             </div>
             <div id="addressError" class="inline-error mt-3">
@@ -288,6 +281,7 @@
         </div>
 
         <!-- Payment Methods -->
+        <!-- FIX: only COD is enabled — card/bank/upi are disabled (no gateway integrated) -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
           <div class="px-5 py-4 border-b border-gray-100">
             <h2 class="heading-font font-bold text-lg uppercase tracking-wider">Payment Method</h2>
@@ -296,52 +290,53 @@
           <div class="px-5 py-4">
             <div id="paymentSection" class="space-y-3">
 
-              <label class="pay-option" id="pay-card">
+              <!-- FIX: card/bank/upi disabled — no gateway yet -->
+              <label class="pay-option disabled" title="Coming soon">
                 <div class="flex items-center gap-3">
-                  <input type="radio" name="payment" value="card"/>
+                  <input type="radio" name="payment" value="card" disabled/>
                   <div>
                     <span class="text-sm font-semibold">Debit / Credit Card</span>
-                    <p class="text-xs text-gray-400 mt-0.5">Visa, Mastercard, RuPay &amp; more</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Coming soon</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <span class="tag bg-orange-100 text-orange-600 border border-orange-200">KBC</span>
                   <span class="tag bg-blue-100 text-blue-700 border border-blue-200">VISA</span>
-                  <span class="w-8 h-5 bg-gradient-to-r from-red-500 to-yellow-400 rounded"></span>
                 </div>
               </label>
 
-              <label class="pay-option" id="pay-bank">
+              <label class="pay-option disabled" title="Coming soon">
                 <div class="flex items-center gap-3">
-                  <input type="radio" name="payment" value="bank"/>
+                  <input type="radio" name="payment" value="bank" disabled/>
                   <div>
                     <span class="text-sm font-semibold">Net Banking</span>
-                    <p class="text-xs text-gray-400 mt-0.5">All major banks supported</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Coming soon</p>
                   </div>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M9 10V6a3 3 0 016 0v4M5 10h14a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2z"/></svg>
               </label>
 
-              <label class="pay-option" id="pay-upi">
+              <label class="pay-option disabled" title="Coming soon">
                 <div class="flex items-center gap-3">
-                  <input type="radio" name="payment" value="upi"/>
+                  <input type="radio" name="payment" value="upi" disabled/>
                   <div>
                     <span class="text-sm font-semibold">UPI</span>
-                    <p class="text-xs text-gray-400 mt-0.5">GPay, PhonePe, Paytm &amp; more</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Coming soon</p>
                   </div>
                 </div>
                 <span class="tag bg-purple-100 text-purple-700 border border-purple-200">UPI</span>
               </label>
 
-              <label class="pay-option" id="pay-cod">
+              <!-- FIX: COD is the only active option — pre-selected -->
+              <label class="pay-option selected" id="pay-cod">
                 <div class="flex items-center gap-3">
-                  <input type="radio" name="payment" value="cod"/>
+                  <input type="radio" name="payment" value="cod" checked/>
                   <div>
                     <span class="text-sm font-semibold">Cash on Delivery</span>
                     <p class="text-xs text-gray-400 mt-0.5">Pay when your order arrives</p>
                   </div>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
               </label>
 
             </div>
@@ -353,21 +348,19 @@
         </div>
 
         <!-- Place Order -->
-        <form action="/checkout/place-order" method="POST" id="checkoutForm">
-          <input type="hidden" name="_csrf" value="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>"/>
-          <button type="submit" class="btn-black w-full py-4 text-base tracking-widest">
+        <div id="checkoutForm">
+          <button type="button" id="placeOrderBtn" class="btn-black w-full py-4 text-base tracking-widest">
             Confirm & Place Order →
           </button>
-        </form>
+        </div>
 
       </div><!-- /Left -->
 
-
-      <!-- ─────────── RIGHT SIDEBAR ─────────── -->
+      <!-- RIGHT SIDEBAR -->
       <div class="w-full lg:w-80 flex-shrink-0">
         <div class="sidebar-sticky space-y-5">
 
-          <!-- Order Summary -->
+          <!-- Order Summary — FIX: only show real values from controller, no hardcoded fallbacks -->
           <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
             <div class="bg-gray-900 text-white px-5 py-3.5 flex items-center justify-between">
               <span class="heading-font font-black text-base uppercase tracking-widest">Order Summary</span>
@@ -375,8 +368,8 @@
             </div>
             <div class="p-5 space-y-3">
               <div class="summary-row text-gray-500">
-                <span><% if (typeof cartItems !== 'undefined') { %><%= cartItems.length %> Items<% } else { %>2 Items<% } %></span>
-                <span class="font-semibold text-gray-900">₹<%= typeof subtotal !== 'undefined' ? subtotal.toLocaleString('en-IN') : '19,698' %></span>
+                <span><%= cartItems.length %> item<%= cartItems.length !== 1 ? 's' : '' %></span>
+                <span class="font-semibold text-gray-900">₹<%= (subtotal || 0).toLocaleString('en-IN') %></span>
               </div>
               <div class="summary-row text-gray-500">
                 <span>Delivery</span>
@@ -387,18 +380,13 @@
                 <span>Discount <%= discountPercent %>%</span>
                 <span class="font-semibold">− ₹<%= discount.toLocaleString('en-IN') %></span>
               </div>
-              <% } else { %>
-              <div class="summary-row text-blue-600">
-                <span>Discount 20%</span>
-                <span class="font-semibold">− ₹4,000</span>
-              </div>
               <% } %>
               <hr class="divider"/>
               <div class="summary-row">
                 <span class="heading-font font-black text-base uppercase tracking-wider">Total</span>
-                <span class="heading-font font-black text-lg">₹<%= typeof total !== 'undefined' ? total.toLocaleString('en-IN') : '15,698' %></span>
+                <span class="heading-font font-black text-lg">₹<%= (total || 0).toLocaleString('en-IN') %></span>
               </div>
-              <p class="text-xs text-gray-400 text-center">All taxes included</p>
+              <p class="text-xs text-gray-400 text-center">All taxes included · Free delivery</p>
             </div>
           </div>
 
@@ -429,7 +417,7 @@
               </div>
               <div>
                 <p class="font-semibold text-sm">30-Day Returns</p>
-                <p class="text-xs text-gray-400 mt-0.5">Free hassle-free returns. <a href="/return-policy" class="underline text-gray-600">Details</a></p>
+                <p class="text-xs text-gray-400 mt-0.5">Free hassle-free returns</p>
               </div>
             </div>
             <div class="flex items-start gap-3 p-4">
@@ -449,7 +437,7 @@
     </div>
   </main>
 
-  <!-- ═══════════ FOOTER ═══════════ -->
+  <!-- FOOTER -->
   <footer class="bg-white border-t border-gray-200 mt-16 pt-10 pb-8 px-6 md:px-12">
     <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
       <div>
@@ -464,14 +452,13 @@
       </div>
       <div>
         <h4 class="font-bold uppercase tracking-wide mb-3">Support</h4>
-        <p class="text-gray-500 text-xs leading-relaxed">111 Bijoy sarani, Dhaka, DH 1515, Bangladesh.</p>
-        <p class="text-gray-500 mt-2 text-xs">exclusive@gmail.com</p>
-        <p class="text-gray-500 mt-1 text-xs">+88015-88888-9999</p>
+        <p class="text-gray-500 text-xs leading-relaxed">PES Store, Kerala, India.</p>
+        <p class="text-gray-500 mt-2 text-xs">support@pesstore.com</p>
       </div>
       <div>
         <h4 class="font-bold uppercase tracking-wide mb-3">Account</h4>
         <ul class="space-y-1 text-gray-500 text-xs">
-          <li><a href="/account" class="hover:text-black transition-colors">My Account</a></li>
+          <li><a href="/profile" class="hover:text-black transition-colors">My Account</a></li>
           <li><a href="/login" class="hover:text-black transition-colors">Login / Register</a></li>
           <li><a href="/cart" class="hover:text-black transition-colors">Cart</a></li>
           <li><a href="/wishlist" class="hover:text-black transition-colors">Wishlist</a></li>
@@ -480,10 +467,8 @@
       <div>
         <h4 class="font-bold uppercase tracking-wide mb-3">Quick Link</h4>
         <ul class="space-y-1 text-gray-500 text-xs">
-          <li><a href="/privacy-policy" class="hover:text-black transition-colors">Privacy Policy</a></li>
-          <li><a href="/terms" class="hover:text-black transition-colors">Terms Of Use</a></li>
-          <li><a href="/faq" class="hover:text-black transition-colors">FAQ</a></li>
-          <li><a href="/contact" class="hover:text-black transition-colors">Contact</a></li>
+          <li><a href="/orders" class="hover:text-black transition-colors">My Orders</a></li>
+          <li><a href="/shop" class="hover:text-black transition-colors">Shop</a></li>
         </ul>
       </div>
     </div>
@@ -493,65 +478,113 @@
   </footer>
 
   <script>
-    // ── Payment option visual selection ──
-    document.querySelectorAll('input[name="payment"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        document.querySelectorAll('.pay-option').forEach(el => el.classList.remove('selected'));
-        radio.closest('.pay-option').classList.add('selected');
-        hideError('paymentError', 'paymentSection');
-      });
-    });
-
-    // ── Address card highlight ──
+    // Address card highlight
     document.querySelectorAll('input[name="delivery_address"]').forEach(radio => {
       radio.addEventListener('change', () => {
         document.querySelectorAll('.address-card').forEach(el => el.classList.remove('selected'));
         radio.closest('.address-card').classList.add('selected');
-        hideError('addressError', 'addressSection');
+        hideError('addressError');
       });
     });
 
-    function showError(errorId, sectionId) {
+    // Only COD is active so no payment radio listener needed,
+    // but keep it in case more methods are enabled later
+    document.querySelectorAll('input[name="payment"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        document.querySelectorAll('.pay-option:not(.disabled)').forEach(el => el.classList.remove('selected'));
+        radio.closest('.pay-option').classList.add('selected');
+        hideError('paymentError');
+      });
+    });
+
+    function showError(errorId) {
       const err = document.getElementById(errorId);
-      if (err) { err.classList.add('show'); err.scrollIntoView({ behavior:'smooth', block:'center' }); }
+      if (err) { err.classList.add('show'); err.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
     }
     function hideError(errorId) {
       const err = document.getElementById(errorId);
       if (err) err.classList.remove('show');
     }
 
-    // ── Coupon ──
+    // Coupon
     async function applyCoupon() {
       const code = document.getElementById('couponInput').value.trim();
       const msgEl = document.getElementById('couponMsg');
-      if (!code) { msgEl.textContent = 'Please enter a coupon code.'; msgEl.className = 'text-xs mt-2 text-red-500'; msgEl.classList.remove('hidden'); return; }
-      try {
-        const res = await fetch('/checkout/apply-coupon', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ coupon: code }) });
-        const data = await res.json();
-        if (data.success) { msgEl.textContent = `✓ Coupon applied! You saved ₹${data.discount}`; msgEl.className = 'text-xs mt-2 text-green-600'; }
-        else { msgEl.textContent = data.message || 'Invalid coupon code.'; msgEl.className = 'text-xs mt-2 text-red-500'; }
+      if (!code) {
+        msgEl.textContent = 'Please enter a coupon code.';
+        msgEl.className = 'text-xs mt-2 text-red-500';
         msgEl.classList.remove('hidden');
-      } catch { msgEl.textContent = 'Could not apply coupon. Try again.'; msgEl.className = 'text-xs mt-2 text-red-500'; msgEl.classList.remove('hidden'); }
-    }
-
-    // ── Place Order ──
-    document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const address = document.querySelector('input[name="delivery_address"]:checked');
-      const payment = document.querySelector('input[name="payment"]:checked');
-      hideError('addressError'); hideError('paymentError');
-      if (!address) { showError('addressError', 'addressSection'); return; }
-      if (!payment) { showError('paymentError', 'paymentSection'); return; }
+        return;
+      }
       try {
-        const csrfToken = document.querySelector('input[name="_csrf"]').value;
-        const res = await fetch('/checkout/place-order', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ addressId: address.value, paymentMethod: payment.value, _csrf: csrfToken })
+        const res = await fetch('/checkout/apply-coupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ coupon: code })
         });
         const data = await res.json();
-        if (data.success) { window.location.href = data.url; }
-        else { Swal.fire({ icon:'error', title:'Order Failed', text: data.message || 'Could not place order. Please try again.', confirmButtonColor:'#111' }); }
-      } catch { Swal.fire({ icon:'error', title:'Something went wrong', text:'An unexpected error occurred. Please try again.', confirmButtonColor:'#111' }); }
+        if (data.success) {
+          msgEl.textContent = `✓ Coupon applied! You saved ₹${data.discount}`;
+          msgEl.className = 'text-xs mt-2 text-green-600';
+        } else {
+          msgEl.textContent = data.message || 'Invalid coupon code.';
+          msgEl.className = 'text-xs mt-2 text-red-500';
+        }
+        msgEl.classList.remove('hidden');
+      } catch {
+        msgEl.textContent = 'Could not apply coupon. Try again.';
+        msgEl.className = 'text-xs mt-2 text-red-500';
+        msgEl.classList.remove('hidden');
+      }
+    }
+
+    // Place Order — FIX: using button with id, not form submit, to avoid double-submit
+    document.getElementById('placeOrderBtn').addEventListener('click', async function() {
+      const address = document.querySelector('input[name="delivery_address"]:checked');
+      const payment = document.querySelector('input[name="payment"]:checked');
+
+      hideError('addressError');
+      hideError('paymentError');
+
+      if (!address) { showError('addressError'); return; }
+      if (!payment) { showError('paymentError'); return; }
+
+      // Disable button to prevent double-click
+      this.disabled = true;
+      this.textContent = 'Placing Order...';
+
+      try {
+        const res = await fetch('/checkout/place-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            addressId: address.value,
+            paymentMethod: payment.value
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          window.location.href = data.url;
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Order Failed',
+            text: data.message || 'Could not place order. Please try again.',
+            confirmButtonColor: '#111'
+          });
+          this.disabled = false;
+          this.textContent = 'Confirm & Place Order →';
+        }
+      } catch {
+        Swal.fire({
+          icon: 'error',
+          title: 'Something went wrong',
+          text: 'An unexpected error occurred. Please try again.',
+          confirmButtonColor: '#111'
+        });
+        this.disabled = false;
+        this.textContent = 'Confirm & Place Order →';
+      }
     });
   </script>
 </body>

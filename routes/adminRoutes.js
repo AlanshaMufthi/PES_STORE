@@ -9,6 +9,7 @@ import {adminAuth,adminGuest} from '../middlewares/auth.js'
 import { loadCategories, loadAddCategory, addCategory, loadEditCategory, editCategory, categoryStatus,toggleCategoryOffer } from '../controllers/admin/categoryController.js'
 import {loadProductManagement,loadAddProduct,addProduct,toggleVariantOffer,loadEditProduct,editProduct,productStatus} from '../controllers/admin/productController.js'
 import { loadOrderManagement, loadOrderDetails, updateOrderStatus, exportOrders, loadOrderStatus } from '../controllers/admin/orderController.js'
+import { loadReturnManagement, loadReturnDetails, updateReturnStatus } from '../controllers/admin/returnController.js'
 
 router.get('/pageNotFound',pageNotFound)
 router.get('/login',adminGuest,loadLogin)
@@ -41,6 +42,10 @@ router.get('/orders/export', adminAuth, exportOrders)
 router.get('/orders/:id', adminAuth, loadOrderDetails)
 router.get('/orders/:id/status', adminAuth, loadOrderStatus)
 router.patch('/orders/:id/status', adminAuth, updateOrderStatus)
+//return
+router.get('/returns', adminAuth, loadReturnManagement)
+router.get('/returns/:orderId', adminAuth, loadReturnDetails)
+router.patch('/returns/:orderId/items/:itemId/status', adminAuth, updateReturnStatus)
 
 
 

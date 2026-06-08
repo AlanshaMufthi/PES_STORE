@@ -1,0 +1,88 @@
+<!-- SweetAlert2 Global Handler -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Handle locals (from res.render)
+        const message = "<%= typeof message !== 'undefined' ? message : '' %>";
+        const error = "<%= typeof error !== 'undefined' ? error : '' %>";
+        const success = "<%= typeof success !== 'undefined' ? success : '' %>";
+
+        if (error || (message && (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed') || message.toLowerCase().includes('incorrect') || message.toLowerCase().includes('not found') || message.toLowerCase().includes('already exist')))) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error || message,
+                confirmButtonColor: '#ef4444',
+                background: '#fff',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-8 py-3'
+                }
+            });
+        } else if (success || (message && (message.toLowerCase().includes('success') || message.toLowerCase().includes('updated') || message.toLowerCase().includes('added') || message.toLowerCase().includes('verified')))) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: success || message,
+                confirmButtonColor: '#10b981',
+                timer: 3000,
+                timerProgressBar: true,
+                background: '#fff',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-8 py-3'
+                }
+            });
+        }
+
+        // 2. Handle query parameters (for redirects)
+        const params = new URLSearchParams(window.location.search);
+        const successParam = params.get('success');
+        const errorParam = params.get('error');
+
+        if (successParam) {
+            let title = 'Success!';
+            let text = 'Operation completed successfully.';
+            
+            if (successParam === 'added') text = 'New record has been added.';
+            if (successParam === 'updated') text = 'Record has been updated.';
+            if (successParam === 'deleted') text = 'Record has been deleted.';
+            if (successParam === 'verified') text = 'Verification successful.';
+
+            Swal.fire({
+                icon: 'success',
+                title: title,
+                text: text,
+                confirmButtonColor: '#10b981',
+                timer: 3000,
+                timerProgressBar: true,
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-8 py-3'
+                }
+            }).then(() => {
+                // Clean up the URL
+                const url = new URL(window.location.href);
+                url.searchParams.delete('success');
+                window.history.replaceState({}, '', url);
+            });
+        }
+
+        if (errorParam) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: decodeURIComponent(errorParam),
+                confirmButtonColor: '#ef4444',
+                customClass: {
+                    popup: 'rounded-3xl',
+                    confirmButton: 'rounded-xl px-8 py-3'
+                }
+            }).then(() => {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('error');
+                window.history.replaceState({}, '', url);
+            });
+        }
+    });
+</script>

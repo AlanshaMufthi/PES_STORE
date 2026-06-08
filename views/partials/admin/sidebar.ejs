@@ -1,0 +1,153 @@
+<style>
+    :root {
+      --primary-color: #6366f1;
+      --primary-hover: #4f46e5;
+      --bg-sidebar: #0f172a;
+      --text-sidebar: #94a3b8;
+      --text-active: #ffffff;
+      --bg-active: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      --danger-color: #ef4444;
+      --sidebar-width: 260px;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      flex-shrink: 0;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: var(--bg-sidebar);
+      min-height: 100vh;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+      position: relative;
+      z-index: 100;
+    }
+
+    .sidebar-brand {
+      padding: 0 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-logo {
+      width: 40px; height: 40px; background: var(--bg-active);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+    .brand-name { font-size: 1.4rem; font-weight: 800; color: #fff; letter-spacing: -0.02em; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 18px; border-radius: 14px;
+      font-size: 0.95rem; font-weight: 600; color: var(--text-sidebar);
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid transparent;
+    }
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      transform: translateX(4px);
+    }
+    .nav-item.active {
+      background: var(--bg-active);
+      color: var(--text-active);
+      box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+    }
+    .nav-item svg { flex-shrink: 0; transition: color 0.2s; }
+    .nav-item.active svg { color: #fff; }
+    
+    .nav-divider { height: 1px; background: rgba(255, 255, 255, 0.05); margin: 16px 12px; }
+    
+    .nav-item.logout {
+      margin-top: auto;
+      color: var(--danger-color);
+    }
+    .nav-item.logout:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ff7e7e;
+    }
+</style>
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg width="24" height="24" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="brand-name">PES Admin</span>
+    </div>
+    <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+      Dashboard
+    </a>
+    <a href="/admin/orders" class="nav-item <%= activePage === 'orders' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+      Order
+    </a>
+    <a href="/admin/products" class="nav-item <%= activePage === 'products' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      Products
+    </a>
+    <a href="/admin/sales" class="nav-item <%= activePage === 'sales' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      Sales report
+    </a>
+    <a href="/admin/customers" class="nav-item <%= activePage === 'customers' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Customer
+    </a>
+    <a href="/admin/coupons" class="nav-item <%= activePage === 'coupons' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+        <line x1="7" y1="7" x2="7.01" y2="7"/>
+      </svg>
+      Coupon
+    </a>
+    <a href="/admin/categories" class="nav-item <%= activePage === 'categories' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+      </svg>
+      Category
+    </a>
+    <a href="/admin/returns" class="nav-item <%= activePage === 'returns' ? 'active' : '' %>">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <polyline points="1 4 1 10 7 10"/>
+        <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+      </svg>
+      Refund/Return
+    </a>
+    <div class="nav-divider"></div>
+    <a href="/admin/logout" class="nav-item logout">
+     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+       <polyline points="16 17 21 12 16 7"/>
+       <line x1="21" y1="12" x2="9" y2="12"/>
+     </svg>
+     Sign Out
+   </a>
+ </aside>
+
+ <%- include('../sweetalert.ejs') %>

@@ -50,7 +50,7 @@ const parseVariants = (variantsRaw = {})=>{
     return Object.values(variantsRaw)
     .map(v=>{
         const size = v.sizes ? String(v.sizes).split(',').map(s=>s.trim()).filter(Boolean) : []
-        const status = v.status || 'onstock'
+        const status = v.status || 'onStock'
         const stock = parseInt(v.stock) || 0
         const productPrice = parseFloat(v.basePrice) || 0
         const discountPercentage =parseFloat(v.discountPercentage) || 0
@@ -76,22 +76,34 @@ const loadProductManagement = async(req,res)=>{
         const search = req.query.search || ''
         const page = parseInt(req.query.page) || 1
         const limit = parseInt(req.query.limit) || 10
+        const stockFilter = req.query.stock || ''
+        const sortBy = req.query.sortBy || 'newest'
         const skip = (page-1)*limit
 
         const query = search ? {productname:{$regex : new RegExp(search, 'i')}} : {}
+        if(stockFilter === 'low'){
+            query['variants.stock'] = { $gt: 0, $lte: 5 }
+        } else if(stockFilter === 'out'){
+            query['variants.stock'] = { $lte: 0 }
+        }
+
+        let sortQuery = {createdAt : -1}
+        if(sortBy === 'oldest') sortQuery = {createdAt : 1}
+        if(sortBy === 'name_az') sortQuery = {productname : 1}
+        if(sortBy === 'name_za') sortQuery = {productname : -1}
 
         const [totalCount,products] = await Promise.all([
             Product.countDocuments(query),
             Product.find(query)
             .populate('category')
-            .sort({createdAt : -1})
+            .sort(sortQuery)
             .skip(skip)
             .limit(limit)
         ])
 
         const totalPages = Math.ceil(totalCount/limit)
 
-        res.render('productManagement',{products,totalCount,currentPage:page,totalPages,limit,search})
+        res.render('productManagement',{products,totalCount,currentPage:page,totalPages,limit,search,stockFilter,sortBy})
 
     } catch (error) {
         console.log('loadProductManagement Error : ',error)
