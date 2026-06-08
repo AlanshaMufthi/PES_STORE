@@ -104,7 +104,7 @@ const loadShop = async(req,res)=>{
                 brand : req.query.brand || [],
                 gender : req.query.gender || '',
                 collection : req.query.collection || '',
-                minPrice : req.query.minprice || '',
+                minPrice : req.query.minPrice || '',
                 maxPrice : req.query.maxPrice || '',
                 minDiscount : req.query.minDiscount || '',
             }

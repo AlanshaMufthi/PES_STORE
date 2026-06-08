@@ -47,15 +47,15 @@ const { Schema } = mongoose;
         type:String,
         default:'img/Solidão____.jpg'
         
-    }
+    },
     // cart:[{
     //     type:Schema.Types.ObjectId,
     //     ref:"Cart"
     // }],
-    // wallet:{
-    //     type:Number,
-    //     default:0
-    // },
+    wallet:{
+        type:Number,
+        default:0
+    },
     // wishlist:[{
     //     type:Schema.Types.ObjectId,
     //     ref:"wishlist"

@@ -1,181 +1,101 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login as Admin | 2ES</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-
   <style>
-    * { font-family: 'Inter', sans-serif; }
+    :root { --primary-color: #e53935; }
+    * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+    body { background: #0f172a; min-height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; padding: 20px; }
 
-    body {
-      background: #000;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .login-card {
+      background: #fff; width: 100%; max-width: 900px; display: flex;
+      border-radius: 32px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .card {
-      background: #fff;
-      border-radius: 20px;
-      width: 860px;
-      min-height: 480px;
-      display: flex;
-      overflow: hidden;
-      padding: 56px 52px 56px 52px;
-      gap: 48px;
-      align-items: center;
-    }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Left side */
-    .left {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0;
-    }
+    .login-left { flex: 1.1; padding: 60px; display: flex; flex-direction: column; justify-content: center; }
+    .login-right { flex: 0.9; background: #f8fafc; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .login-right img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+    
+    .logo-container { margin-bottom: 40px; }
+    .logo-container img { width: 64px; height: 64px; object-fit: contain; }
 
-    .page-title {
-      font-size: 2.4rem;
-      font-weight: 900;
-      color: #111;
-      line-height: 1.1;
-      margin-bottom: 32px;
-      letter-spacing: -0.02em;
-    }
+    .login-header h1 { font-size: 2.25rem; font-weight: 900; color: #0f172a; margin: 0 0 12px; letter-spacing: -0.02em; }
+    .login-header p { font-size: 1rem; color: #64748b; font-weight: 600; margin: 0 0 40px; }
 
-    .logo-wrap {
-      margin-bottom: 32px;
-    }
-
-    .logo-wrap img {
-      width: 80px;
-      height: 80px;
-      object-fit: contain;
-    }
-
-    /* Inputs */
+    .form-group { margin-bottom: 24px; position: relative; }
+    .form-label { display: block; font-size: 0.85rem; font-weight: 800; color: #1e293b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    
+    .input-wrapper { position: relative; }
     .input-field {
-      width: 100%;
-      background: #f3f3f3;
-      border: 1.5px solid #e8e8e8;
-      border-radius: 8px;
-      padding: 16px 20px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      color: #555;
-      outline: none;
-      transition: border-color 0.2s;
-      margin-bottom: 16px;
+      width: 100%; padding: 16px 20px; border-radius: 14px; border: 2px solid #f1f5f9;
+      background: #fcfdfe; font-size: 0.95rem; font-weight: 600; color: #1e293b;
+      transition: all 0.2s; outline: none;
     }
-    .input-field::placeholder { color: #aaa; font-weight: 500; }
-    .input-field:focus { border-color: #ccc; background: #fff; }
+    .input-field:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.1); }
+    .input-field::placeholder { color: #94a3b8; font-weight: 500; }
 
-    /* Login button */
     .btn-login {
-      width: 100%;
-      background: #e63946;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 999px;
-      padding: 16px;
-      cursor: pointer;
-      margin-top: 8px;
-      transition: background 0.2s;
-      letter-spacing: 0.01em;
+      width: 100%; padding: 18px; border-radius: 16px; background: var(--primary-color);
+      color: #fff; font-size: 1rem; font-weight: 800; border: none; cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); margin-top: 8px;
+      box-shadow: 0 10px 15px -3px rgba(229, 57, 53, 0.3);
     }
-    .btn-login:hover { background: #c1121f; }
+    .btn-login:hover { transform: translateY(-2px); background: #d32f2f; box-shadow: 0 20px 25px -5px rgba(229, 57, 53, 0.4); }
+    .btn-login:active { transform: translateY(0); }
 
-    /* Error message */
-    .error-msg {
-      color: #e63946;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      margin-top: -8px;
+    .error-box {
+      background: #fef2f2; border: 1px solid #fee2e2; padding: 12px 16px;
+      border-radius: 12px; color: #b91c1c; font-size: 0.85rem; font-weight: 700;
+      margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
     }
 
-    /* Right side image */
-    .right {
-      width: 380px;
-      flex-shrink: 0;
-      border-radius: 12px;
-      overflow: hidden;
-      align-self: stretch;
-    }
-    .right img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      border-radius: 12px;
+    @media (max-width: 768px) {
+      .login-card { flex-direction: column; border-radius: 24px; }
+      .login-right { display: none; }
+      .login-left { padding: 40px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="card">
-
-    <!-- ── LEFT SIDE ── -->
-    <div class="left">
-
-      <h1 class="page-title">Login as Admin</h1>
-
-      <!-- Logo -->
-      <div class="logo-wrap">
-        <img src="/img/pes.logo.png" alt="PES Logo" />
+  <div class="login-card">
+    <div class="login-left">
+      <div class="logo-container">
+        <img src="/img/pes.logo.png" alt="PES Store" />
       </div>
 
-      <!-- Flash error message (EJS) -->
-      <% if (typeof error !== 'undefined' && error) { %>
-        <p class="error-msg"><%= error %></p>
-      <% } %>
+      <div class="login-header">
+        <h1>Welcome Back</h1>
+        <p>Login to your admin dashboard</p>
+      </div>
 
-      <!-- Form -->
-      <form action="/admin/login" method="POST" style="width:100%;">
+      <%- include('../partials/sweetalert.ejs') %>
 
-        <!-- CSRF token if you use it -->
-        <% if (typeof csrfToken !== 'undefined') { %>
-          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-        <% } %>
+      <form action="/admin/login" method="POST">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <div class="input-wrapper">
+            <input type="email" name="email" class="input-field" placeholder="admin@pesstore.com" required autocomplete="email" />
+          </div>
+        </div>
 
-        <input
-          class="input-field"
-          type="email"
-          name="email"
-          placeholder="Email"
-          required
-          autocomplete="email"
-        />
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <input type="password" name="password" class="input-field" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+        </div>
 
-        <input
-          class="input-field"
-          type="password"
-          name="password"
-          placeholder="Password"
-          required
-          autocomplete="current-password"
-        />
-
-        <button type="submit" class="btn-login">Login</button>
-
+        <button type="submit" class="btn-login">Sign In</button>
       </form>
-
     </div>
 
-    <!-- ── RIGHT SIDE IMAGE ── -->
-    <div class="right">
-      <img src="/img/adminLoginImg.jpg" alt="Admin visual" />
+    <div class="login-right">
+      <img src="/img/adminLoginImg.jpg" alt="PES Admin" />
+      <div style="position: absolute; bottom: 40px; left: 40px; right: 40px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+        <p style="font-size: 1.25rem; font-weight: 800; margin: 0;">2ES Admin Console</p>
+        <p style="font-size: 0.85rem; font-weight: 600; opacity: 0.8; margin-top: 4px;">Exclusive management for PES Store administrators.</p>
+      </div>
     </div>
-
   </div>
 
 </body>

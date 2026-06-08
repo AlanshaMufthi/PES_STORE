@@ -85,7 +85,8 @@ const loadEditAddress = async(req,res)=>{
             return res.redirect('addressBook')
         }
 
-        res.render('editAddress',{user,address})
+        const source = req.query.source || null;
+        res.render('editAddress',{user,address, source})
     } catch (error) {
         console.log('loadEditAddress error: ',error)
         res.redirect('/pageNotFound')
@@ -117,7 +118,11 @@ const editAddress = async(req,res)=>{
         address.addressType = addressType || 'Home'
 
         await addressDocument.save()
-        res.redirect('/addressBook')
+        if (req.query.source === 'checkout') {
+            res.redirect('/checkout')
+        } else {
+            res.redirect('/addressBook')
+        }
         
     } catch (error) {
         console.log('editAddress error: ',error)

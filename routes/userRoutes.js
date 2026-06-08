@@ -76,7 +76,7 @@ router.patch('/cart/update/:itemId', userAuth, editCartItem)
 router.delete('/cart/remove/:itemId', userAuth, removeCartItem)
 router.post('/cart/add-from-wishlist', userAuth, addFromWishlist)
 //wishlist
-router.post('/wishlist/toggle', toggleWishlist)
+router.post('/wishlist/toggle',userAuth, toggleWishlist)
 router.get('/wishlist',userAuth, loadWishlist)
 router.post('/wishlist/add',userAuth, addToWishlist)
 router.delete('/wishlist/remove/:itemId',userAuth, removeFromWishlist)

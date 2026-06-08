@@ -19,7 +19,7 @@ const loadWishlist = async(req,res)=>{
         const cart = await Cart.findOne({userId : req.session.user}).lean()
         const cartCount = cart ? cart.items.length : 0
 
-        return res.render('wishList',{page:'wishList',wishlistItems,cartCount})
+        return res.render('wishlist',{page:'wishlist',wishlistItems,cartCount})
     } catch (error) {
         console.log('loadWishlist Error : ',error)
         res.redirect('/pageNotFound')
@@ -35,7 +35,6 @@ const addToWishlist = async(req,res)=>{
             return res.status(400).json({success:false,message:'Product ID required'})
         }
 
-        // check product exist and not blocked
         const product = await Product.findById(productId).populate({ path:'category', select:'isBlocked', match:{ isBlocked:false } }).lean()
         if(!product || product.isBlocked || !product.category) return res.status(400).json({success:false,message:'Product is Unavailable'})
 
@@ -44,7 +43,6 @@ const addToWishlist = async(req,res)=>{
             wishlist = await Wishlist.create({userId : req.session.user, products:[]})
         }
 
-        //already in wishlist
         const already = wishlist.products.some((i)=> i.productId.toString() === productId)
         if(already) return res.json({success:false,message:'Already in wishList'})
 
@@ -100,7 +98,7 @@ const moveAllToCart = async(req,res)=>{
             continue
         }
 
-        const variant = product.variants.find(v=> v.status === 'onStock' && v.stock>0)
+        const variant = product.variants.find(v=> (v.status || '').toLowerCase() === 'onstock' && v.stock>0)
         if(!variant){
             skipped.push(product.productname)
             continue

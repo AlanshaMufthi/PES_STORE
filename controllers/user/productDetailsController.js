@@ -15,7 +15,7 @@ const loadProductDetails = async(req,res)=>{
             return res.redirect('/shop')
         }
         //  // stock info
-        const hasStock = product.variants.some(v=> v.status==='onStock' && v.stock>0)
+        const hasStock = product.variants.some(v=> (v.status || '').toLowerCase() === 'onstock' && v.stock>0)
         const isFullyArchived = product.variants.every(v=> v.status === 'archived')
 
         //breadcrumbs
@@ -53,8 +53,8 @@ const loadProductDetails = async(req,res)=>{
                     offerPrice: variant.offerPrice,
                     discountPct: variant.discountPercentage || 0,
                     sellingPrice : variant.offerActive ? variant.offerPrice : variant.productPrice,
-                    available: variant.status === 'onStock' && variant.stock>0,
-                    archived: variant.status === 'archived'
+                    available: (variant.status || '').toLowerCase() === 'onstock' && variant.stock>0,
+                    archived: (variant.status || '').toLowerCase() === 'archived'
                 })
             }
         }

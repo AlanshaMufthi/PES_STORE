@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Login</title>
 
-<script src="https://cdn.tailwindcss.com"></script>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
@@ -48,12 +47,7 @@ body{
 
 <h2 class="text-3xl font-semibold mb-6 text-center">Login</h2>
 
-<!-- ERROR MESSAGE -->
-<% if (typeof message !== 'undefined' && message) { %>
-<div class="mb-4 p-3 rounded-lg bg-red-500/20 border border-red-400 text-red-200 text-center">
-    <%= message %>
-</div>
-<% } %>
+<%- include('../partials/sweetalert.ejs') %>
 
 <form action="/login" method="POST" class="flex flex-col gap-5">
 

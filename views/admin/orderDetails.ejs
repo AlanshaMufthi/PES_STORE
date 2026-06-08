@@ -3,399 +3,409 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Order Details | PES Store Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { poppins: ['Poppins', 'sans-serif'] },
-          colors: {
-            sidebar: '#1a1f3c',
-            'sidebar-hover': '#252b4a',
-            brand: '#e53935',
-            'btn-navy': '#1a237e',
-            'badge-delivered': '#00897b',
-            'badge-processing': '#7b1fa2',
-            'badge-cancelled': '#e53935',
-            'btn-export': '#1565c0',
-          }
-        }
-      }
-    }
-  </script>
+  <title>Order Details | PES Admin</title>
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    body { font-family: 'Poppins', sans-serif; }
-    .nav-item { transition: background 0.2s; }
-    .scrollbar-thin::-webkit-scrollbar { width: 4px; }
-    .scrollbar-thin::-webkit-scrollbar-thumb { background: #3a4170; border-radius: 4px; }
+    * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
+    body { background: #f0f2f5; margin: 0; color: #1a1a2e; }
 
-    .timeline-item { position: relative; padding-left: 28px; }
-    .timeline-item::before {
-      content: '';
-      position: absolute;
-      left: 7px; top: 20px;
-      width: 2px;
-      bottom: -8px;
-      background: #e5e7eb;
+    /* ── Topbar ── */
+    .topbar {
+      background: #e8e8e8;
+      height: 72px; display: flex; align-items: center;
+      padding: 0 32px; gap: 20px; position: sticky; top: 0; z-index: 50;
+      border-bottom: 1px solid #d0d0d0;
     }
-    .timeline-item:last-child::before { display: none; }
-    .timeline-dot {
-      position: absolute;
-      left: 0; top: 4px;
-      width: 16px; height: 16px;
-      border-radius: 50%;
-      border: 2px solid;
+    .topbar-logo img { width: 56px; height: 56px; object-fit: contain; }
+    .topbar-search {
+      flex: 1; max-width: 500px; margin: 0 auto;
+      display: flex; align-items: center;
+      background: #fff; border-radius: 10px;
+      border: 1px solid #ddd; padding: 0 16px; height: 44px; gap: 10px;
     }
-    .dot-done   { background: #00897b; border-color: #00897b; }
-    .dot-active { background: #f59e0b; border-color: #f59e0b; }
-    .dot-future { background: #fff; border-color: #d1d5db; }
+    .topbar-search input { border: none; outline: none; font-size: 0.9rem; color: #333; width: 100%; background: transparent; font-family: 'Nunito', sans-serif; }
+    .topbar-search input::placeholder { color: #aaa; }
+    .search-btn {
+      width: 38px; height: 38px; background: #222; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      border: none; cursor: pointer; flex-shrink: 0;
+    }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .icon-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #fff; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; border: 1px solid #ddd; position: relative;
+    }
+    .notif-dot {
+      position: absolute; top: 6px; right: 6px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #e53935; border: 2px solid #e8e8e8;
+    }
+    .avatar-circle {
+      width: 40px; height: 40px; border-radius: 50%;
+      overflow: hidden; border: 2px solid #ddd; cursor: pointer;
+    }
+    .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
 
-    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-    .fade-in { animation: fadeIn 0.4s ease both; }
-    .fade-in-delay { animation: fadeIn 0.4s ease 0.15s both; }
+    /* ── Layout ── */
+    .layout { display: flex; min-height: calc(100vh - 72px); }
+    .main { flex: 1; padding: 32px 40px; background: #f0f2f5; }
+
+    /* ── Back button ── */
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: #555; text-decoration: none; font-size: 0.9rem;
+      font-weight: 700; margin-bottom: 20px;
+      transition: color 0.2s;
+    }
+    .btn-back:hover { color: #111; }
+
+    /* ── Page title ── */
+    .page-title { font-size: 1.8rem; font-weight: 900; color: #111; margin-bottom: 24px; }
+
+    /* ── Main grid ── */
+    .content-grid { display: grid; grid-template-columns: 1fr 320px; gap: 20px; align-items: start; }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff; border-radius: 16px;
+      border: 1px solid #e8e8e8;
+      overflow: hidden;
+    }
+
+    /* ── Top empty area (image placeholder) ── */
+    .img-placeholder {
+      background: #f5f5f5; height: 120px;
+      border-radius: 16px; margin-bottom: 16px;
+      border: 1px solid #e8e8e8;
+    }
+
+    /* ── Product card ── */
+    .product-card { padding: 24px; }
+    .product-name { font-size: 1.1rem; font-weight: 900; color: #111; margin-bottom: 6px; }
+    .product-price { font-size: 1.1rem; font-weight: 800; color: #111; margin-bottom: 20px; }
+
+    /* ── Timeline ── */
+    .timeline { margin-top: 8px; }
+    .timeline-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 0; position: relative; }
+    .timeline-left { display: flex; flex-direction: column; align-items: center; }
+    .tl-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+      margin-top: 3px;
+    }
+    .tl-dot.green  { background: #22c55e; }
+    .tl-dot.orange { background: #f97316; }
+    .tl-dot.gray   { background: #d1d5db; }
+    .tl-line { width: 2px; flex: 1; min-height: 28px; background: #e5e7eb; margin: 2px 0; }
+    .tl-line.green  { background: #22c55e; }
+    .tl-line.orange { background: #f97316; }
+    .timeline-text { font-size: 0.88rem; font-weight: 700; color: #222; padding-bottom: 24px; }
+    .timeline-text span { font-weight: 600; color: #888; margin-left: 6px; }
+
+    .see-all {
+      color: #6366f1; font-size: 0.85rem; font-weight: 800;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+      margin-top: 4px;
+    }
+    .see-all:hover { opacity: 0.8; }
+
+    /* ── Product image in card ── */
+    .product-img-wrap {
+      width: 130px; height: 120px; border-radius: 10px;
+      overflow: hidden; border: 1px solid #f0f0f0; flex-shrink: 0;
+    }
+    .product-img-wrap img { width: 100%; height: 100%; object-fit: contain; background: #f9f9f9; }
+
+    /* ── Right sidebar cards ── */
+    .sidebar-card { background: #fff; border-radius: 16px; border: 1px solid #e8e8e8; overflow: hidden; margin-bottom: 16px; }
+    .sidebar-card:last-child { margin-bottom: 0; }
+
+    .invoice-btn {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px; text-decoration: none; color: #111;
+      font-weight: 700; font-size: 0.95rem;
+      transition: background 0.15s;
+    }
+    .invoice-btn:hover { background: #f9f9f9; }
+    .invoice-left { display: flex; align-items: center; gap: 10px; }
+
+    .shipping-card-body { padding: 18px 20px; }
+    .shipping-label { font-size: 0.75rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+    .shipping-name { font-size: 0.95rem; font-weight: 800; color: #111; margin-bottom: 6px; }
+    .shipping-addr { font-size: 0.85rem; font-weight: 600; color: #555; line-height: 1.6; }
+
+    .price-card-body { padding: 18px 20px; }
+    .price-label { font-size: 0.75rem; font-weight: 800; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 14px; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .price-row-label { font-size: 0.88rem; font-weight: 700; color: #333; }
+    .price-row-value { font-size: 0.88rem; font-weight: 800; color: #111; }
+    .price-row-value.green { color: #22c55e; }
+    .price-divider { height: 1px; background: #f0f0f0; margin: 12px 0; }
+    .price-total-label { font-size: 0.88rem; font-weight: 800; color: #111; }
+    .price-total-value { font-size: 1rem; font-weight: 900; color: #111; }
+
+    /* ── Update status btn ── */
+    .btn-update-status {
+      display: block; width: 100%;
+      background: #6366f1; color: #fff;
+      border: none; border-radius: 10px;
+      padding: 13px; font-size: 0.9rem; font-weight: 800;
+      cursor: pointer; text-align: center;
+      text-decoration: none; margin-top: 16px;
+      transition: background 0.2s;
+    }
+    .btn-update-status:hover { background: #4f46e5; }
+
+    /* status badge */
+    .status-badge { padding: 5px 14px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
+    .status-placed        { background: #eff6ff; color: #2563eb; }
+    .status-processing    { background: #f0f9ff; color: #0891b2; }
+    .status-shipped       { background: #fef3c7; color: #d97706; }
+    .status-out_for_delivery { background: #e0f2fe; color: #0369a1; }
+    .status-delivered     { background: #ecfdf5; color: #059669; }
+    .status-cancelled     { background: #fef2f2; color: #dc2626; }
+    .status-returned      { background: #f5f3ff; color: #7c3aed; }
   </style>
 </head>
-<body class="bg-gray-100 flex h-screen overflow-hidden">
+<body>
 
-  <!-- ===== SIDEBAR ===== -->
-  <aside class="w-52 bg-sidebar flex flex-col flex-shrink-0 h-full">
-    <div class="flex items-center justify-center py-6 border-b border-white/10">
-      <div class="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center">
-        <svg viewBox="0 0 64 64" class="w-10 h-10 fill-white" xmlns="http://www.w3.org/2000/svg">
-          <rect x="20" y="52" width="24" height="5" rx="2"/>
-          <rect x="16" y="47" width="32" height="6" rx="2"/>
-          <path d="M22 47 C22 35 18 30 18 22 C18 14 24 10 32 10 C40 10 46 14 46 22 C46 30 42 35 42 47Z"/>
-          <rect x="29" y="4" width="6" height="14" rx="3"/>
-          <rect x="24" y="8" width="16" height="5" rx="2"/>
-          <rect x="10" y="18" width="44" height="5" rx="2"/>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="/img/pes.logo.png" alt="PES Logo" />
+    </div>
+    <div class="topbar-search">
+      <input type="text" placeholder="Search orders" />
+      <button class="search-btn">
+        <svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+      </button>
+    </div>
+    <div class="topbar-actions">
+      <div class="icon-circle">
+        <svg width="18" height="18" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
         </svg>
       </div>
-    </div>
-    <nav class="flex-1 py-4 overflow-y-auto scrollbar-thin">
-      <ul class="space-y-1 px-3">
-        <li>
-          <a href="/admin/dashboard" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="/admin/orders" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg bg-brand text-white text-sm font-semibold">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-            Order
-          </a>
-        </li>
-        <li>
-          <a href="/admin/products" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-            Products
-          </a>
-        </li>
-        <li>
-          <a href="/admin/sales-report" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-            Sales report
-          </a>
-        </li>
-        <li>
-          <a href="/admin/customers" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
-            Customer
-          </a>
-        </li>
-        <li>
-          <a href="/admin/coupons" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            Coupon
-          </a>
-        </li>
-        <li>
-          <a href="/admin/categories" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-            Category
-          </a>
-        </li>
-        <li>
-          <a href="/admin/refunds" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-            Refund/Return
-          </a>
-        </li>
-      </ul>
-    </nav>
-    <div class="px-3 pb-5">
-      <a href="/admin/logout" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/60 hover:bg-sidebar-hover hover:text-white text-sm font-medium">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        Sign Out
-      </a>
-    </div>
-  </aside>
-
-  <!-- ===== MAIN AREA ===== -->
-  <div class="flex-1 flex flex-col overflow-hidden">
-
-    <!-- Top Header -->
-    <header class="bg-white h-16 flex items-center justify-between px-8 gap-4 border-b border-gray-200 flex-shrink-0">
-      <a href="/admin/orders" class="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition text-sm font-medium">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to Orders
-      </a>
-      <div class="flex items-center gap-4">
-        <button class="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
-          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">3</span>
-        </button>
-        <button class="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 transition">
-          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-          <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-400 text-white text-[9px] font-bold rounded-full flex items-center justify-center">5</span>
-        </button>
-        <button class="w-10 h-10 rounded-full overflow-hidden ring-2 ring-brand ring-offset-1">
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" alt="Admin" class="w-full h-full object-cover bg-orange-200"/>
-        </button>
+      <div class="icon-circle">
+        <svg width="18" height="18" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <div class="notif-dot"></div>
       </div>
-    </header>
+      <div class="avatar-circle">
+        <img src="/images/admin-avatar.jpg" alt="Admin" onerror="this.src='/img/pes.logo.png'"/>
+      </div>
+    </div>
+  </div>
 
-    <!-- Page Content -->
-    <main class="flex-1 overflow-y-auto p-8">
+  <div class="layout">
+    <%- include('../partials/admin/sidebar.ejs', { activePage: 'orders' }) %>
 
-      <!-- Page Title -->
-      <div class="flex items-center justify-between mb-6 fade-in">
+    <main class="main">
+
+      <!-- Back -->
+      <a href="/admin/orders" class="btn-back">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <polyline points="19 12 5 12"/><polyline points="12 5 5 12 12 19"/>
+        </svg>
+      </a>
+
+      <!-- Title row -->
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:24px;">
+        <h1 class="page-title" style="margin:0;">Orders Details</h1>
+        <span class="status-badge status-<%= (order.orderStatus||'').toLowerCase() %>">
+          <%= order.orderStatus %>
+        </span>
+      </div>
+
+      <div class="content-grid">
+
+        <!-- LEFT COLUMN -->
         <div>
-          <h1 class="text-2xl font-bold text-gray-800">Order Details</h1>
-          <p class="text-sm text-gray-400 mt-0.5">Order #<%= String(order._id).slice(-5).toUpperCase() %> &bull; <%= new Date(order.createdAt).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) %></p>
-        </div>
 
-        <!-- Status Badge -->
-        <% const s = (order.orderStatus || '').toLowerCase(); %>
-        <% if (s === 'delivered') { %>
-          <span class="bg-badge-delivered text-white text-sm font-semibold px-4 py-1.5 rounded-lg">Delivered</span>
-        <% } else if (s === 'processing' || s === 'shipped') { %>
-          <span class="bg-badge-processing text-white text-sm font-semibold px-4 py-1.5 rounded-lg"><%= order.orderStatus %></span>
-        <% } else if (s === 'cancelled') { %>
-          <span class="bg-badge-cancelled text-white text-sm font-semibold px-4 py-1.5 rounded-lg">Cancelled</span>
-        <% } else { %>
-          <span class="bg-gray-500 text-white text-sm font-semibold px-4 py-1.5 rounded-lg"><%= order.orderStatus %></span>
-        <% } %>
-      </div>
+          <!-- Empty image placeholder (as per Figma) -->
+          <div class="img-placeholder"></div>
 
-      <div class="grid grid-cols-3 gap-6">
+          <!-- Product + Timeline card -->
+          <div class="card">
+            <div class="product-card">
 
-        <!-- LEFT COLUMN: Items + Timeline -->
-        <div class="col-span-2 space-y-5">
+              <!-- Product row: info + image -->
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:20px;">
+                <div style="flex:1;">
+                  <% const firstItem = order.items && order.items[0]; %>
+                  <p class="product-name"><%= firstItem?.productId?.productname || firstItem?.name || 'Product' %></p>
+                  <p class="product-price">₹ <%= (firstItem?.price || 0).toLocaleString('en-IN') %></p>
 
-          <!-- Order Items Card -->
-          <div class="bg-white rounded-xl shadow-sm overflow-hidden fade-in">
-            <div class="px-6 py-4 border-b border-gray-100">
-              <h2 class="text-sm font-semibold text-gray-700">
-                Ordered Items
-                <span class="ml-2 bg-gray-100 text-gray-500 text-xs font-medium px-2 py-0.5 rounded-full"><%= order.items.length %> item<%= order.items.length > 1 ? 's' : '' %></span>
-              </h2>
-            </div>
-            <div class="divide-y divide-gray-50">
-              <% order.items.forEach((item, idx) => { %>
-              <div class="flex items-center gap-5 px-6 py-4 hover:bg-gray-50 transition">
-                <!-- Product Image -->
-                <div class="w-20 h-20 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                  <% const imgArr = item.productId?.productImage; %>
-                  <% if (imgArr && imgArr.length > 0) { %>
-                    <img src="/<%= imgArr[0] %>" alt="<%= item.name %>" class="w-full h-full object-cover"/>
-                  <% } else { %>
-                    <div class="w-full h-full flex items-center justify-center text-gray-300">
-                      <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <!-- Timeline -->
+                  <div class="timeline">
+                    <%
+                      const steps = [
+                        { key: 'placed',            label: 'Order Confirmed' },
+                        { key: 'processing',        label: 'Processing'      },
+                        { key: 'shipped',           label: 'Shipped'         },
+                        { key: 'out_for_delivery',  label: 'Out For Delivery'},
+                        { key: 'delivered',         label: 'Delivered'       }
+                      ];
+                      const currentStatus = (order.orderStatus || '').toLowerCase();
+                      const currentIdx    = steps.findIndex(s => s.key === currentStatus);
+                      const isCancelled   = currentStatus === 'cancelled';
+                      const isReturned    = currentStatus === 'returned';
+
+                      const displaySteps = isCancelled
+                        ? [{ key:'placed', label:'Order Confirmed' }, { key:'cancelled', label:'Order Cancelled' }]
+                        : isReturned
+                        ? [{ key:'placed', label:'Order Confirmed' }, { key:'delivered', label:'Delivered' }, { key:'returned', label:'Returned' }]
+                        : steps;
+                    %>
+
+                    <% displaySteps.forEach((step, idx) => {
+                      const isLast   = idx === displaySteps.length - 1;
+                      const isDone   = !isCancelled && !isReturned && idx <= currentIdx;
+                      const isActive = !isCancelled && !isReturned && idx === currentIdx;
+                      const dotColor = isCancelled && step.key === 'cancelled' ? 'orange'
+                                     : isReturned  && step.key === 'returned'  ? 'orange'
+                                     : isDone ? 'green' : 'gray';
+                      const lineColor = isDone && !isLast ? 'green' : '';
+                      const date = idx === 0 ? new Date(order.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '';
+                    %>
+                    <div class="timeline-item">
+                      <div class="timeline-left">
+                        <div class="tl-dot <%= dotColor %>"></div>
+                        <% if (!isLast) { %><div class="tl-line <%= lineColor %>"></div><% } %>
+                      </div>
+                      <div class="timeline-text">
+                        <%= step.label %><% if (date) { %><span><%= date %></span><% } %>
+                      </div>
                     </div>
+                    <% }) %>
+
+                  </div>
+
+                  <a href="/admin/orders/<%= order._id %>/status" class="see-all">
+                    See all updates
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                  </a>
+                </div>
+
+                <!-- Product image -->
+                <div class="product-img-wrap">
+                  <% const imgArr = firstItem?.productId?.productImage; %>
+                  <% if (imgArr && imgArr.length > 0) { %>
+                    <% const imgSrc = imgArr[0].startsWith('/') ? imgArr[0] : '/' + imgArr[0]; %>
+                    <img src="<%= imgSrc %>" alt="product" onerror="this.style.visibility='hidden'"/>
                   <% } %>
-                </div>
-                <!-- Product Info -->
-                <div class="flex-1 min-w-0">
-                  <p class="font-semibold text-gray-800 text-sm truncate"><%= item.productId?.productname || item.name %></p>
-                  <% if (item.size) { %><p class="text-xs text-gray-400 mt-0.5">Size: <%= item.size %></p><% } %>
-                  <p class="text-xs text-gray-400 mt-0.5">Qty: <%= item.quantity %></p>
-                </div>
-                <!-- Price -->
-                <div class="text-right flex-shrink-0">
-                  <p class="font-bold text-gray-800">₹ <%= (item.price * item.quantity).toLocaleString('en-IN') %></p>
-                  <p class="text-xs text-gray-400 mt-0.5">₹ <%= item.price %> each</p>
                 </div>
               </div>
-              <% }) %>
-            </div>
-          </div>
 
-          <!-- Order Timeline Card -->
-          <div class="bg-white rounded-xl shadow-sm fade-in-delay">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 class="text-sm font-semibold text-gray-700">Order Timeline</h2>
-              <a href="/admin/orders/<%= order._id %>/status"
-                 class="flex items-center gap-1 text-btn-navy text-xs font-semibold hover:underline transition">
-                See all updates
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-              </a>
-            </div>
-            <div class="px-6 py-5 space-y-5">
-
-              <%
-                const statusSteps = [
-                  { key: 'placed',     label: 'Order Confirmed',  icon: '✓' },
-                  { key: 'processing', label: 'Processing',       icon: '⚙' },
-                  { key: 'shipped',    label: 'Shipped',          icon: '🚚' },
-                  { key: 'delivered',  label: 'Delivered',        icon: '📦' },
-                ];
-                const statusOrder = ['placed','processing','shipped','delivered','cancelled'];
-                const currentIdx  = statusOrder.indexOf((order.orderStatus || '').toLowerCase());
-              %>
-
-              <% if ((order.orderStatus || '').toLowerCase() === 'cancelled') { %>
-                <!-- Cancelled state -->
-                <div class="timeline-item pb-2">
-                  <div class="timeline-dot dot-done"></div>
-                  <p class="text-sm font-semibold text-gray-700">Order Placed</p>
-                  <p class="text-xs text-gray-400 mt-0.5"><%= new Date(order.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) %></p>
-                </div>
-                <div class="timeline-item pb-2">
-                  <div class="timeline-dot" style="background:#e53935;border-color:#e53935;"></div>
-                  <p class="text-sm font-semibold text-red-600">Order Cancelled</p>
-                  <p class="text-xs text-gray-400 mt-0.5">Order was cancelled</p>
-                </div>
-              <% } else { %>
-                <% statusSteps.forEach((step, i) => {
-                     const done   = i < currentIdx;
-                     const active = i === currentIdx;
-                %>
-                <div class="timeline-item pb-2">
-                  <div class="timeline-dot <%= done ? 'dot-done' : (active ? 'dot-active' : 'dot-future') %>"></div>
-                  <p class="text-sm font-semibold <%= done || active ? 'text-gray-800' : 'text-gray-400' %>">
-                    <%= step.label %>
+              <!-- All items if more than 1 -->
+              <% if (order.items.length > 1) { %>
+                <div style="border-top:1px solid #f0f0f0; padding-top:16px; margin-top:4px;">
+                  <p style="font-size:0.75rem; font-weight:800; color:#888; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;">
+                    All Items (<%= order.items.length %>)
                   </p>
-                  <% if (i === 0) { %>
-                    <p class="text-xs text-gray-400 mt-0.5">
-                      <%= new Date(order.createdAt).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) %>
-                    </p>
-                  <% } else if (done || active) { %>
-                    <p class="text-xs text-gray-400 mt-0.5">Completed</p>
-                  <% } else { %>
-                    <p class="text-xs text-gray-300 mt-0.5">Pending</p>
-                  <% } %>
+                  <% order.items.forEach((item, i) => { if (i === 0) return; %>
+                  <div style="display:flex; align-items:center; gap:12px; margin-bottom:10px;">
+                    <% const iImg = item.productId?.productImage; %>
+                    <% if (iImg && iImg.length > 0) { %>
+                      <img src="<%= iImg[0].startsWith('/') ? iImg[0] : '/' + iImg[0] %>"
+                           style="width:48px;height:48px;object-fit:contain;border-radius:8px;border:1px solid #f0f0f0;" />
+                    <% } %>
+                    <div style="flex:1;">
+                      <p style="font-size:0.85rem;font-weight:800;color:#111;margin:0;"><%= item.productId?.productname || item.name %></p>
+                      <p style="font-size:0.78rem;font-weight:600;color:#888;margin:2px 0 0;">Size: <%= item.size %> &bull; Qty: <%= item.quantity %></p>
+                    </div>
+                    <p style="font-size:0.88rem;font-weight:800;color:#111;">₹<%= ((item.price||0)*item.quantity).toLocaleString('en-IN') %></p>
+                  </div>
+                  <% }) %>
                 </div>
-                <% }) %>
               <% } %>
 
             </div>
           </div>
-
         </div>
 
         <!-- RIGHT COLUMN -->
-        <div class="space-y-5">
+        <div>
 
           <!-- Invoice Download -->
-          <a href="/admin/orders/<%= order._id %>/invoice"
-             class="bg-white rounded-xl shadow-sm flex items-center justify-between px-5 py-4 hover:shadow-md transition fade-in group">
-            <div class="flex items-center gap-3">
-              <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition">
-                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+          <div class="sidebar-card">
+            <a href="/admin/orders/<%= order._id %>/invoice" class="invoice-btn">
+              <div class="invoice-left">
+                <svg width="18" height="18" fill="none" stroke="#555" stroke-width="2" viewBox="0 0 24 24">
+                  <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                  <rect x="6" y="14" width="12" height="8"/>
                 </svg>
+                Invoice Download
               </div>
-              <span class="text-sm font-semibold text-gray-700">Invoice Download</span>
-            </div>
-            <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-
-          <!-- Shipping Details -->
-          <div class="bg-white rounded-xl shadow-sm fade-in">
-            <div class="px-5 py-4 border-b border-gray-100">
-              <h2 class="text-sm font-semibold text-gray-700">Shipping Details</h2>
-            </div>
-            <div class="px-5 py-4 space-y-1.5">
-              <p class="font-semibold text-gray-800 text-sm"><%= order.deliveryAddress?.name || order.userId?.name %></p>
-              <p class="text-xs text-gray-500 leading-relaxed">
-                <%= order.deliveryAddress?.houseName || '' %>
-                <% if(order.deliveryAddress?.houseName) { %>,<% } %>
-                <%= order.deliveryAddress?.place %>,
-                <%= order.deliveryAddress?.city || '' %>
-                <% if(order.deliveryAddress?.city) { %>,<% } %>
-                <%= order.deliveryAddress?.state || '' %> - <%= order.deliveryAddress?.pincode %>
-              </p>
-              <% if(order.deliveryAddress?.phone) { %>
-              <p class="text-xs text-gray-400 flex items-center gap-1.5 pt-1">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.22 2.18 2 2 0 012.22 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 7.09a16 16 0 006 6l.61-.61a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>
-                <%= order.deliveryAddress.phone %>
-              </p>
-              <% } %>
-              <% if(order.userId?.email) { %>
-              <p class="text-xs text-gray-400 flex items-center gap-1.5">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                <%= order.userId.email %>
-              </p>
-              <% } %>
-            </div>
+              <svg width="16" height="16" fill="none" stroke="#aaa" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
 
-          <!-- Payment Details -->
-          <div class="bg-white rounded-xl shadow-sm fade-in">
-            <div class="px-5 py-4 border-b border-gray-100">
-              <h2 class="text-sm font-semibold text-gray-700">Payment Details</h2>
-            </div>
-            <div class="px-5 py-3">
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Method</span>
-                <span class="text-xs font-semibold text-gray-700 uppercase"><%= order.paymentMethod %></span>
-              </div>
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Payment Status</span>
-                <% const ps = (order.paymentStatus || '').toLowerCase(); %>
-                <span class="text-xs font-semibold <%= ps === 'paid' ? 'text-green-600' : ps === 'pending' ? 'text-amber-500' : 'text-red-500' %>">
-                  <%= order.paymentStatus %>
-                </span>
-              </div>
+          <!-- Shipping Details -->
+          <div class="sidebar-card">
+            <div class="shipping-card-body">
+              <p class="shipping-label">Shipping Details</p>
+              <%
+                const addr = order.deliveryAddress || {};
+                const custName = order.userId
+                  ? ((order.userId.firstName||'') + ' ' + (order.userId.lastName||'')).trim() || order.userId.email
+                  : addr.name || '—';
+              %>
+              <p class="shipping-name"><%= custName %></p>
+              <p class="shipping-addr">
+                <%= addr.place || addr.addressLine || '—' %><br>
+                <% if (addr.town || addr.state) { %><%= addr.town || '' %><% if (addr.state) { %>, <%= addr.state %><% } %><br><% } %>
+                <% if (addr.pincode) { %>- <%= addr.pincode %><% } %>
+              </p>
             </div>
           </div>
 
           <!-- Price Details -->
-          <div class="bg-white rounded-xl shadow-sm fade-in">
-            <div class="px-5 py-4 border-b border-gray-100">
-              <h2 class="text-sm font-semibold text-gray-700">Price Details</h2>
-            </div>
-            <div class="px-5 py-3 space-y-0.5">
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Price (<%= order.items.length %> item<%= order.items.length > 1 ? 's' : '' %>)</span>
-                <span class="text-xs font-medium text-gray-700">₹ <%= (order.subtotal || 0).toLocaleString('en-IN') %></span>
+          <div class="sidebar-card">
+            <div class="price-card-body">
+              <p class="price-label">Price Details</p>
+
+              <div class="price-row">
+                <span class="price-row-label">Price (<%= order.items.length %> item<%= order.items.length !== 1 ? 's' : '' %>)</span>
+                <span class="price-row-value">₹ <%= (order.subtotal || 0).toLocaleString('en-IN') %></span>
               </div>
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Delivery Charges</span>
-                <% if (!order.deliveryCharge || order.deliveryCharge === 0) { %>
-                  <span class="text-xs font-semibold text-green-600">FREE</span>
-                <% } else { %>
-                  <span class="text-xs font-medium text-gray-700">₹ <%= order.deliveryCharge %></span>
-                <% } %>
+
+              <div class="price-row">
+                <span class="price-row-label">Delivery Charges</span>
+                <span class="price-row-value green"><%= (order.deliveryCharge || 0) > 0 ? '₹ ' + order.deliveryCharge : 'FREE' %></span>
               </div>
-              <% if (order.platformFee !== undefined) { %>
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Platform fee</span>
-                <span class="text-xs font-medium text-gray-700">₹ <%= order.platformFee %></span>
+
+              <div class="price-row">
+                <span class="price-row-label">Platform fee</span>
+                <span class="price-row-value">₹ 0</span>
               </div>
-              <% } %>
-              <% if (order.deliveryTip !== undefined && order.deliveryTip > 0) { %>
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Delivery tip</span>
-                <span class="text-xs font-medium text-gray-700">₹ <%= order.deliveryTip %></span>
+
+              <% if (order.discount > 0) { %>
+              <div class="price-row">
+                <span class="price-row-label">Discount</span>
+                <span class="price-row-value" style="color:#ef4444;">− ₹ <%= order.discount.toLocaleString('en-IN') %></span>
               </div>
               <% } %>
-              <% if (order.discount && order.discount > 0) { %>
-              <div class="flex items-center justify-between py-1.5">
-                <span class="text-xs text-gray-500">Discount</span>
-                <span class="text-xs font-semibold text-green-600">- ₹ <%= order.discount %></span>
-              </div>
-              <% } %>
-              <div class="border-t border-gray-100 mt-2 pt-3 flex items-center justify-between">
-                <span class="text-sm font-bold text-gray-800">Total Amount</span>
-                <span class="text-sm font-bold text-gray-900">₹ <%= (order.total || 0).toLocaleString('en-IN') %></span>
+
+              <div class="price-divider"></div>
+
+              <div class="price-row">
+                <span class="price-total-label">Total Amount</span>
+                <span class="price-total-value">₹ <%= (order.total || 0).toLocaleString('en-IN') %></span>
               </div>
             </div>
           </div>
+
+          <!-- Update Status -->
+          <a href="/admin/orders/<%= order._id %>/status" class="btn-update-status">
+            Update Order Status →
+          </a>
 
         </div>
       </div>
@@ -405,3 +415,12 @@
 
 </body>
 </html>
+
+
+
+
+const order = await order.findOne(
+  {$and:{
+    [orderStatus:'delivered',orderMethod:'COD']
+  }}
+)

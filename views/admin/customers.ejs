@@ -10,347 +10,117 @@
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
   <style>
+    :root {
+      --primary-color: #6366f1;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      --info-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      --bg-active: var(--primary-gradient);
+    }
+
     * { font-family: 'Nunito', sans-serif; box-sizing: border-box; }
-    body { background: #f0f0f0; margin: 0; }
+    body { background: #f0f2f5; margin: 0; color: #334155; }
 
     /* ── Topbar ── */
-    .topbar {
-      background: #d4d4d4;
-      height: 72px;
-      display: flex;
-      align-items: center;
-      padding: 0 28px;
-      gap: 20px;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .topbar-logo img { width: 58px; height: 58px; object-fit: contain; }
-    .topbar-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; }
-    .icon-circle {
-      width: 42px; height: 42px; border-radius: 50%;
-      background: #fff; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; position: relative;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-    .notif-badge {
-      position: absolute; top: 6px; right: 6px;
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #e63946; border: 1.5px solid #fff;
-    }
+    .topbar { background: #fff; height: 72px; display: flex; align-items: center; padding: 0 32px; gap: 20px; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .topbar-logo img { width: 52px; height: 52px; object-fit: contain; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+    .icon-circle { width: 40px; height: 40px; border-radius: 12px; background: #f8fafc; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; border: 1px solid #e2e8f0; }
+    .icon-circle:hover { background: #fff; transform: translateY(-1px); border-color: var(--primary-color); color: var(--primary-color); }
+    .avatar img { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; border: 2px solid var(--primary-color); }
 
     /* ── Layout ── */
     .layout { display: flex; min-height: calc(100vh - 72px); }
+    .main { flex: 1; padding: 40px; background: #f0f2f5; }
 
-    /* ── Sidebar ── */
-    .sidebar {
-      width: 200px;
-      flex-shrink: 0;
-      padding: 28px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 16px; border-radius: 10px;
-      font-size: 0.97rem; font-weight: 600; color: #333;
-      cursor: pointer; text-decoration: none;
-      transition: background 0.15s;
-    }
-    .nav-item:hover { background: rgba(0,0,0,0.06); }
-    .nav-item.active { background: #e63946; color: #fff; }
-    .nav-item.active svg { stroke: #fff; }
-    .nav-item.signout { color: #e63946; }
-    .nav-item.signout svg { stroke: #e63946; }
+    /* ── Header Section ── */
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+    .page-title { font-size: 1.85rem; font-weight: 800; color: #1e293b; letter-spacing: -0.02em; }
 
-    /* ── Main ── */
-    .main { flex: 1; padding: 28px 28px 40px 20px; }
-
-    /* ── Page header ── */
-    .page-header {
-      display: flex; align-items: center; gap: 14px;
-      margin-bottom: 20px;
-    }
-    .page-title { font-size: 1.7rem; font-weight: 900; color: #111; }
-
+    /* ── Search Wrap ── */
     .search-wrap {
-      display: flex; align-items: center;
-      background: #fff; border: 1.5px solid #e5e7eb;
-      border-radius: 8px; padding: 8px 14px; gap: 8px;
-      width: 260px;
+      display: flex; align-items: center; background: #fff; border: 2px solid #e2e8f0;
+      border-radius: 16px; padding: 0 18px; width: 340px; height: 52px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .search-wrap:focus-within { border-color: var(--primary-color); box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.1); transform: translateY(-1px); }
     .search-wrap input {
-      border: none; outline: none; font-size: 0.88rem;
-      font-weight: 500; color: #555; background: transparent; width: 100%;
+      border: none; outline: none; padding: 10px 12px; font-size: 0.95rem;
+      font-weight: 600; color: #1e293b; width: 100%; background: transparent;
     }
-    .search-wrap input::placeholder { color: #bbb; }
+    .search-wrap input::placeholder { color: #94a3b8; }
 
-    /* ── Sort button ── */
-    .sort-wrap {
-      display: flex; align-items: center; gap: 6px;
-      background: #fff; border: 1.5px solid #e5e7eb;
-      border-radius: 8px; padding: 8px 14px;
-      cursor: pointer; position: relative;
-    }
-    .sort-wrap span {
-      font-size: 0.88rem; font-weight: 700; color: #444;
-      white-space: nowrap;
-    }
-    .sort-dropdown {
-      display: none;
-      position: absolute; top: calc(100% + 6px); right: 0;
-      background: #fff; border: 1.5px solid #e5e7eb;
-      border-radius: 8px; overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      z-index: 100; min-width: 130px;
-    }
-    .sort-wrap:focus-within .sort-dropdown,
-    .sort-wrap.open .sort-dropdown { display: block; }
-    .sort-option {
-      padding: 10px 16px; font-size: 0.86rem; font-weight: 700;
-      color: #333; cursor: pointer; transition: background 0.12s;
-      white-space: nowrap;
-    }
-    .sort-option:hover { background: #f5f5f5; }
-    .sort-option.selected { color: #22c55e; }
-
-    /* ── Table card ── */
+    /* ── Table Card ── */
     .table-card {
-      background: #fff;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      background: #fff; border-radius: 28px; border: 1px solid #e2e8f0;
+      overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
     }
-
-    /* Table */
     table { width: 100%; border-collapse: collapse; }
-
-    thead tr { background: #22c55e; }
-    thead th {
-      padding: 14px 18px;
-      font-size: 0.88rem; font-weight: 800;
-      color: #fff; text-align: left;
+    th {
+      background: #f8fafc; padding: 22px 20px; text-align: left;
+      font-size: 0.75rem; font-weight: 800; color: #64748b;
+      text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid #e2e8f0;
     }
-    thead th.center { text-align: center; }
+    td { padding: 22px 20px; font-size: 0.95rem; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fcfdfe; }
 
-    tbody tr {
-      border-bottom: 1px solid #f3f3f3;
-      transition: background 0.12s;
-    }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #fafafa; }
+    .center { text-align: center; }
 
-    tbody td {
-      padding: 13px 18px;
-      font-size: 0.88rem; font-weight: 600; color: #333;
-      vertical-align: middle;
-    }
-    tbody td.center { text-align: center; }
-
-    .customer-name { font-weight: 700; color: #111; }
-
-    /* ── Toggle switch ── */
-    .toggle-wrap { display: flex; justify-content: center; }
-    .toggle {
-      position: relative; display: inline-block;
-      width: 46px; height: 26px;
-    }
+    /* ── Toggle Switch ── */
+    .toggle { position: relative; display: inline-block; width: 46px; height: 24px; }
     .toggle input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer;
-      inset: 0; background: #ccc;
-      border-radius: 999px;
-      transition: background 0.25s;
-    }
-    .slider::before {
-      content: '';
-      position: absolute;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: #fff; left: 3px; top: 3px;
-      transition: transform 0.25s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-    .toggle input:checked + .slider { background: #22c55e; }
-    .toggle input:checked + .slider::before { transform: translateX(20px); }
-    .toggle input:not(:checked) + .slider { background: #e63946; }
+    .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 20px; transition: 0.3s; }
+    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    input:checked + .slider { background: var(--success-gradient); }
+    input:checked + .slider:before { transform: translateX(22px); }
 
     /* ── Pagination ── */
     .pagination-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 16px 20px; border-top: 1px solid #f0f0f0;
-      position: relative;
-    }
-    .show-result {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.82rem; font-weight: 700; color: #555;
-    }
-    .show-result select {
-      border: 1.5px solid #ddd; border-radius: 6px;
-      padding: 3px 8px; font-size: 0.82rem; font-weight: 700;
-      color: #333; font-family: 'Nunito', sans-serif;
-      outline: none; cursor: pointer;
-    }
-
-    .page-nums {
-      display: flex; align-items: center; gap: 4px;
-      position: absolute; left: 50%; transform: translateX(-50%);
+      padding: 24px 32px; background: #fcfdfe; border-top: 1px solid #f1f5f9;
     }
     .page-btn {
-      width: 30px; height: 30px; border-radius: 6px;
-      border: none; background: none; cursor: pointer;
-      font-size: 0.82rem; font-weight: 700; color: #555;
-      display: flex; align-items: center; justify-content: center;
-      text-decoration: none;
-      transition: background 0.15s;
+      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; font-weight: 800; color: #64748b; text-decoration: none; transition: all 0.2s;
     }
-    .page-btn:hover { background: #f0f0f0; }
-    .page-btn.active { background: #22c55e; color: #fff; }
-    .page-btn.arrow { color: #888; font-size: 1rem; }
-
-    /* spacer so show-result doesn't collapse */
-    .pagination-spacer { visibility: hidden; pointer-events: none; }
-    .pagination-spacer .show-result select { pointer-events: none; }
+    .page-btn:hover:not(.disabled) { background: #f1f5f9; color: var(--primary-color); }
+    .page-btn.active { background: var(--primary-gradient); color: #fff; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); }
+    .page-btn.disabled { opacity: 0.4; cursor: not-allowed; }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
-  <!-- ═══════════════ TOPBAR ═══════════════ -->
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">
-      <img src="/img/pes.logo.png" alt="2ES Logo" />
-    </div>
-   
-      
-    <div class="icon-circle" style="overflow:hidden; margin-left: auto;">
-      <img src="/img/adminLogo.jpg" alt="Admin" style="width:42px;height:42px;object-fit:cover;border-radius:50%;" />
+    <div class="topbar-logo"><img src="/img/pes.logo.png" alt="2ES Logo" /></div>
+    <div class="topbar-actions">
+      <div class="icon-circle"><svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div class="avatar"><img src="/images/admin-avatar.jpg" alt="Admin" /></div>
     </div>
   </div>
 
-  <!-- ═══════════════ LAYOUT ═══════════════ -->
   <div class="layout">
-
-    <!-- ── SIDEBAR ── -->
-    <aside class="sidebar">
-      <a href="/admin/dashboard" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-        </svg>
-        Dashboard
-      </a>
-      <a href="/admin/orders" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-          <line x1="3" y1="6" x2="21" y2="6"/>
-          <path d="M16 10a4 4 0 0 1-8 0"/>
-        </svg>
-        Order
-      </a>
-      <a href="/admin/products" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
-        </svg>
-        Products
-      </a>
-      <a href="/admin/sales" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
-        </svg>
-        Sales report
-      </a>
-      <a href="/admin/customers" class="nav-item active">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        Customer
-      </a>
-      <a href="/admin/coupons" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-          <line x1="7" y1="7" x2="7.01" y2="7"/>
-        </svg>
-        Coupon
-      </a>
-      <a href="/admin/categories" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
-        </svg>
-        Category
-      </a>
-      <a href="/admin/refunds" class="nav-item">
-        <svg width="18" height="18" fill="none" stroke="#333" stroke-width="2.2" viewBox="0 0 24 24">
-          <polyline points="1 4 1 10 7 10"/>
-          <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
-        </svg>
-        Refund/Return
-      </a>
-      <a href="/admin/logout" class="nav-item signout">
-        <svg width="18" height="18" fill="none" stroke-width="2.2" viewBox="0 0 24 24">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-          <polyline points="16 17 21 12 16 7"/>
-          <line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-        Sign Out
-      </a>
-    </aside>
+    <%- include('../partials/admin/sidebar.ejs', { activePage: 'customers' }) %>
 
     <!-- ── MAIN ── -->
     <main class="main">
-
-      <!-- Page Header -->
       <div class="page-header">
-        <h1 class="page-title">Customer</h1>
-
-        <!-- Search -->
-      <div class="search-wrap">
-  <svg width="16" height="16" fill="none" stroke="#bbb" stroke-width="2.2" viewBox="0 0 24 24">
-    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-  </svg>
-  <input 
-    type="text" 
-    id="searchInput" 
-    placeholder="Search here" 
-    value="<%= search || '' %>"
-    onkeydown="if(event.key === 'Enter') doSearch()"
-  />
-  <span id="clearBtn" onclick="clearSearch()" 
-    style="cursor:pointer; display:<%= search ? 'flex' : 'none' %>; align-items:center;">
-    <svg width="16" height="16" fill="none" stroke="#aaa" stroke-width="2.2" viewBox="0 0 24 24">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
-    </svg>
-  </span>
-  <span onclick="doSearch()" style="cursor:pointer; display:flex; align-items:center;">
-    <svg width="16" height="16" fill="none" stroke="#22c55e" stroke-width="2.5" viewBox="0 0 24 24">
-      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-    </svg>
-  </span>
-</div>
-
-        <!-- Sort -->
-        <div class="sort-wrap" id="sortWrap" onclick="toggleSort(event)">
-          <svg width="16" height="16" fill="none" stroke="#444" stroke-width="2.2" viewBox="0 0 24 24">
-            <line x1="3" y1="6" x2="21" y2="6"/>
-            <line x1="6" y1="12" x2="18" y2="12"/>
-            <line x1="9" y1="18" x2="15" y2="18"/>
-          </svg>
-          <span id="sortLabel">Sort by</span>
-          <svg width="14" height="14" fill="none" stroke="#888" stroke-width="2.2" viewBox="0 0 24 24">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-          <div class="sort-dropdown" id="sortDropdown">
-            <div class="sort-option" onclick="applySort('az', event)">A → Z</div>
-            <div class="sort-option" onclick="applySort('za', event)">Z → A</div>
-            <div class="sort-option" onclick="applySort('none', event)">Default</div>
+        <h1 class="page-title">Customers</h1>
+        <div class="header-actions">
+          <div class="search-wrap">
+            <svg width="18" height="18" fill="none" stroke="#94a3b8" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="Search customers..."
+              value="<%= search || '' %>"
+              onkeydown="if(event.key === 'Enter') doSearch()" />
+            <% if (search) { %>
+              <span id="clearBtn" onclick="clearSearch()" style="cursor:pointer; display: flex; align-items: center;">
+                <svg width="16" height="16" fill="none" stroke="#94a3b8" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+            <% } %>
           </div>
         </div>
       </div>
@@ -456,52 +226,36 @@
    let pendingId = null;
 let pendingCheckbox = null;
 
-function toggleStatus(id, checkbox) {
+async function toggleStatus(id, checkbox) {
   const isBlocked = !checkbox.checked;
   const action = isBlocked ? 'Block' : 'Unblock';
-
-  // store pending action
-  pendingId = id;
-  pendingCheckbox = checkbox;
-
-  // revert checkbox visually until confirmed
   checkbox.checked = !checkbox.checked;
 
-  // show modal
-  document.getElementById('modalMessage').textContent = `Are you sure you want to ${action} this customer?`;
-  document.getElementById('confirmBtn').style.background = isBlocked ? '#e63946' : '#22c55e';
-  const modal = document.getElementById('confirmModal');
-  modal.style.display = 'flex';
-}
+  const result = await Swal.fire({
+    title: `${action} Customer?`,
+    text: `Are you sure you want to ${action.toLowerCase()} this customer?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: isBlocked ? '#ef4444' : '#22c55e',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: `Yes, ${action}`,
+    heightAuto: false
+  });
 
-function cancelToggle() {
-  document.getElementById('confirmModal').style.display = 'none';
-  pendingId = null;
-  pendingCheckbox = null;
-}
+  if (!result.isConfirmed) return;
 
-async function confirmToggle() {
-  if (!pendingId) return;
   try {
-    const res = await fetch(`/admin/customers/${pendingId}/toggle-status`, {
-      method: 'PATCH'
-    });
-    const contentType = res.headers.get('content-type') || '';
-    const data = contentType.includes('application/json')
-      ? await res.json()
-      : { success: false, message: 'Unexpected response from server' };
-
+    const res = await fetch(`/admin/customers/${id}/toggle-status`, { method: 'PATCH' });
+    const data = await res.json();
     if (data.success) {
-      pendingCheckbox.checked = !pendingCheckbox.checked; // apply the toggle
+      checkbox.checked = !checkbox.checked;
+      Swal.fire({ icon: 'success', title: `Customer ${isBlocked ? 'Blocked' : 'Unblocked'}`, timer: 1500, showConfirmButton: false, heightAuto: false });
     } else {
-      alert(data.message || 'Failed to update status');
+      Swal.fire({ icon: 'error', title: 'Error', text: data.message || 'Failed to update status', heightAuto: false });
     }
   } catch (error) {
-    alert('Something went wrong');
+    Swal.fire({ icon: 'error', title: 'Error', text: 'Something went wrong', heightAuto: false });
   }
-  document.getElementById('confirmModal').style.display = 'none';
-  pendingId = null;
-  pendingCheckbox = null;
 }
 
     // Live search filter
