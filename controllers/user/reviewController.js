@@ -29,7 +29,7 @@ const uploadToCloudinary = (buffer, folder = 'reviews')=>
 const checkReviewEligibility = async(req,res)=>{
     try {
         const userId = req.session.userId
-        const product = req.params.id;
+        const productId = req.params.id;
 
         if(!userId) return res.status(401).json({success:false,message:'Login required'})
 

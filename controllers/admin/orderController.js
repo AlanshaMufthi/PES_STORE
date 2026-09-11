@@ -28,7 +28,7 @@ const loadOrderManagement = async (req, res) => {
         const andConditions = []
         if (search) {
             const searchRegex = new RegExp(search, 'i')
-            // FIX: search by firstName OR lastName OR email — not 'name' field
+            
             const matchingUsers = await User.find({
                 $or: [
                     { firstName: searchRegex },
@@ -67,7 +67,7 @@ const loadOrderManagement = async (req, res) => {
         const orders = rawOrders.map((order) => ({
             _id: order._id,
             orderId: order.orderId || String(order._id).slice(-8).toUpperCase(),
-            // FIX: build full name from firstName/lastName
+          
             customerName: order.userId
                 ? `${order.userId.firstName || ''} ${order.userId.lastName || ''}`.trim() || order.userId.email
                 : order.deliveryAddress?.name || 'Unknown',
@@ -81,7 +81,7 @@ const loadOrderManagement = async (req, res) => {
             price: (order.total || 0).toLocaleString('en-IN')
         }))
 
-        res.render('orderManagement', {
+        res.render('order-Management', {
             orders, totalCount, currentPage: page,
             totalPages, limit, search, statusFilter, sortBy
         })
@@ -101,7 +101,7 @@ const loadOrderDetails = async (req, res) => {
         if (!order) return res.redirect('/admin/orders')
 
         // FIX: was 'admin/orderDetails' → double path crash
-        res.render('orderDetails', { order })
+        res.render('order-Details', { order })
     } catch (error) {
         console.log('loadOrderDetails Error : ', error)
         res.redirect('/admin/pageNotFound')
@@ -118,7 +118,7 @@ const loadOrderStatus = async (req, res) => {
         if (!order) return res.redirect('/admin/orders')
 
         // FIX: was 'admin/orderStatus' → double path crash
-        res.render('orderStatus', { order })
+        res.render('order-Status', { order })
     } catch (error) {
         console.log('loadOrderStatus Error : ', error)
         res.redirect('/admin/pageNotFound')

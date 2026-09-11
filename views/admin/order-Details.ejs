@@ -419,8 +419,3 @@
 
 
 
-const order = await order.findOne(
-  {$and:{
-    [orderStatus:'delivered',orderMethod:'COD']
-  }}
-)
