@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us | PES Sports</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    * { font-family: 'Raleway', sans-serif; }
+    .stat-card { border:1px solid #e5e7eb; border-radius:10px; padding:28px 20px; text-align:center; }
+    .stat-card.dark { background:#111; color:#fff; border-color:#111; }
+    .stat-icon { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; background:#f3f4f6; }
+    .stat-card.dark .stat-icon { background:#1f1f1f; }
+  </style>
+</head>
+<body class="bg-white text-gray-900">
+
+<%- include('../partials/user/header.ejs', { page: 'about' }) %>
+
+<main class="max-w-6xl mx-auto px-4 py-14">
+
+  <!-- Our Story -->
+  <div class="grid md:grid-cols-2 gap-12 items-start mb-20">
+    <div>
+      <h1 class="text-5xl font-extrabold mb-6">Our Story</h1>
+
+      <div class="space-y-5 text-[15px] leading-relaxed text-gray-700">
+        <p>
+          At PES Sports, we believe every player deserves the gear that fuels confidence
+          and performance. The right pair of boots is more than equipment — it's a
+          reflection of passion, ambition, and the drive to stand out on the pitch.
+        </p>
+        <p>
+          Born from a love for the game, PES Sports is your destination for boots
+          inspired by football's greatest moments and players. Whether you're competing
+          in matches, training hard, or playing casually with friends, we offer boots
+          designed to match every playing style.
+        </p>
+        <p>
+          What makes PES Sports special? Inspiration meets performance. Our collection
+          brings you boots influenced by legendary players and iconic moments, helping
+          you step onto the field with confidence while creating your own story.
+        </p>
+        <p>
+          From premium materials to performance-focused designs, every pair is selected
+          to deliver comfort, durability, and control. Whether it's match day or
+          practice, our boots are made to support every move you make.
+        </p>
+        <p class="font-semibold text-gray-900">
+          Welcome to PES Sports — where every step brings you closer to playing like
+          your hero.
+        </p>
+      </div>
+    </div>
+
+    <div class="rounded-xl overflow-hidden shadow-sm">
+      <img
+        src="/img/Toni kroos (1).jpg"
+        alt="PES Sports"
+        class="w-full h-full object-cover"
+        onerror="this.src='/images/default-banner.png'"
+      />
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid sm:grid-cols-3 gap-6">
+    <div class="stat-card dark">
+      <div class="stat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5c0-1.1 1.34-2 3-2s3 .9 3 2-1.34 2-3 2-3 .9-3 2 1.34 2 3 2 3-.9 3-2"/>
+        </svg>
+      </div>
+      <p class="text-3xl font-extrabold"><%= typeof stats !== 'undefined' ? stats.monthlySales : '33k' %></p>
+      <p class="text-sm text-gray-300 mt-1">Monthly Product Sale</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2">
+          <rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8h18M12 8V4M8 4h8"/>
+        </svg>
+      </div>
+      <p class="text-3xl font-extrabold"><%= typeof stats !== 'undefined' ? stats.activeCustomers : '45.5k' %></p>
+      <p class="text-sm text-gray-500 mt-1">Customer active in our site</p>
+    </div>
+
+    <div class="stat-card dark">
+      <div class="stat-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2a5 5 0 0 0-5 5v2H5l-1 12h16L19 9h-2V7a5 5 0 0 0-5-5Z"/><path d="M9 9a3 3 0 0 0 6 0"/>
+        </svg>
+      </div>
+      <p class="text-3xl font-extrabold"><%= typeof stats !== 'undefined' ? stats.annualSales : '25k' %></p>
+      <p class="text-sm text-gray-300 mt-1">Anual gross sale in our site</p>
+    </div>
+  </div>
+
+</main>
+
+<%- include('../partials/user/footer.ejs') %>
+
+</body>
+</html>

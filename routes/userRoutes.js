@@ -17,6 +17,7 @@ import {userAuth,userGuest} from '../middlewares/auth.js'
 import { loadCheckout, placeOrder, loadOrderSuccess } from '../controllers/user/checkoutController.js';
 import { loadOrders, loadOrderDetails, loadOrderTracking, cancelItem, returnItem, cancelOrder,
         returnOrder, downloadInvoice } from '../controllers/user/orderController.js';
+import { loadAbout } from '../controllers/user/aboutController.js'     
 
 
 
@@ -98,7 +99,8 @@ router.post('/orders/:orderId/cancel-item', userAuth, cancelItem)
 router.post('/orders/:orderId/return-item', userAuth, returnItem)
 router.post('/orders/:orderId/cancel', userAuth, cancelOrder) 
 router.post('/orders/:orderId/return', userAuth, returnOrder) 
-
+//About
+router.get('/about',loadAbout)
 
 
 
